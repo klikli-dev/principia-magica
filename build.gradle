@@ -1,0 +1,166 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version "${moddevgradle_version}"
+    id 'idea'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+if (System.getenv('MOD_VERSION') != null) {
+    mod_version = System.getenv('MOD_VERSION')
+}
+
+version = mod_version
+group = mod_group_id
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+    exclude("**/*.bbmodel")
+    exclude("src/generated/**/.cache")
+}
+
+base {
+    archivesName = "${mod_id}-${minecraft_version}-neoforge"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+java.withSourcesJar()
+
+neoForge {
+    version = project.neo_version
+
+    runs {
+        client {
+            client()
+
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            programArguments.add "--username=Dev"
+            programArguments.add "--quickPlaySingleplayer"
+            programArguments.add "New World"
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            clientData()
+
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+            jvmArguments.addAll('-XX:+AllowEnhancedClassRedefinition', '-XX:+IgnoreUnrecognizedVMOptions')
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    jarJar(implementation(group: 'com.klikli_dev', name: "magicparticleslib-${minecraft_version}-neoforge")) {
+        version {
+            prefer magic_particles_lib_version
+        }
+    }
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'https://dl.cloudsmith.io/public/klikli-dev/mods/maven/'
+        content {
+            includeGroup 'com.klikli_dev'
+        }
+    }
+}
+
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = base.archivesName.get()
+
+            from components.java
+
+            pom {
+                name = mod_name
+                description = mod_description
+                url = 'https://github.com/klikli-dev/principia-magica/'
+                licenses {
+                    license {
+                        name = mod_license
+                        url = 'https://github.com/klikli-dev/principia-magica#licensing'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:ssh:git@github.com:klikli-dev/principia-magica.git'
+                    url = 'https://github.com/klikli-dev/principia-magica'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'cloudsmith'
+            def releasesRepoUrl = 'https://maven.cloudsmith.io/klikli-dev/mods/'
+            def snapshotsRepoUrl = 'https://maven.cloudsmith.io/klikli-dev/mods/'
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = System.getenv('MAVEN_USER')
+                password = System.getenv('MAVEN_PASS')
+            }
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
