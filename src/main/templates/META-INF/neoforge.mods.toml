@@ -11,8 +11,32 @@ authors = "${mod_authors}"
 description = '''${mod_description}'''
 
 [[dependencies.${mod_id}]]
-    modId="neoforge"
-    type="required"
-    versionRange="[${neo_version},)"
-    ordering="NONE"
-    side="BOTH"
+modId="neoforge"
+type="required"
+versionRange="[${neo_version},)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.${ mod_id }]]
+modId = "modonomicon"
+type = "required"
+versionRange = "[${modonomicon_version},)"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "codedefinedgui"
+type = "required"
+versionRange = "[${code_defined_gui_version},)"
+side = "BOTH"
+
+[[dependencies.${ mod_id }]]
+modId = "jei"
+type = "optional"
+versionRange = "[${jei_version},)"
+side = "BOTH"
+
+[[dependencies.${ mod_id }]]
+modId = "jade"
+type = "optional"
+versionRange = "[${jade_version},)"
+side = "BOTH"
