@@ -89,10 +89,11 @@ jobs:
 
       - name: Publish to Modrinth
         if: ${{ env.MODRINTH_MOD_ID != '' && env.MODRINTH_TOKEN != '' }}
-        uses: Kir-Antipov/mc-publish@v3.3.0
+        uses: Kir-Antipov/mc-publish@v3
         with:
           modrinth-id: ${{ env.MODRINTH_MOD_ID }}
           modrinth-token: ${{ env.MODRINTH_TOKEN }}
+          environment: client | server
           files: |
             build/libs/principiamagica-${{ steps.get_mc_version.outputs.result }}-neoforge-${{ steps.get_version.outputs.result }}.jar
             build/libs/principiamagica-${{ steps.get_mc_version.outputs.result }}-neoforge-${{ steps.get_version.outputs.result }}-sources.jar
@@ -115,10 +116,11 @@ jobs:
             jade(optional)
       - name: Publish to CurseForge
         if: ${{ env.CURSEFORGE_MOD_ID != '' && env.CURSEFORGE_TOKEN != '' }}
-        uses: Kir-Antipov/mc-publish@v3.3.0
+        uses: Kir-Antipov/mc-publish@v3
         with:
           curseforge-id: ${{ env.CURSEFORGE_MOD_ID }}
           curseforge-token: ${{ env.CURSEFORGE_TOKEN }}
+          environment: client | server
           files: |
             build/libs/principiamagica-${{ steps.get_mc_version.outputs.result }}-neoforge-${{ steps.get_version.outputs.result }}.jar
             build/libs/principiamagica-${{ steps.get_mc_version.outputs.result }}-neoforge-${{ steps.get_version.outputs.result }}-sources.jar
