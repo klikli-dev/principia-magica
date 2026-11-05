@@ -1,4 +1,6 @@
 {
+  "advancements.principiamagica.the_clay_remembers.description": "Something was pressed into this clay long ago. You should write it down.",
+  "advancements.principiamagica.the_clay_remembers.title": "The Clay Remembers",
   "attribute.principiamagica.golem_inventory_slots": "Golem Inventory Slots",
   "attribute.principiamagica.golem_work_range": "Golem Work Range",
   "attribute.principiamagica.golem_work_speed": "Golem Work Speed",
@@ -78,6 +80,7 @@
   "item.principiamagica.golem": "Golem",
   "item.principiamagica.golem_baton": "Golem Baton",
   "item.principiamagica.lumberjack_core": "Lumberjack Core",
+  "item.principiamagica.principia": "Principia",
   "item.principiamagica.swiftness_upgrade": "Swiftness Upgrade",
   "itemGroup.principiamagica": "Principia Magica",
   "job_option.principiamagica.bonemeal": "Apply bone meal to crops",

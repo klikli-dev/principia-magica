@@ -25,6 +25,7 @@ public class CreativeModeTabRegistry {
                 output.accept(GolemItem.createStack(GolemSpec.of(GolemMaterialRegistry.WOOD)));
                 output.accept(GolemItem.createStack(GolemSpec.of(GolemMaterialRegistry.STONE)));
                 output.accept(GolemItem.createStack(GolemSpec.of(GolemMaterialRegistry.METAL)));
+                output.accept(ItemRegistry.PRINCIPIA.get());
                 output.accept(ItemRegistry.GOLEM_BATON.get());
                 output.accept(ItemRegistry.FARMING_CORE.get());
                 output.accept(ItemRegistry.LUMBERJACK_CORE.get());

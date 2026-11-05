@@ -1,0 +1,38 @@
+{
+  "criteria": {
+    "has_clay_ball": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:clay_ball"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "description": {
+      "translate": "advancements.principiamagica.the_clay_remembers.description"
+    },
+    "icon": {
+      "id": "minecraft:clay_ball"
+    },
+    "title": {
+      "translate": "advancements.principiamagica.the_clay_remembers.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_clay_ball"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "principiamagica:principia"
+    ]
+  },
+  "sends_telemetry_event": true
+}

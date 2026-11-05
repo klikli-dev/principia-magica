@@ -214,8 +214,21 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PERSISTENCE_SAVE_AND_LOAD_KEEPS_EVERYTHING =
             TEST_FUNCTIONS.register("persistence_save_and_load_keeps_everything", () -> PersistenceGameTests::saveAndLoadKeepsEverything);
 
+    // --- Progression ---
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CLAY_ADVANCEMENT_AND_PRINCIPIA_RECIPE_EXIST =
+            TEST_FUNCTIONS.register("clay_advancement_and_principia_recipe_exist", () -> ProgressionGameTests::clayAdvancementAndPrincipiaRecipeExist);
+
     public static void onRegisterGameTests(RegisterGameTestsEvent event) {
         registerGolemTests(event);
+        registerProgressionTests(event);
+    }
+
+    private static void registerProgressionTests(RegisterGameTestsEvent event) {
+        var environment = event.registerEnvironment(PrincipiaMagica.loc("progression"));
+        var structure = PrincipiaMagica.loc("golem_test");
+
+        registerTest(event, CLAY_ADVANCEMENT_AND_PRINCIPIA_RECIPE_EXIST, environment, structure, 40, 0);
     }
 
     private static void registerGolemTests(RegisterGameTestsEvent event) {

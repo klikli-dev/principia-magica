@@ -11,11 +11,14 @@ import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemUpgradeItem;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.job.lumberjack.LumberjackJob;
+import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class ItemRegistry {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(PrincipiaMagica.MODID);
+
+    public static final DeferredItem<PrincipiaItem> PRINCIPIA = ITEMS.registerItem("principia", p -> new PrincipiaItem(p.stacksTo(1)));
 
     public static final DeferredItem<GolemItem> GOLEM = ITEMS.registerItem("golem", p -> new GolemItem(p.stacksTo(16)));
 

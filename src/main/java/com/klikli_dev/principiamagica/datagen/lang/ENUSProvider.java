@@ -18,6 +18,10 @@ public class ENUSProvider extends LanguageProvider {
         this.add("modmenu.nameTranslation.principiamagica", "Principia Magica");
         this.add("itemGroup.principiamagica", "Principia Magica");
 
+        this.add("advancements.principiamagica.the_clay_remembers.title", "The Clay Remembers");
+        this.add("advancements.principiamagica.the_clay_remembers.description", "Something was pressed into this clay long ago. You should write it down.");
+        this.add("item.principiamagica.principia", "Principia");
+
         this.add("golem_material.principiamagica.wood", "Wood");
         this.add("golem_material.principiamagica.stone", "Stone");
         this.add("golem_material.principiamagica.metal", "Metal");
