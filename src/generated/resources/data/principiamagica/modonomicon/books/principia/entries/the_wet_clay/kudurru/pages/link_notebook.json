@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "link_notebook",
+  "show_title_separator": true,
+  "sort_number": 8,
+  "text": "book.principiamagica.principia.the_wet_clay.kudurru.link_notebook.text",
+  "title": "book.principiamagica.principia.the_wet_clay.kudurru.link_notebook.title"
+}

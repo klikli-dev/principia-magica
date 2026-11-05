@@ -84,6 +84,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CONTAINER_LINK_CYCLES =
             TEST_FUNCTIONS.register("container_link_cycles", () -> StylusGameTests::containerLinkCycles);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> REMOVE_LINK_KEEPS_FOOTPRINT =
+            TEST_FUNCTIONS.register("remove_link_keeps_footprint", () -> StylusGameTests::removeLinkKeepsFootprint);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CARVING_TWO_GLYPHS_CREATES_FOOTPRINT =
             TEST_FUNCTIONS.register("carving_two_glyphs_creates_footprint", () -> StylusGameTests::carvingTwoGlyphsCreatesFootprint);
 
@@ -328,6 +331,7 @@ public class GameTestRegistry {
         registerTest(event, WORK_RESERVATIONS_ARE_EXCLUSIVE, environment, structure, 40, 0);
         registerTest(event, WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST, environment, structure, 40, 0);
         registerTest(event, CONTAINER_LINK_CYCLES, environment, structure, 40, 0);
+        registerTest(event, REMOVE_LINK_KEEPS_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, CARVING_TWO_GLYPHS_CREATES_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, OVERSIZED_FOOTPRINT_IS_REJECTED, environment, structure, 40, 0);
         registerTest(event, SHIFT_CARVE_ERASES_FOOTPRINT, environment, structure, 40, 0);

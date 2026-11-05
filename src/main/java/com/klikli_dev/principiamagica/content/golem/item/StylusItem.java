@@ -23,6 +23,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
@@ -144,17 +145,29 @@ public class StylusItem extends Item {
         int below = golem.getJob().map(GolemJob::below).orElse(WorkFootprint.DEFAULT_BELOW);
         int above = golem.getJob().map(GolemJob::above).orElse(WorkFootprint.DEFAULT_ABOVE);
 
-        if (container) {
+        if (container && sneaking) {
+            Optional<Workplace> updated = StylusActions.removeLink(workplace, pos);
+            if (updated.isPresent()) {
+                golem.updateWorkplace(current -> updated.get());
+                serverLevel.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_removed"));
+            } else {
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
+            }
+        } else if (container) {
             Workplace updated = StylusActions.cycleLink(workplace, pos, face);
             golem.updateWorkplace(current -> updated);
             Optional<ContainerRole> role = updated.links().stream()
                     .filter(link -> link.pos().equals(pos))
                     .map(ContainerLink::role)
                     .findFirst();
-            Component message = role.isPresent()
-                    ? Component.translatable("message.principiamagica.stylus.link_set", Component.translatable("golem_role.principiamagica." + role.get().getSerializedName()))
-                    : Component.translatable("message.principiamagica.stylus.link_removed");
-            player.sendOverlayMessage(message);
+            if (role.isPresent()) {
+                serverLevel.playSound(null, pos, linkSound(role.get()), SoundSource.BLOCKS, 1.0F, 1.0F);
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set", Component.translatable("golem_role.principiamagica." + role.get().getSerializedName())));
+            } else {
+                serverLevel.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_removed"));
+            }
         } else if (sneaking) {
             Optional<Workplace> updated = StylusActions.removeFootprintAt(workplace, pos, below, above);
             if (updated.isPresent()) {
@@ -293,6 +306,14 @@ public class StylusItem extends Item {
 
     private static BlockPos anchorOf(GolemEntity golem) {
         return golem.getAnchor().map(GlobalPos::pos).orElse(golem.blockPosition());
+    }
+
+    private static SoundEvent linkSound(ContainerRole role) {
+        return switch (role) {
+            case SUPPLY -> SoundEvents.BARREL_OPEN;
+            case DEPOSIT -> SoundEvents.BARREL_CLOSE;
+            case BOTH -> SoundEvents.NOTE_BLOCK_CHIME.value();
+        };
     }
 
     @Override

@@ -52,6 +52,22 @@ public final class StylusActions {
     }
 
     /**
+     * Removes the link at pos regardless of its role.
+     *
+     * @return the workplace without the link, or empty if no link is at pos
+     */
+    public static Optional<Workplace> removeLink(Workplace workplace, BlockPos pos) {
+        List<ContainerLink> links = workplace.links().stream()
+                .filter(link -> !link.pos().equals(pos))
+                .toList();
+        if (links.size() == workplace.links().size()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(workplace.withLinks(links).markInitialized());
+    }
+
+    /**
      * Carves the second glyph of a footprint, spanned between the two glyphs.
      *
      * @return the workplace with the footprint added, or empty if the footprint exceeds the maximum size

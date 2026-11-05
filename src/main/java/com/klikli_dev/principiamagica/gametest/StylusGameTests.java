@@ -55,6 +55,28 @@ public class StylusGameTests {
     }
 
     /**
+     * Shift-right-click on a linked container removes only its link. The footprint around it is kept.
+     * On an unlinked container there is nothing to remove, so the link edit is refused.
+     */
+    public static void removeLinkKeepsFootprint(GameTestHelper helper) {
+        BlockPos chest = helper.absolutePos(new BlockPos(2, 2, 1));
+        Workplace workplace = StylusActions.cycleLink(Workplace.EMPTY, chest, Direction.UP)
+                .withFootprints(List.of(WorkFootprint.of(
+                        new CarvedGlyph(helper.absolutePos(new BlockPos(0, 1, 0)), Direction.UP),
+                        new CarvedGlyph(helper.absolutePos(new BlockPos(4, 1, 4)), Direction.UP))));
+
+        Optional<Workplace> removed = StylusActions.removeLink(workplace, chest);
+        helper.assertTrue(removed.isPresent(), "A linked container should be removable");
+        helper.assertTrue(removed.get().links().isEmpty(), "Removing the link should drop it from the workplace");
+        helper.assertTrue(removed.get().footprints().size() == 1, "Removing a link should keep the footprint around it");
+        helper.assertTrue(removed.get().initialized(), "Removing a link should mark the workplace initialized");
+
+        helper.assertTrue(StylusActions.removeLink(removed.get(), chest).isEmpty(), "An unlinked container should have nothing to remove");
+
+        helper.succeed();
+    }
+
+    /**
      * Two glyphs carved on different faces make a footprint spanning both columns. The ground is the lower glyph block.
      */
     public static void carvingTwoGlyphsCreatesFootprint(GameTestHelper helper) {

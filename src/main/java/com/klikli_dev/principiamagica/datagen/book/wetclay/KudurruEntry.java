@@ -65,6 +65,27 @@ public class KudurruEntry extends PrincipiaEntryProvider {
                 Shift-right-click a carved glyph with the stylus to erase its boundary. Breaking the block a glyph is carved into erases it as well. Either way, the field it belonged to is gone.
                 """
         );
+
+        this.page("link", () -> BookTextPageModel.create()
+                .withTitle(this.context().pageTitle())
+                .withText(this.context().pageText()));
+        this.pageTitle("Linking Containers");
+        this.pageText("""
+                With your golem selected, right-click a chest with the stylus to link it. Each further right-click changes the link: supply, then deposit, then both, then unlinked again. A supply chest gives the golem seeds, saplings and bone meal. A deposit chest takes the harvest. Shift-right-click a linked chest to remove its link at once, and the boundary around it stays as it is.
+                """
+        );
+
+        this.page("link_auto", () -> BookTextPageModel.create()
+                .withTitle(this.context().pageTitle())
+                .withText(this.context().pageText()));
+        this.pageTitle("Linked by Default");
+        this.pageText("""
+                The chests touching the golem when it is given an axiom are linked both ways, so a golem placed beside its field and a chest works right away.
+                """
+        );
+
+        this.notebookPage("link_notebook",
+                "A chest is only a chest until the golem knows what to do with it. Let it fetch from one, and let it fill another. I do not need to touch either myself.");
     }
 
     @Override
