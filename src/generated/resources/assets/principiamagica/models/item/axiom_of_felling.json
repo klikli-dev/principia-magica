@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "principiamagica:item/farming_core"
+    "layer0": "principiamagica:item/axiom_of_felling"
   }
 }

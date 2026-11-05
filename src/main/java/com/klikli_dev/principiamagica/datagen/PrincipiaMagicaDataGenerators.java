@@ -17,7 +17,9 @@ import com.klikli_dev.principiamagica.datagen.model.PrincipiaMagicaModelProvider
 import com.klikli_dev.principiamagica.datagen.research.PrincipiaResearch;
 import com.klikli_dev.principiamagica.datagen.recipe.ShapedRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.recipe.ShapelessRecipeProvider;
+import com.klikli_dev.principiamagica.datagen.recipe.SmeltingRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.tag.PrincipiaMagicaBlockTagsProvider;
+import com.klikli_dev.principiamagica.datagen.tag.PrincipiaMagicaItemTagsProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.advancements.AdvancementProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
@@ -30,6 +32,7 @@ public class PrincipiaMagicaDataGenerators {
         DataGenerator generator = event.getGenerator();
 
         generator.addProvider(true, new PrincipiaMagicaBlockTagsProvider(generator.getPackOutput(), event.getLookupProvider()));
+        generator.addProvider(true, new PrincipiaMagicaItemTagsProvider(generator.getPackOutput(), event.getLookupProvider()));
         var langCache = new LanguageProviderCache("en_us");
         var researchCache = new ResearchCache();
 
@@ -45,6 +48,7 @@ public class PrincipiaMagicaDataGenerators {
         generator.addProvider(true, new PrincipiaMagicaModelProvider(generator.getPackOutput()));
         generator.addProvider(true, new ShapedRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new ShapelessRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
+        generator.addProvider(true, new SmeltingRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new PrincipiaMagicaDataMapProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new AdvancementProvider(generator.getPackOutput(), event.getLookupProvider(), List.of(
                 new PrincipiaMagicaAdvancementSubProvider()

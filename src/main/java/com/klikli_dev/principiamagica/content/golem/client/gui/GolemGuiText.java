@@ -48,7 +48,7 @@ final class GolemGuiText {
     }
 
     static Component jobName(GolemView view) {
-        return view.job().map(holder -> holder.value().getName()).orElse(Component.translatable("gui.principiamagica.golem.no_core"));
+        return view.job().map(holder -> holder.value().getName()).orElse(Component.translatable("gui.principiamagica.golem.no_axiom"));
     }
 
     static Component modeName(GolemMode mode) {

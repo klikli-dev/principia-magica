@@ -100,8 +100,8 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_TWO_GOLEMS_SHARE_FIELD =
             TEST_FUNCTIONS.register("farming_two_golems_share_field", () -> FarmingGameTests::twoGolemsShareField);
 
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_CORE_ROUND_TRIPS =
-            TEST_FUNCTIONS.register("farming_core_round_trips", () -> FarmingGameTests::farmingCoreRoundTrips);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_AXIOM_ROUND_TRIPS =
+            TEST_FUNCTIONS.register("farming_axiom_round_trips", () -> FarmingGameTests::farmingAxiomRoundTrips);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_FIELD_MEMORY_PRUNES_STALE_SPOTS =
             TEST_FUNCTIONS.register("farming_field_memory_prunes_stale_spots", () -> FarmingGameTests::fieldMemoryPrunesStaleSpots);
@@ -177,8 +177,8 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_DETECTOR_FINDS_DIAGONAL_BRANCHES =
             TEST_FUNCTIONS.register("lumberjack_detector_finds_diagonal_branches", () -> LumberjackGameTests::detectorFindsDiagonalBranches);
 
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_CORE_ROUND_TRIPS =
-            TEST_FUNCTIONS.register("lumberjack_core_round_trips", () -> LumberjackGameTests::lumberjackCoreRoundTrips);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_AXIOM_ROUND_TRIPS =
+            TEST_FUNCTIONS.register("lumberjack_axiom_round_trips", () -> LumberjackGameTests::lumberjackAxiomRoundTrips);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_BREAK_TICKS_FOLLOW_THE_TOOL =
             TEST_FUNCTIONS.register("lumberjack_break_ticks_follow_the_tool", () -> LumberjackGameTests::breakTicksFollowTheTool);
@@ -234,6 +234,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WET_TABLET_ADVANCEMENT_RECIPE_AND_ENTRY_EXIST =
             TEST_FUNCTIONS.register("wet_tablet_advancement_recipe_and_entry_exist", () -> ProgressionGameTests::wetTabletAdvancementRecipeAndEntryExist);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_ADVANCEMENT_RECIPES_AND_ENTRY_EXIST =
+            TEST_FUNCTIONS.register("axiom_advancement_recipes_and_entry_exist", () -> ProgressionGameTests::axiomAdvancementRecipesAndEntryExist);
+
     public static void onRegisterGameTests(RegisterGameTestsEvent event) {
         registerGolemTests(event);
         registerProgressionTests(event);
@@ -248,6 +251,7 @@ public class GameTestRegistry {
         registerTest(event, WEDGE_OF_COPPER_ADVANCEMENT_AND_STYLUS_RECIPE_EXIST, environment, structure, 40, 0);
         registerTest(event, STYLUS_ENTRY_LOADS, environment, structure, 40, 0);
         registerTest(event, WET_TABLET_ADVANCEMENT_RECIPE_AND_ENTRY_EXIST, environment, structure, 40, 0);
+        registerTest(event, AXIOM_ADVANCEMENT_RECIPES_AND_ENTRY_EXIST, environment, structure, 40, 0);
     }
 
     private static void registerGolemTests(RegisterGameTestsEvent event) {
@@ -278,7 +282,7 @@ public class GameTestRegistry {
         registerTest(event, FARMING_PLANTING_WITHOUT_SEEDS_REPORTS_NEEDS_SUPPLIES, environment, structure, 800, 0);
         registerTest(event, FARMING_BONEMEAL_GROWS_CROPS, environment, structure, 800, 0);
         registerTest(event, FARMING_TWO_GOLEMS_SHARE_FIELD, environment, structure, 800, 0);
-        registerTest(event, FARMING_CORE_ROUND_TRIPS, environment, structure, 40, 0);
+        registerTest(event, FARMING_AXIOM_ROUND_TRIPS, environment, structure, 40, 0);
         registerTest(event, FARMING_FIELD_MEMORY_PRUNES_STALE_SPOTS, environment, structure, 800, 0);
         registerTest(event, FARMING_CLEARS_OBSTRUCTIONS_FOR_PLANTING, environment, structure, 800, 0);
         registerTest(event, FARMING_OBSTRUCTIONS_STAY_WHEN_OPTION_OFF, environment, structure, 400, 0);
@@ -304,7 +308,7 @@ public class GameTestRegistry {
         registerTest(event, LUMBERJACK_MISSING_AXE_REPORTS_STATUS, environment, structure, 400, 0);
         registerTest(event, LUMBERJACK_RESTOCKS_SAPLINGS_FROM_SUPPLY, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_DETECTOR_FINDS_DIAGONAL_BRANCHES, environment, structure, 40, 0);
-        registerTest(event, LUMBERJACK_CORE_ROUND_TRIPS, environment, structure, 40, 0);
+        registerTest(event, LUMBERJACK_AXIOM_ROUND_TRIPS, environment, structure, 40, 0);
         registerTest(event, LUMBERJACK_BREAK_TICKS_FOLLOW_THE_TOOL, environment, structure, 40, 0);
         registerTest(event, LUMBERJACK_BONEMEAL_GROWS_SAPLING, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_BONEMEAL_OFF_LEAVES_SAPLING, environment, structure, 400, 0);

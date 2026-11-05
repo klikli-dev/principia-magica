@@ -7,7 +7,7 @@ package com.klikli_dev.principiamagica.gametest;
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
-import com.klikli_dev.principiamagica.content.golem.item.GolemCoreItem;
+import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBreaking;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.job.JobOptionValues;
@@ -593,15 +593,15 @@ public class LumberjackGameTests {
         helper.succeed();
     }
 
-    public static void lumberjackCoreRoundTrips(GameTestHelper helper) {
+    public static void lumberjackAxiomRoundTrips(GameTestHelper helper) {
         Holder<GolemJob> job = PrincipiaMagicaRegistries.GOLEM_JOB.get(LumberjackJob.KEY).orElseThrow();
-        ItemStack core = GolemCoreItem.createStack(job);
-        helper.assertTrue(core.is(ItemRegistry.LUMBERJACK_CORE.get()), "Lumberjack job should map to the lumberjack core, got " + core);
+        ItemStack axiom = AxiomItem.createStack(job);
+        helper.assertTrue(axiom.is(ItemRegistry.AXIOM_OF_FELLING.get()), "Lumberjack job should map to the axiom of felling, got " + axiom);
 
         GolemEntity golem = spawnLumberjack(helper, List.of(), false);
         ItemStack taken = golem.takeJob();
-        helper.assertTrue(taken.is(ItemRegistry.LUMBERJACK_CORE.get()), "Removing the job should return the lumberjack core, got " + taken);
-        helper.assertTrue(golem.getSpec().job().isEmpty(), "Golem should have no job after the core is removed");
+        helper.assertTrue(taken.is(ItemRegistry.AXIOM_OF_FELLING.get()), "Removing the job should return the axiom of felling, got " + taken);
+        helper.assertTrue(golem.getSpec().job().isEmpty(), "Golem should have no job after the axiom is removed");
         helper.succeed();
     }
 }

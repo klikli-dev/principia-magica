@@ -1,0 +1,26 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:the_wet_clay",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:research/advancement/wet_clay"
+  },
+  "description": "book.principiamagica.principia.the_wet_clay.axioms.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:axiom_of_harvest"
+  },
+  "id": "principiamagica:the_wet_clay/axioms",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.the_wet_clay.axioms.name",
+  "sort_number": 3,
+  "x": 3,
+  "y": 0
+}

@@ -8,6 +8,7 @@ import com.klikli_dev.modonomicon.data.BookDataManager;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
 import com.klikli_dev.principiamagica.datagen.advancement.PrincipiaMagicaAdvancementSubProvider;
+import com.klikli_dev.principiamagica.datagen.book.wetclay.AxiomEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.PrincipiaEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.StylusEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.WetClayCategoryProvider;
@@ -15,6 +16,8 @@ import com.klikli_dev.principiamagica.datagen.book.wetclay.WetTabletEntry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
+
+import java.util.List;
 
 public class ProgressionGameTests {
 
@@ -71,6 +74,24 @@ public class ProgressionGameTests {
         helper.assertTrue(category != null, "Category the_wet_clay is missing");
         helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + WetTabletEntry.ENTRY_ID)) != null,
                 "Entry wet_clay is missing from category the_wet_clay");
+        helper.succeed();
+    }
+
+    public static void axiomAdvancementRecipesAndEntryExist(GameTestHelper helper) {
+        var server = helper.getLevel().getServer();
+
+        helper.assertTrue(server.getAdvancements().get(PrincipiaMagicaAdvancementSubProvider.A_LAW_MADE_FAST) != null,
+                "Advancement a_law_made_fast is missing");
+        for (var recipe : List.of("unfired_axiom_of_harvest", "unfired_axiom_of_felling", "axiom_of_harvest", "axiom_of_felling")) {
+            helper.assertTrue(server.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc(recipe))).isPresent(),
+                    "Recipe " + recipe + " is missing");
+        }
+        var book = BookDataManager.get().getBook(PrincipiaItem.PRINCIPIA);
+        helper.assertTrue(book != null, "Modonomicon book principia is missing");
+        var category = book.getCategory(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID));
+        helper.assertTrue(category != null, "Category the_wet_clay is missing");
+        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + AxiomEntry.ENTRY_ID)) != null,
+                "Entry axioms is missing from category the_wet_clay");
         helper.succeed();
     }
 }

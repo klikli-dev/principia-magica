@@ -5,7 +5,7 @@
 package com.klikli_dev.principiamagica.network;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
-import com.klikli_dev.principiamagica.network.messages.MessageRemoveGolemCore;
+import com.klikli_dev.principiamagica.network.messages.MessageRemoveGolemAxiom;
 import com.klikli_dev.principiamagica.network.messages.MessageRemoveGolemUpgrade;
 import com.klikli_dev.principiamagica.network.messages.MessageRemoveLink;
 import com.klikli_dev.principiamagica.network.messages.MessageRemoveZone;
@@ -32,7 +32,7 @@ public class Networking {
         registrar.playToServer(MessageRemoveZone.TYPE, MessageRemoveZone.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageSetLinkRole.TYPE, MessageSetLinkRole.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageRemoveLink.TYPE, MessageRemoveLink.STREAM_CODEC, MessageHandler::handle);
-        registrar.playToServer(MessageRemoveGolemCore.TYPE, MessageRemoveGolemCore.STREAM_CODEC, MessageHandler::handle);
+        registrar.playToServer(MessageRemoveGolemAxiom.TYPE, MessageRemoveGolemAxiom.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageRemoveGolemUpgrade.TYPE, MessageRemoveGolemUpgrade.STREAM_CODEC, MessageHandler::handle);
     }
 

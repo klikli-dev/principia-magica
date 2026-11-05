@@ -28,8 +28,14 @@ public class ENUSProvider extends LanguageProvider {
         this.add("advancements.principiamagica.a_wedge_of_copper.description", "Carve the clay as the scribe did.");
         this.add("advancements.principiamagica.wet_clay.title", "Wet Clay");
         this.add("advancements.principiamagica.wet_clay.description", "Shape a blank tablet, ready to receive a word.");
+        this.add("advancements.principiamagica.a_law_made_fast.title", "A Law Made Fast");
+        this.add("advancements.principiamagica.a_law_made_fast.description", "Fire a law into clay.");
         this.add("item.principiamagica.principia", "Principia");
         this.add("item.principiamagica.wet_tablet", "Wet Tablet");
+        this.add("item.principiamagica.unfired_axiom_of_harvest", "Unfired Axiom of Harvest");
+        this.add("item.principiamagica.unfired_axiom_of_felling", "Unfired Axiom of Felling");
+        this.add("item.principiamagica.axiom_of_harvest", "Axiom of Harvest");
+        this.add("item.principiamagica.axiom_of_felling", "Axiom of Felling");
 
         this.add("golem_material.principiamagica.wood", "Wood");
         this.add("golem_material.principiamagica.stone", "Stone");
@@ -56,7 +62,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("golem_status.principiamagica.deposit_full", "Deposit full");
         this.add("golem_status.principiamagica.needs_supplies", "Needs supplies");
         this.add("golem_status.principiamagica.ok.description", "The golem is working on its job.");
-        this.add("golem_status.principiamagica.no_job.description", "Insert a job core to give the golem a job.");
+        this.add("golem_status.principiamagica.no_job.description", "Give the golem an axiom to give it a job.");
         this.add("golem_status.principiamagica.no_zone.description", "Add a work zone with the Copper Stylus.");
         this.add("golem_status.principiamagica.missing_tool.description", "The job needs its tool in the golem's main hand.");
         this.add("golem_status.principiamagica.no_deposit.description", "Link a container with the deposit or both role.");
@@ -83,9 +89,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("job_option.principiamagica.bonemeal_saplings.description", "Use bone meal on saplings in the work area so trees grow faster. Bone meal is restocked from supply containers.");
 
         this.add("golem_job.principiamagica.farming", "Farming");
-        this.add("item.principiamagica.farming_core", "Farming Core");
         this.add("golem_job.principiamagica.lumberjack", "Lumberjack");
-        this.add("item.principiamagica.lumberjack_core", "Lumberjack Core");
 
         this.add("golem_upgrade.principiamagica.swiftness", "Swiftness");
         this.add("golem_upgrade.principiamagica.swiftness.description", "Faster movement and work speed");
@@ -95,14 +99,14 @@ public class ENUSProvider extends LanguageProvider {
         this.add("item.principiamagica.capacity_upgrade", "Capacity Upgrade");
 
         this.add("gui.principiamagica.golem.title", "%s Golem");
-        this.add("gui.principiamagica.golem.no_core", "No core");
+        this.add("gui.principiamagica.golem.no_axiom", "No axiom");
         this.add("gui.principiamagica.golem.options", "Job options");
-        this.add("gui.principiamagica.golem.no_job_hint", "Insert a job core into the golem to give it a job. Right-click the golem with a core.");
+        this.add("gui.principiamagica.golem.no_job_hint", "Give the golem an axiom to give it a job. Right-click the golem with an axiom.");
         this.add("gui.principiamagica.golem.material", "Material: %s");
         this.add("gui.principiamagica.golem.job", "Job: %s");
         this.add("gui.principiamagica.golem.mode", "Mode");
-        this.add("gui.principiamagica.golem.remove_core", "Remove core");
-        this.add("gui.principiamagica.golem.remove_core.tooltip", "Takes the job core out of the golem and returns it to you");
+        this.add("gui.principiamagica.golem.remove_axiom", "Remove axiom");
+        this.add("gui.principiamagica.golem.remove_axiom.tooltip", "Takes the axiom out of the golem and returns it to you");
         this.add("gui.principiamagica.golem.tab.overview", "Overview");
         this.add("gui.principiamagica.golem.tab.job", "Job");
         this.add("gui.principiamagica.golem.tab.workplace", "Workplace");
@@ -143,8 +147,8 @@ public class ENUSProvider extends LanguageProvider {
         this.add("golem_role.principiamagica.deposit", "Deposit");
         this.add("golem_role.principiamagica.both", "Supply and deposit");
 
-        this.add("message.principiamagica.golem.job_removed", "Job core removed");
-        this.add("message.principiamagica.golem.job_swapped", "Job core swapped, previous core returned");
+        this.add("message.principiamagica.golem.job_removed", "Axiom removed");
+        this.add("message.principiamagica.golem.job_swapped", "Axiom swapped, previous axiom returned");
         this.add("message.principiamagica.golem.no_job", "This golem has no job");
         this.add("message.principiamagica.golem.not_owner", "You do not own this golem");
         this.add("message.principiamagica.golem.upgrade_added", "Upgrade installed: %s");

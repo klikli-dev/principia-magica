@@ -25,7 +25,7 @@ import java.util.Optional;
  *                       because data is missing if this is true, so the empty placeholder is never mistaken for data
  * @param workplace the workplace, or {@link Workplace#EMPTY} if not known yet
  * @param mode the current mode
- * @param job the job core's job, if a core is inserted
+ * @param job the job's axiom, if an axiom is inserted
  * @param upgrades the installed upgrades
  * @param upgradeSlots the upgrade slots of the material
  * @param usableSlots the number of golem inventory slots that are usable

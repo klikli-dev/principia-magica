@@ -5,8 +5,8 @@
 package com.klikli_dev.principiamagica.registry;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
-import com.klikli_dev.principiamagica.content.golem.item.GolemCoreItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemUpgradeItem;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
@@ -27,9 +27,13 @@ public class ItemRegistry {
 
     public static final DeferredItem<Item> WET_TABLET = ITEMS.registerItem("wet_tablet", p -> new Item(p.stacksTo(64)));
 
-    public static final DeferredItem<GolemCoreItem> FARMING_CORE = ITEMS.registerItem("farming_core", p -> new GolemCoreItem(p.stacksTo(1), FarmingJob.KEY));
+    public static final DeferredItem<Item> UNFIRED_AXIOM_OF_HARVEST = ITEMS.registerItem("unfired_axiom_of_harvest", p -> new Item(p.stacksTo(16)));
 
-    public static final DeferredItem<GolemCoreItem> LUMBERJACK_CORE = ITEMS.registerItem("lumberjack_core", p -> new GolemCoreItem(p.stacksTo(1), LumberjackJob.KEY));
+    public static final DeferredItem<Item> UNFIRED_AXIOM_OF_FELLING = ITEMS.registerItem("unfired_axiom_of_felling", p -> new Item(p.stacksTo(16)));
+
+    public static final DeferredItem<AxiomItem> AXIOM_OF_HARVEST = ITEMS.registerItem("axiom_of_harvest", p -> new AxiomItem(p.stacksTo(1), FarmingJob.KEY));
+
+    public static final DeferredItem<AxiomItem> AXIOM_OF_FELLING = ITEMS.registerItem("axiom_of_felling", p -> new AxiomItem(p.stacksTo(1), LumberjackJob.KEY));
 
     public static final DeferredItem<GolemUpgradeItem> SWIFTNESS_UPGRADE = ITEMS.registerItem("swiftness_upgrade",
             p -> new GolemUpgradeItem(p.stacksTo(16), GolemUpgradeRegistry.SWIFTNESS.getKey()));

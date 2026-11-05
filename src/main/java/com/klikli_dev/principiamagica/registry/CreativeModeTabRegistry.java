@@ -28,8 +28,10 @@ public class CreativeModeTabRegistry {
                 output.accept(ItemRegistry.PRINCIPIA.get());
                 output.accept(ItemRegistry.COPPER_STYLUS.get());
                 output.accept(ItemRegistry.WET_TABLET.get());
-                output.accept(ItemRegistry.FARMING_CORE.get());
-                output.accept(ItemRegistry.LUMBERJACK_CORE.get());
+                output.accept(ItemRegistry.UNFIRED_AXIOM_OF_HARVEST.get());
+                output.accept(ItemRegistry.UNFIRED_AXIOM_OF_FELLING.get());
+                output.accept(ItemRegistry.AXIOM_OF_HARVEST.get());
+                output.accept(ItemRegistry.AXIOM_OF_FELLING.get());
                 output.accept(ItemRegistry.SWIFTNESS_UPGRADE.get());
                 output.accept(ItemRegistry.CAPACITY_UPGRADE.get());
             }).build());

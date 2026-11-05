@@ -5,12 +5,14 @@
 package com.klikli_dev.principiamagica.datagen.advancement;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.advancements.AdvancementSubProvider;
@@ -28,6 +30,7 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
     public static final Identifier THE_CLAY_REMEMBERS = PrincipiaMagica.loc("the_clay_remembers");
     public static final Identifier A_WEDGE_OF_COPPER = PrincipiaMagica.loc("a_wedge_of_copper");
     public static final Identifier WET_CLAY = PrincipiaMagica.loc("wet_clay");
+    public static final Identifier A_LAW_MADE_FAST = PrincipiaMagica.loc("a_law_made_fast");
 
     public static final ResourceKey<Recipe<?>> PRINCIPIA_RECIPE = ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("principia"));
 
@@ -80,5 +83,22 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
                 .build(WET_CLAY);
 
         writer.accept(wetClay);
+
+        var aLawMadeFast = Advancement.Builder.advancement()
+                .parent(wetClay)
+                .display(
+                        ItemRegistry.AXIOM_OF_HARVEST.get(),
+                        Component.translatable("advancements.principiamagica.a_law_made_fast.title"),
+                        Component.translatable("advancements.principiamagica.a_law_made_fast.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        false,
+                        false)
+                .addCriterion("has_fired_axiom", InventoryChangeTrigger.TriggerInstance.hasItems(
+                        ItemPredicate.Builder.item().of(registries.lookupOrThrow(Registries.ITEM), AxiomItem.AXIOMS)))
+                .build(A_LAW_MADE_FAST);
+
+        writer.accept(aLawMadeFast);
     }
 }

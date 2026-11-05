@@ -4,5 +4,11 @@
     "id": "principiamagica:research/advancement/a_wedge_of_copper_hook",
     "trigger_target": "principiamagica:a_wedge_of_copper",
     "trigger_type": "modonomicon:advancement"
+  },
+  {
+    "fact_id": "principiamagica:research/advancement/wet_clay",
+    "id": "principiamagica:research/advancement/wet_clay_hook",
+    "trigger_target": "principiamagica:wet_clay",
+    "trigger_type": "modonomicon:advancement"
   }
 ]

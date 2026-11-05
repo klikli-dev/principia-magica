@@ -1,0 +1,9 @@
+{
+  "type": "modonomicon:crafting_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "recipe_felling",
+  "recipe_id_1": "principiamagica:unfired_axiom_of_felling",
+  "sort_number": 3
+}

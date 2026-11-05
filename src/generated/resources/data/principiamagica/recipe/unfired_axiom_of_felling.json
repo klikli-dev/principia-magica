@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "principiamagica:copper_stylus",
+    "principiamagica:wet_tablet",
+    "#minecraft:saplings",
+    "#minecraft:logs"
+  ],
+  "result": {
+    "id": "principiamagica:unfired_axiom_of_felling"
+  }
+}

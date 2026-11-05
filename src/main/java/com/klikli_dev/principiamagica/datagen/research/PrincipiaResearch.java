@@ -13,6 +13,7 @@ import net.minecraft.resources.Identifier;
 public class PrincipiaResearch extends SingleResearchSubProvider {
 
     public static final ResearchNodeRef A_WEDGE_OF_COPPER = node("research/advancement/a_wedge_of_copper");
+    public static final ResearchNodeRef WET_CLAY = node("research/advancement/wet_clay");
 
     public PrincipiaResearch() {
         super("principia", PrincipiaMagica.MODID);
@@ -24,7 +25,12 @@ public class PrincipiaResearch extends SingleResearchSubProvider {
                 .onAdvancementEarned(PrincipiaMagicaAdvancementSubProvider.A_WEDGE_OF_COPPER)
                 .declareFact("research/advancement/a_wedge_of_copper"));
 
+        this.node(WET_CLAY, this.ingress()
+                .onAdvancementEarned(PrincipiaMagicaAdvancementSubProvider.WET_CLAY)
+                .declareFact("research/advancement/wet_clay"));
+
         this.researchNodeName(A_WEDGE_OF_COPPER, "A Wedge of Copper");
+        this.researchNodeName(WET_CLAY, "Wet Clay");
     }
 
     static ResearchNodeRef node(String path) {

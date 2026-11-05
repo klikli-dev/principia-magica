@@ -1,0 +1,9 @@
+{
+  "type": "modonomicon:crafting_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "recipe_harvest",
+  "recipe_id_1": "principiamagica:unfired_axiom_of_harvest",
+  "sort_number": 2
+}

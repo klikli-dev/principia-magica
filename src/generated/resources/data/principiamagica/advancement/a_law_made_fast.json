@@ -1,0 +1,33 @@
+{
+  "parent": "principiamagica:wet_clay",
+  "criteria": {
+    "has_fired_axiom": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#principiamagica:axioms"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.principiamagica.a_law_made_fast.description"
+    },
+    "icon": {
+      "id": "principiamagica:axiom_of_harvest"
+    },
+    "title": {
+      "translate": "advancements.principiamagica.a_law_made_fast.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_fired_axiom"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -15,7 +15,7 @@ import com.geckolib.util.GeckoLibUtil;
 import com.klikli_dev.principiamagica.content.golem.ai.GolemAi;
 import com.klikli_dev.principiamagica.content.golem.ai.GolemPathNavigation;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
-import com.klikli_dev.principiamagica.content.golem.item.GolemCoreItem;
+import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemUpgradeItem;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
@@ -390,7 +390,7 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     }
 
     /**
-     * Removes the job and returns its core item, or an empty stack if there was no job or no core item for it.
+     * Removes the job and returns its axiom item, or an empty stack if there was no job or no axiom item for it.
      */
     public ItemStack takeJob() {
         Optional<Holder<GolemJob>> job = this.getSpec().job();
@@ -398,9 +398,9 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
             return ItemStack.EMPTY;
         }
 
-        ItemStack core = GolemCoreItem.createStack(job.get());
+        ItemStack axiom = AxiomItem.createStack(job.get());
         this.setSpec(this.getSpec().withoutJob());
-        return core;
+        return axiom;
     }
 
     private void removeJob(Player player) {
@@ -409,9 +409,9 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
             return;
         }
 
-        ItemStack core = this.takeJob();
-        if (!core.isEmpty()) {
-            player.getInventory().placeItemBackInInventory(core);
+        ItemStack axiom = this.takeJob();
+        if (!axiom.isEmpty()) {
+            player.getInventory().placeItemBackInInventory(axiom);
         }
         player.sendOverlayMessage(Component.translatable("message.principiamagica.golem.job_removed"));
     }

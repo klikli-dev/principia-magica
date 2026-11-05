@@ -13,7 +13,7 @@ import com.klikli_dev.principiamagica.client.gui.widget.TextButton;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.network.Networking;
-import com.klikli_dev.principiamagica.network.messages.MessageRemoveGolemCore;
+import com.klikli_dev.principiamagica.network.messages.MessageRemoveGolemAxiom;
 import com.klikli_dev.principiamagica.network.messages.MessageSetGolemMode;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.network.chat.Component;
@@ -23,12 +23,12 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Golem name, material, job, status, mode and core removal.
+ * Golem name, material, job, status, mode and axiom removal.
  */
 final class OverviewTab extends GolemTab {
 
     private StatusBadge status;
-    private TextButton removeCore;
+    private TextButton removeAxiom;
 
     OverviewTab(Supplier<GolemView> viewSupplier) {
         super(viewSupplier);
@@ -61,15 +61,15 @@ final class OverviewTab extends GolemTab {
                 () -> this.view().mode(),
                 mode -> Networking.sendToServer(new MessageSetGolemMode(this.golemId(), mode))));
 
-        this.removeCore = this.add(new TextButton(x, y + 100, 110, 18, Component.translatable("gui.principiamagica.golem.remove_core"),
-                () -> Networking.sendToServer(new MessageRemoveGolemCore(this.golemId())))
-                .withTooltip(Component.translatable("gui.principiamagica.golem.remove_core.tooltip")));
+        this.removeAxiom = this.add(new TextButton(x, y + 100, 110, 18, Component.translatable("gui.principiamagica.golem.remove_axiom"),
+                () -> Networking.sendToServer(new MessageRemoveGolemAxiom(this.golemId())))
+                .withTooltip(Component.translatable("gui.principiamagica.golem.remove_axiom.tooltip")));
     }
 
     @Override
     public void tick() {
         GolemView view = this.view();
-        this.removeCore.active = view.job().isPresent();
+        this.removeAxiom.active = view.job().isPresent();
 
         GolemStatus status = view.status();
         this.status.update(

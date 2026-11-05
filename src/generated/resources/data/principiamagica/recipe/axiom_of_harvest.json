@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.35,
+  "ingredient": "principiamagica:unfired_axiom_of_harvest",
+  "result": {
+    "id": "principiamagica:axiom_of_harvest"
+  }
+}

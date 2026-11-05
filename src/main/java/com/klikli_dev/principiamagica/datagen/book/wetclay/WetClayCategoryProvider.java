@@ -29,6 +29,10 @@ public class WetClayCategoryProvider extends CategoryProvider {
         var wetTabletEntry = this.add(new WetTabletEntry(this).generate());
         this.layout().entry(wetTabletEntry).at(2, 0);
         wetTabletEntry.hideWhileLocked(true);
+
+        var axiomEntry = this.add(new AxiomEntry(this).generate());
+        this.layout().entry(axiomEntry).at(3, 0);
+        axiomEntry.hideWhileLocked(true);
     }
 
     @Override

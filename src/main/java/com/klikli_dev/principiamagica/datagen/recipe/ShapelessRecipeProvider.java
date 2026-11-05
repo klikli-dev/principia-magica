@@ -10,14 +10,18 @@ import com.google.gson.JsonObject;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import com.mojang.serialization.JsonOps;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -39,6 +43,7 @@ public class ShapelessRecipeProvider implements DataProvider {
     private final CompletableFuture<HolderLookup.Provider> lookupProvider;
 
     private RegistryOps<JsonElement> registryOps;
+    private HolderGetter<Item> items;
 
     public ShapelessRecipeProvider(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider) {
         this.pathProvider = packOutput.createPathProvider(PackOutput.Target.DATA_PACK, "recipe");
@@ -54,6 +59,7 @@ public class ShapelessRecipeProvider implements DataProvider {
     public CompletableFuture<?> run(CachedOutput output) {
         return this.lookupProvider.thenCompose(provider -> {
             this.registryOps = provider.createSerializationContext(JsonOps.INSTANCE);
+            this.items = provider.lookupOrThrow(Registries.ITEM);
 
             Map<Identifier, JsonObject> recipes = new LinkedHashMap<>();
             this.buildRecipes((id, json) -> {
@@ -73,15 +79,31 @@ public class ShapelessRecipeProvider implements DataProvider {
         this.shapeless(consumer, ItemRegistry.PRINCIPIA.get(), 1, List.of(Items.BOOK, Items.CLAY_BALL));
 
         this.shapeless(consumer, ItemRegistry.WET_TABLET.get(), 1, List.of(ItemRegistry.COPPER_STYLUS.get(), Items.CLAY_BALL, Items.CLAY_BALL));
+
+        this.shapelessIngredients(consumer, ItemRegistry.UNFIRED_AXIOM_OF_HARVEST.get(), 1, List.of(
+                Ingredient.of(ItemRegistry.COPPER_STYLUS.get()),
+                Ingredient.of(ItemRegistry.WET_TABLET.get()),
+                Ingredient.of(Items.WHEAT),
+                Ingredient.of(Items.WHEAT_SEEDS)));
+
+        this.shapelessIngredients(consumer, ItemRegistry.UNFIRED_AXIOM_OF_FELLING.get(), 1, List.of(
+                Ingredient.of(ItemRegistry.COPPER_STYLUS.get()),
+                Ingredient.of(ItemRegistry.WET_TABLET.get()),
+                Ingredient.of(this.items.getOrThrow(ItemTags.SAPLINGS)),
+                Ingredient.of(this.items.getOrThrow(ItemTags.LOGS))));
     }
 
     private void shapeless(BiConsumer<Identifier, JsonObject> consumer, ItemLike result, int count, List<ItemLike> ingredients) {
+        this.shapelessIngredients(consumer, result, count, ingredients.stream().map(Ingredient::of).toList());
+    }
+
+    private void shapelessIngredients(BiConsumer<Identifier, JsonObject> consumer, ItemLike result, int count, List<Ingredient> ingredients) {
         JsonObject json = new JsonObject();
         json.addProperty("type", RECIPE_TYPE);
         json.addProperty("category", "misc");
 
         JsonArray ingredientArray = new JsonArray();
-        ingredients.forEach(item -> ingredientArray.add(Ingredient.CODEC.encodeStart(this.registryOps, Ingredient.of(item)).getOrThrow()));
+        ingredients.forEach(ingredient -> ingredientArray.add(Ingredient.CODEC.encodeStart(this.registryOps, ingredient).getOrThrow()));
         json.add("ingredients", ingredientArray);
 
         json.add("result", ItemStackTemplate.CODEC.encodeStart(this.registryOps, new ItemStackTemplate(result.asItem().builtInRegistryHolder(), count, DataComponentPatch.EMPTY)).getOrThrow());

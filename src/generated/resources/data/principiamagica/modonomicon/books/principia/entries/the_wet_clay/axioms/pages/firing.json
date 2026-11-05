@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:smelting_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "firing",
+  "recipe_id_1": "principiamagica:axiom_of_harvest",
+  "recipe_id_2": "principiamagica:axiom_of_felling",
+  "sort_number": 4
+}

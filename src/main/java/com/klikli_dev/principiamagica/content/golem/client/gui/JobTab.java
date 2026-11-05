@@ -8,7 +8,7 @@ import com.klikli_dev.principiamagica.client.gui.ContentRect;
 import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
 import com.klikli_dev.principiamagica.client.gui.widget.TabIcon;
 import com.klikli_dev.principiamagica.client.gui.widget.ToggleRow;
-import com.klikli_dev.principiamagica.content.golem.item.GolemCoreItem;
+import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Job options as toggle rows. Shows a hint instead if the golem has no job core.
+ * Job options as toggle rows. Shows a hint instead if the golem has no job axiom.
  */
 final class JobTab extends GolemTab {
 
@@ -45,8 +45,8 @@ final class JobTab extends GolemTab {
 
     @Override
     public TabIcon icon() {
-        ItemStack core = this.view().job().map(GolemCoreItem::createStack).filter(stack -> !stack.isEmpty()).orElseGet(() -> new ItemStack(ItemRegistry.FARMING_CORE.get()));
-        return TabIcon.item(core);
+        ItemStack axiom = this.view().job().map(AxiomItem::createStack).filter(stack -> !stack.isEmpty()).orElseGet(() -> new ItemStack(ItemRegistry.AXIOM_OF_HARVEST.get()));
+        return TabIcon.item(axiom);
     }
 
     @Override

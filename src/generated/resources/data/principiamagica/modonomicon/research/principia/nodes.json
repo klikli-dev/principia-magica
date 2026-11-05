@@ -4,5 +4,11 @@
     "required_facts": [
       "principiamagica:research/advancement/a_wedge_of_copper"
     ]
+  },
+  {
+    "id": "principiamagica:research/advancement/wet_clay",
+    "required_facts": [
+      "principiamagica:research/advancement/wet_clay"
+    ]
   }
 ]

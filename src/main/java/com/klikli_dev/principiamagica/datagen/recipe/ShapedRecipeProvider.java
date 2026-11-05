@@ -96,16 +96,6 @@ public class ShapedRecipeProvider implements DataProvider {
         this.golemRecipe(consumer, "stone", GolemMaterialRegistry.STONE, Tags.Items.COBBLESTONES);
         this.golemRecipe(consumer, "metal", GolemMaterialRegistry.METAL, Tags.Items.INGOTS_IRON);
 
-        this.shaped(consumer, ItemRegistry.FARMING_CORE.get(),
-                List.of("SWS", "WAW", "SWS"),
-                Map.of('S', Items.WHEAT_SEEDS, 'W', Items.WHEAT, 'A', Items.AMETHYST_SHARD));
-
-        Map<Character, Ingredient> lumberjackIngredients = new LinkedHashMap<>();
-        lumberjackIngredients.put('S', Ingredient.of(this.items.getOrThrow(ItemTags.SAPLINGS)));
-        lumberjackIngredients.put('L', Ingredient.of(this.items.getOrThrow(ItemTags.LOGS)));
-        lumberjackIngredients.put('A', Ingredient.of(Items.AMETHYST_SHARD));
-        this.shapedIngredients(consumer, ItemRegistry.LUMBERJACK_CORE.get(), List.of("SLS", "LAL", "SLS"), lumberjackIngredients);
-
         this.shaped(consumer, ItemRegistry.COPPER_STYLUS.get(),
                 List.of("  C", " S ", "S  "),
                 Map.of('C', Items.COPPER_INGOT, 'S', Items.STICK));

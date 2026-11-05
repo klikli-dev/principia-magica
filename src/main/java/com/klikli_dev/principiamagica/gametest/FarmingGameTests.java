@@ -7,7 +7,7 @@ package com.klikli_dev.principiamagica.gametest;
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
-import com.klikli_dev.principiamagica.content.golem.item.GolemCoreItem;
+import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.job.JobOptionValues;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
@@ -318,15 +318,15 @@ public class FarmingGameTests {
         });
     }
 
-    public static void farmingCoreRoundTrips(GameTestHelper helper) {
+    public static void farmingAxiomRoundTrips(GameTestHelper helper) {
         Holder<GolemJob> job = PrincipiaMagicaRegistries.GOLEM_JOB.get(FarmingJob.KEY).orElseThrow();
-        ItemStack core = GolemCoreItem.createStack(job);
-        helper.assertTrue(core.is(ItemRegistry.FARMING_CORE.get()), "Farming job should map to the farming core, got " + core);
+        ItemStack axiom = AxiomItem.createStack(job);
+        helper.assertTrue(axiom.is(ItemRegistry.AXIOM_OF_HARVEST.get()), "Farming job should map to the axiom of harvest, got " + axiom);
 
         GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(), JobOptionValues.EMPTY);
         ItemStack taken = golem.takeJob();
-        helper.assertTrue(taken.is(ItemRegistry.FARMING_CORE.get()), "Removing the job should return the farming core, got " + taken);
-        helper.assertTrue(golem.getSpec().job().isEmpty(), "Golem should have no job after the core is removed");
+        helper.assertTrue(taken.is(ItemRegistry.AXIOM_OF_HARVEST.get()), "Removing the job should return the axiom of harvest, got " + taken);
+        helper.assertTrue(golem.getSpec().job().isEmpty(), "Golem should have no job after the axiom is removed");
 
         helper.succeed();
     }

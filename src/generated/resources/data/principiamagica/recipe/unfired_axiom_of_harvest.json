@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "principiamagica:copper_stylus",
+    "principiamagica:wet_tablet",
+    "minecraft:wheat",
+    "minecraft:wheat_seeds"
+  ],
+  "result": {
+    "id": "principiamagica:unfired_axiom_of_harvest"
+  }
+}
