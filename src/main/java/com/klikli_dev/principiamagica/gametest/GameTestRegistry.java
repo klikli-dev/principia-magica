@@ -31,6 +31,12 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORK_ZONE_CONTAINS_AND_ITERATES =
             TEST_FUNCTIONS.register("work_zone_contains_and_iterates", () -> GolemGameTests::workZoneContainsAndIterates);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> RAISE_OFFSET_MOVES_EFFECTIVE_BOX =
+            TEST_FUNCTIONS.register("raise_offset_moves_effective_box", () -> GolemGameTests::raiseOffsetMovesEffectiveBox);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> BREAKING_GLYPH_ERASES_FOOTPRINT =
+            TEST_FUNCTIONS.register("breaking_glyph_erases_footprint", () -> GolemGameTests::breakingGlyphErasesFootprint);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CONTAINER_ROLE_CYCLES =
             TEST_FUNCTIONS.register("container_role_cycles", () -> GolemGameTests::containerRoleCycles);
 
@@ -78,8 +84,14 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CONTAINER_LINK_CYCLES =
             TEST_FUNCTIONS.register("container_link_cycles", () -> StylusGameTests::containerLinkCycles);
 
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> ZONE_ADD_AND_REMOVE =
-            TEST_FUNCTIONS.register("zone_add_and_remove", () -> StylusGameTests::zoneAddAndRemove);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CARVING_TWO_GLYPHS_CREATES_FOOTPRINT =
+            TEST_FUNCTIONS.register("carving_two_glyphs_creates_footprint", () -> StylusGameTests::carvingTwoGlyphsCreatesFootprint);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> OVERSIZED_FOOTPRINT_IS_REJECTED =
+            TEST_FUNCTIONS.register("oversized_footprint_is_rejected", () -> StylusGameTests::oversizedFootprintIsRejected);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> SHIFT_CARVE_ERASES_FOOTPRINT =
+            TEST_FUNCTIONS.register("shift_carve_erases_footprint", () -> StylusGameTests::shiftCarveErasesFootprint);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT =
             TEST_FUNCTIONS.register("copy_and_paste_keeps_relative_layout", () -> StylusGameTests::copyAndPasteKeepsRelativeLayout);
@@ -198,6 +210,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_TALLER_THAN_ZONE =
             TEST_FUNCTIONS.register("lumberjack_taller_than_zone", () -> LumberjackGameTests::tallerThanZone);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_IGNORES_STUMP_OUTSIDE_FOOTPRINT =
+            TEST_FUNCTIONS.register("lumberjack_ignores_stump_outside_footprint", () -> LumberjackGameTests::ignoresStumpOutsideFootprint);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_MISSING_AXE_REPORTS_STATUS =
             TEST_FUNCTIONS.register("lumberjack_missing_axe_reports_status", () -> LumberjackGameTests::missingAxeReportsStatus);
 
@@ -276,6 +291,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PURPOSE_ADVANCEMENT_AND_ENTRY_EXIST =
             TEST_FUNCTIONS.register("purpose_advancement_and_entry_exist", () -> ProgressionGameTests::purposeAdvancementAndEntryExist);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> KUDURRU_ENTRY_EXISTS =
+            TEST_FUNCTIONS.register("kudurru_entry_exists", () -> ProgressionGameTests::kudurruEntryExists);
+
     public static void onRegisterGameTests(RegisterGameTestsEvent event) {
         registerGolemTests(event);
         registerProgressionTests(event);
@@ -294,6 +312,7 @@ public class GameTestRegistry {
         registerTest(event, QUICKENED_ADVANCEMENTS_RECIPE_AND_ENTRY_EXIST, environment, structure, 40, 0);
         registerTest(event, GOLEM_BODY_RECIPE_ADVANCEMENT_AND_ENTRY_EXIST, environment, structure, 40, 0);
         registerTest(event, PURPOSE_ADVANCEMENT_AND_ENTRY_EXIST, environment, structure, 40, 0);
+        registerTest(event, KUDURRU_ENTRY_EXISTS, environment, structure, 40, 0);
     }
 
     private static void registerGolemTests(RegisterGameTestsEvent event) {
@@ -302,12 +321,16 @@ public class GameTestRegistry {
 
         registerTest(event, GOLEM_SPAWNS_WITH_BRAIN, environment, structure, 40, 0);
         registerTest(event, WORK_ZONE_CONTAINS_AND_ITERATES, environment, structure, 40, 0);
+        registerTest(event, RAISE_OFFSET_MOVES_EFFECTIVE_BOX, environment, structure, 40, 0);
+        registerTest(event, BREAKING_GLYPH_ERASES_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, CONTAINER_ROLE_CYCLES, environment, structure, 40, 0);
         registerTest(event, WORKPLACE_CODEC_ROUND_TRIPS, environment, structure, 40, 0);
         registerTest(event, WORK_RESERVATIONS_ARE_EXCLUSIVE, environment, structure, 40, 0);
         registerTest(event, WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST, environment, structure, 40, 0);
         registerTest(event, CONTAINER_LINK_CYCLES, environment, structure, 40, 0);
-        registerTest(event, ZONE_ADD_AND_REMOVE, environment, structure, 40, 0);
+        registerTest(event, CARVING_TWO_GLYPHS_CREATES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, OVERSIZED_FOOTPRINT_IS_REJECTED, environment, structure, 40, 0);
+        registerTest(event, SHIFT_CARVE_ERASES_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT, environment, structure, 40, 0);
         registerTest(event, COPPER_STYLUS_RETURNED_AS_CRAFT_REMAINDER, environment, structure, 40, 0);
         registerTest(event, JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS, environment, structure, 40, 0);
@@ -346,6 +369,7 @@ public class GameTestRegistry {
         registerTest(event, LUMBERJACK_IGNORES_WALL_TOUCHING_NATURAL_LEAVES, environment, structure, 400, 0);
         registerTest(event, LUMBERJACK_FELLS_2X2_AND_REPLANTS_FOUR, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_TALLER_THAN_ZONE, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_IGNORES_STUMP_OUTSIDE_FOOTPRINT, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_FELLS_TREE_ENCLOSED_BY_LOW_LEAVES, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_PERSISTENT_LEAVES_ARE_NOT_CLEARED, environment, structure, 400, 0);
         registerTest(event, LUMBERJACK_CLEAR_LEAVES_OFF_KEEPS_LEAVES, environment, structure, 400, 0);

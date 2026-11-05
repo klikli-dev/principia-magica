@@ -13,9 +13,10 @@ import com.klikli_dev.principiamagica.content.golem.job.JobOptionValues;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingTargets;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
@@ -48,6 +49,10 @@ public class FarmingGameTests {
     private static final BlockPos GOLEM_POS = new BlockPos(0, 2, 0);
     private static final BlockPos ZONE_MIN = new BlockPos(0, 1, 0);
     private static final BlockPos ZONE_MAX = new BlockPos(7, 4, 7);
+    /**
+     * The opposite corner of the footprint, carved on the ground: the footprint's ground is the soil level.
+     */
+    private static final BlockPos GROUND_MAX = new BlockPos(7, 1, 7);
     private static final BlockPos CHEST_POS = new BlockPos(0, 2, 6);
     private static final BlockPos WATER_POS = new BlockPos(5, 1, 3);
 
@@ -98,9 +103,11 @@ public class FarmingGameTests {
         golem.setOwnerUUID(UUID.randomUUID());
         golem.setAnchor(GlobalPos.of(level.dimension(), helper.absolutePos(GOLEM_POS)));
 
-        WorkZone zone = WorkZone.of(helper.absolutePos(ZONE_MIN), helper.absolutePos(ZONE_MAX));
+        WorkFootprint footprint = WorkFootprint.of(
+                new CarvedGlyph(helper.absolutePos(ZONE_MIN), Direction.UP),
+                new CarvedGlyph(helper.absolutePos(GROUND_MAX), Direction.UP));
         golem.updateWorkplace(workplace -> workplace
-                .withZones(List.of(zone))
+                .withFootprints(List.of(footprint))
                 .withLinks(links)
                 .withOptions(options)
                 .markInitialized());

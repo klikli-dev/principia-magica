@@ -12,8 +12,11 @@ import com.klikli_dev.principiamagica.content.golem.job.CommonJobOptions;
 import com.klikli_dev.principiamagica.content.golem.job.JobOptionValues;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceEvents;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkReservations;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
@@ -109,8 +112,11 @@ public class GolemGameTests {
     public static void workplaceCodecRoundTrips(GameTestHelper helper) {
         BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
         JobOptionValues options = JobOptionValues.defaults(List.of(CommonJobOptions.PICKUP_ITEMS)).with(CommonJobOptions.PICKUP_ITEMS, false);
+        WorkFootprint footprint = WorkFootprint.of(
+                new CarvedGlyph(pos, Direction.UP),
+                new CarvedGlyph(pos.offset(4, 0, 4), Direction.NORTH)).withRaise(3);
         Workplace workplace = new Workplace(
-                List.of(WorkZone.centered(pos, 4, 1, 2)),
+                List.of(footprint),
                 List.of(new ContainerLink(pos.above(), Direction.UP, ContainerRole.BOTH)),
                 options,
                 Map.of(pos, BuiltInRegistries.ITEM.wrapAsHolder(Items.WHEAT)),
@@ -158,8 +164,8 @@ public class GolemGameTests {
 
         Workplace workplace = golem.getWorkplace(level).orElseThrow();
         helper.assertTrue(workplace.initialized(), "Defaults should mark the workplace as initialized");
-        helper.assertTrue(workplace.zones().size() == 1, "Defaults should create exactly one zone");
-        helper.assertTrue(workplace.containsInZone(helper.absolutePos(golemPos)), "Default zone should contain the golem");
+        helper.assertTrue(workplace.footprints().size() == 1, "Defaults should create exactly one footprint");
+        helper.assertTrue(workplace.containsInZone(FarmingJob.BELOW, FarmingJob.ABOVE, helper.absolutePos(golemPos)), "Default footprint should contain the golem");
         helper.assertTrue(golem.getAnchor().equals(Optional.of(GlobalPos.of(level.dimension(), helper.absolutePos(golemPos)))),
                 "Defaults should move the anchor to the golem's position");
 
@@ -176,13 +182,15 @@ public class GolemGameTests {
         ServerLevel level = helper.getLevel();
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
-        WorkZone configured = WorkZone.of(helper.absolutePos(new BlockPos(0, 1, 0)), helper.absolutePos(new BlockPos(1, 1, 1)));
-        golem.updateWorkplace(workplace -> workplace.withZones(List.of(configured)));
+        WorkFootprint configured = WorkFootprint.of(
+                new CarvedGlyph(helper.absolutePos(new BlockPos(0, 1, 0)), Direction.UP),
+                new CarvedGlyph(helper.absolutePos(new BlockPos(1, 1, 1)), Direction.UP));
+        golem.updateWorkplace(workplace -> workplace.withFootprints(List.of(configured)));
 
         WorkplaceDefaults.applyIfEmpty(golem, level);
 
         Workplace workplace = golem.getWorkplace(level).orElseThrow();
-        helper.assertTrue(workplace.zones().equals(List.of(configured)), "A configured zone should be kept, got " + workplace.zones());
+        helper.assertTrue(workplace.footprints().equals(List.of(configured)), "A configured footprint should be kept, got " + workplace.footprints());
 
         helper.succeed();
     }
@@ -256,10 +264,12 @@ public class GolemGameTests {
 
         ServerLevel level = helper.getLevel();
         Workplace workplace = golem.getWorkplace(level).orElseThrow();
-        helper.assertTrue(workplace.zones().size() == 1, "Giving an axiom should create the default zone");
-        WorkZone zone = workplace.zones().getFirst();
+        helper.assertTrue(workplace.footprints().size() == 1, "Giving an axiom should create the default footprint");
+        WorkFootprint footprint = workplace.footprints().getFirst();
+        WorkZone zone = footprint.zone(FarmingJob.BELOW, FarmingJob.ABOVE);
         helper.assertTrue(zone.min().equals(helper.absolutePos(new BlockPos(-3, 1, -3))) && zone.max().equals(helper.absolutePos(new BlockPos(5, 4, 5))),
-                "Default zone should be 9x9 around the golem, got " + zone.min() + " to " + zone.max());
+                "Default footprint should be 9x9 around the golem, got " + zone.min() + " to " + zone.max());
+        helper.assertTrue(footprint.glyphs().isEmpty(), "The default footprint is implicit and should carry no glyphs");
         BlockPos absoluteChest = helper.absolutePos(new BlockPos(2, 2, 1));
         helper.assertTrue(workplace.links().stream().anyMatch(link -> link.pos().equals(absoluteChest) && link.role() == ContainerRole.BOTH),
                 "The adjacent chest should be linked as BOTH");
@@ -270,8 +280,10 @@ public class GolemGameTests {
     public static void axiomGivenKeepsConfiguredWorkplace(GameTestHelper helper) {
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
-        WorkZone configured = WorkZone.of(helper.absolutePos(new BlockPos(0, 1, 0)), helper.absolutePos(new BlockPos(1, 1, 1)));
-        golem.updateWorkplace(workplace -> workplace.withZones(List.of(configured)));
+        WorkFootprint configured = WorkFootprint.of(
+                new CarvedGlyph(helper.absolutePos(new BlockPos(0, 1, 0)), Direction.UP),
+                new CarvedGlyph(helper.absolutePos(new BlockPos(1, 1, 1)), Direction.UP));
+        golem.updateWorkplace(workplace -> workplace.withFootprints(List.of(configured)));
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         golem.setOwnerUUID(player.getUUID());
@@ -279,8 +291,56 @@ public class GolemGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, axiom);
 
         axiom.interactLivingEntity(player, golem, InteractionHand.MAIN_HAND);
-        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().zones().equals(List.of(configured)),
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().footprints().equals(List.of(configured)),
                 "Giving an axiom should keep the configured work area");
+
+        helper.succeed();
+    }
+
+    /**
+     * Raising moves the working level, and the job's reach is measured from there. The effective box follows.
+     */
+    public static void raiseOffsetMovesEffectiveBox(GameTestHelper helper) {
+        WorkFootprint flat = WorkFootprint.centered(helper.absolutePos(new BlockPos(0, 2, 0)), 2, helper.absolutePos(new BlockPos(0, 1, 0)).getY());
+        WorkZone ground = flat.zone(FarmingJob.BELOW, FarmingJob.ABOVE);
+        helper.assertTrue(ground.min().getY() == flat.groundY() && ground.max().getY() == flat.groundY() + FarmingJob.ABOVE,
+                "A flat footprint should reach the job's span from the ground, got " + ground.min() + " to " + ground.max());
+
+        WorkFootprint raised = flat.withRaise(2);
+        WorkZone lifted = raised.zone(FarmingJob.BELOW, FarmingJob.ABOVE);
+        helper.assertTrue(raised.level() == flat.groundY() + 2, "Raising should move the working level");
+        helper.assertTrue(lifted.min().getY() == ground.min().getY() + 2 && lifted.max().getY() == ground.max().getY() + 2,
+                "A raised footprint should move its box up by the raise, got " + lifted.min() + " to " + lifted.max());
+        helper.assertTrue(lifted.min().getX() == ground.min().getX() && lifted.max().getZ() == ground.max().getZ(),
+                "Raising should not change the rectangle");
+
+        helper.assertTrue(flat.withRaise(100).raise() == WorkFootprint.MAX_RAISE, "Raise should be clamped to the maximum");
+        helper.assertTrue(flat.withRaise(-100).raise() == WorkFootprint.MIN_RAISE, "Raise should be clamped to the minimum");
+
+        helper.succeed();
+    }
+
+    /**
+     * Breaking a block with a carved glyph erases the footprint that owns it, and leaves other footprints alone.
+     */
+    public static void breakingGlyphErasesFootprint(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+
+        BlockPos glyphPos = helper.absolutePos(new BlockPos(0, 1, 0));
+        WorkFootprint carved = WorkFootprint.of(
+                new CarvedGlyph(glyphPos, Direction.UP),
+                new CarvedGlyph(helper.absolutePos(new BlockPos(2, 1, 2)), Direction.UP));
+        WorkFootprint other = WorkFootprint.centered(helper.absolutePos(new BlockPos(8, 2, 8)), 1, glyphPos.getY());
+        golem.updateWorkplace(workplace -> workplace.withFootprints(List.of(carved, other)));
+
+        helper.setBlock(new BlockPos(0, 1, 0), Blocks.AIR);
+        WorkplaceEvents.eraseGlyphsAt(level, glyphPos);
+
+        Workplace workplace = golem.getWorkplace(level).orElseThrow();
+        helper.assertTrue(workplace.footprints().equals(List.of(other)), "Breaking a glyph block should erase only its footprint, got " + workplace.footprints());
+        helper.assertTrue(!workplace.hasGlyphAt(glyphPos), "No glyph should remain at the broken block");
 
         helper.succeed();
     }
@@ -366,7 +426,7 @@ public class GolemGameTests {
         helper.assertTrue(golem.getSpec().job().isEmpty(), "A placed golem should have no axiom");
         helper.assertTrue(golem.getMode() == GolemMode.STAY, "A placed golem without axiom should be in Stay, got " + golem.getMode());
         helper.assertTrue(!golem.removeWhenFarAway(128.0), "A placed golem should never despawn");
-        helper.assertTrue(golem.getWorkplace(level).orElseThrow().zones().isEmpty(), "A placed golem should not create a work area before it is given an axiom");
+        helper.assertTrue(golem.getWorkplace(level).orElseThrow().footprints().isEmpty(), "A placed golem should not create a work area before it is given an axiom");
 
         AdvancementHolder advancement = level.getServer().getAdvancements().get(PrincipiaMagicaAdvancementSubProvider.CLAY_THAT_STANDS);
         helper.assertTrue(advancement != null, "Advancement clay_that_stands is missing");

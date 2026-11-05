@@ -57,10 +57,12 @@ public class WorkTargetSensor extends Sensor<GolemEntity> {
         }
 
         WorkTargetFinder finder = job.get().targetFinder();
-        List<WorkZone> zones = workplace.get().zones();
+        int below = job.get().below();
+        int above = job.get().above();
+        List<WorkZone> zones = workplace.get().zones(below, above);
         int total = zones.stream().mapToInt(WorkZone::volume).sum();
         List<BlockPos> candidates = new ArrayList<>(body.getBrain().getMemory(MemoryModuleTypeRegistry.WORK_CANDIDATES.value()).orElse(List.of()));
-        candidates.removeIf(pos -> !workplace.get().containsInZone(pos) || !finder.isTarget(level, body, pos));
+        candidates.removeIf(pos -> !workplace.get().containsInZone(below, above, pos) || !finder.isTarget(level, body, pos));
 
         GolemStatus blocked = null;
         if (total > 0) {

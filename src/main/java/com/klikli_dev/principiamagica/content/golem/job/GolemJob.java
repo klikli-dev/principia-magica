@@ -33,6 +33,16 @@ public interface GolemJob {
     }
 
     /**
+     * How far below the footprint's working level the job works, e.g. the soil under a crop.
+     */
+    int below();
+
+    /**
+     * How far above the footprint's working level the job works, e.g. crops and tall plants.
+     */
+    int above();
+
+    /**
      * Tag the golem's main hand tool must match for the job to work. Empty if no tool is needed.
      */
     default Optional<TagKey<Item>> requiredTool() {

@@ -9,7 +9,7 @@ import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -69,16 +69,30 @@ public final class GolemCommands {
     }
 
     /**
-     * @return the workplace without the zone at the index, or empty if the index is out of range
+     * @return the workplace without the footprint at the index, or empty if the index is out of range
      */
-    public static Optional<Workplace> removeZone(Workplace workplace, int index) {
-        if (index < 0 || index >= workplace.zones().size()) {
+    public static Optional<Workplace> removeFootprint(Workplace workplace, int index) {
+        if (index < 0 || index >= workplace.footprints().size()) {
             return Optional.empty();
         }
 
-        List<WorkZone> zones = new ArrayList<>(workplace.zones());
-        zones.remove(index);
-        return Optional.of(workplace.withZones(zones).markInitialized());
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.remove(index);
+        return Optional.of(workplace.withFootprints(footprints).markInitialized());
+    }
+
+    /**
+     * @return the workplace with the footprint at the index raised or lowered by delta, clamped to the allowed range, or empty if the index is out of range
+     */
+    public static Optional<Workplace> shiftFootprint(Workplace workplace, int index, int delta) {
+        if (index < 0 || index >= workplace.footprints().size()) {
+            return Optional.empty();
+        }
+
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        WorkFootprint footprint = footprints.get(index);
+        footprints.set(index, footprint.withRaise(footprint.raise() + delta));
+        return Optional.of(workplace.withFootprints(footprints).markInitialized());
     }
 
     /**

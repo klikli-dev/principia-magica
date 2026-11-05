@@ -7,7 +7,7 @@ package com.klikli_dev.principiamagica.content.golem.client.gui;
 import com.klikli_dev.principiamagica.client.gui.ContentRect;
 import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
 import com.klikli_dev.principiamagica.client.gui.widget.TextButton;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageRemoveZone;
 import net.minecraft.network.chat.Component;
@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Size and bounds of a work zone, with a button to remove it. Pops back to the list if the zone disappears.
+ * Size, ground level and raise offset of a footprint, with a button to remove it. Pops back to the list if the footprint disappears.
  */
 final class ZoneDetailPage extends GolemDetailPage {
 
@@ -34,14 +34,14 @@ final class ZoneDetailPage extends GolemDetailPage {
         int x = bounds.x() + 8;
         int width = 160;
 
-        this.add(new LabelWidget(x, y, width, () -> this.zone()
-                .map(zone -> Component.translatable("gui.principiamagica.golem.zone.size", zone.width(), zone.height(), zone.depth()))
+        this.add(new LabelWidget(x, y, width, () -> this.footprint()
+                .map(footprint -> Component.translatable("gui.principiamagica.golem.zone.size", footprint.width(), footprint.depth()))
                 .orElse(Component.empty())));
-        this.add(new LabelWidget(x, y + 12, width, () -> this.zone()
-                .map(zone -> Component.translatable("gui.principiamagica.golem.zone.from", zone.min().getX(), zone.min().getY(), zone.min().getZ()))
+        this.add(new LabelWidget(x, y + 12, width, () -> this.footprint()
+                .map(footprint -> Component.translatable("gui.principiamagica.golem.zone.ground", footprint.groundY()))
                 .orElse(Component.empty())));
-        this.add(new LabelWidget(x, y + 24, width, () -> this.zone()
-                .map(zone -> Component.translatable("gui.principiamagica.golem.zone.to", zone.max().getX(), zone.max().getY(), zone.max().getZ()))
+        this.add(new LabelWidget(x, y + 24, width, () -> this.footprint()
+                .map(footprint -> Component.translatable("gui.principiamagica.golem.zone.raise", GolemGuiText.signed(footprint.raise())))
                 .orElse(Component.empty())));
 
         this.add(new TextButton(x, y + 44, 120, 18, Component.translatable("gui.principiamagica.golem.zone.remove"), () -> {
@@ -52,13 +52,13 @@ final class ZoneDetailPage extends GolemDetailPage {
 
     @Override
     public void tick() {
-        if (this.view().workplaceKnown() && this.zone().isEmpty()) {
+        if (this.view().workplaceKnown() && this.footprint().isEmpty()) {
             this.context().pop();
         }
     }
 
-    private Optional<WorkZone> zone() {
-        List<WorkZone> zones = this.view().workplace().zones();
-        return this.index < zones.size() ? Optional.of(zones.get(this.index)) : Optional.empty();
+    private Optional<WorkFootprint> footprint() {
+        List<WorkFootprint> footprints = this.view().workplace().footprints();
+        return this.index < footprints.size() ? Optional.of(footprints.get(this.index)) : Optional.empty();
     }
 }

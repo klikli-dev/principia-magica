@@ -35,9 +35,16 @@ import java.util.Set;
 /**
  * Fells natural trees with an axe and replants a sapling on each stump. Only trees whose leaves can still decay are felled,
  * so wood placed by players is never touched. Leaves are left to decay, saplings and sticks that fall into the zone are picked up.
+ * The footprint only defines the trunk area: the tree is felled upwards from its stump, beyond the footprint.
  */
 public class LumberjackJob implements GolemJob {
     public static final ResourceKey<GolemJob> KEY = ResourceKey.create(PrincipiaMagicaRegistries.Keys.GOLEM_JOB, PrincipiaMagica.loc("lumberjack"));
+
+    /**
+     * Stumps stand on the working level, the sapling spot is one block above it.
+     */
+    public static final int BELOW = 0;
+    public static final int ABOVE = 1;
 
     private static final WorkTargetFinder TARGET_FINDER = new WorkTargetFinder() {
         @Override
@@ -59,6 +66,16 @@ public class LumberjackJob implements GolemJob {
     @Override
     public List<JobOption> options() {
         return List.of(LumberjackTargets.REPLANT, LumberjackTargets.CLEAR_LEAVES, LumberjackTargets.BONEMEAL, CommonJobOptions.PICKUP_ITEMS);
+    }
+
+    @Override
+    public int below() {
+        return BELOW;
+    }
+
+    @Override
+    public int above() {
+        return ABOVE;
     }
 
     @Override

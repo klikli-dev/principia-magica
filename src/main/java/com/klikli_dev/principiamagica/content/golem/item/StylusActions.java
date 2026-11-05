@@ -4,9 +4,10 @@
 
 package com.klikli_dev.principiamagica.content.golem.item;
 
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,6 +15,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,10 +24,6 @@ import java.util.Optional;
  * Pure workplace edits used by the golem stylus. No world access, so they can be unit tested as gametests.
  */
 public final class StylusActions {
-
-    public static final int MAX_ZONE_WIDTH = 64;
-    public static final int MAX_ZONE_HEIGHT = 16;
-    public static final int MAX_ZONE_DEPTH = 64;
 
     private StylusActions() {
     }
@@ -53,49 +51,49 @@ public final class StylusActions {
         return workplace.withLinks(links).markInitialized();
     }
 
-    public static boolean isTooLarge(WorkZone zone) {
-        return zone.width() > MAX_ZONE_WIDTH || zone.height() > MAX_ZONE_HEIGHT || zone.depth() > MAX_ZONE_DEPTH;
-    }
-
     /**
-     * @return the workplace with the zone added, or empty if the zone exceeds the maximum size
+     * Carves the second glyph of a footprint, spanned between the two glyphs.
+     *
+     * @return the workplace with the footprint added, or empty if the footprint exceeds the maximum size
      */
-    public static Optional<Workplace> addZone(Workplace workplace, WorkZone zone) {
-        if (isTooLarge(zone)) {
+    public static Optional<Workplace> carve(Workplace workplace, CarvedGlyph first, CarvedGlyph second) {
+        WorkFootprint footprint = WorkFootprint.of(first, second);
+        if (footprint.isTooLarge()) {
             return Optional.empty();
         }
 
-        List<WorkZone> zones = new ArrayList<>(workplace.zones());
-        zones.add(zone);
-        return Optional.of(workplace.withZones(zones).markInitialized());
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.add(footprint);
+        return Optional.of(workplace.withFootprints(footprints).markInitialized());
     }
 
     /**
-     * Removes the smallest zone containing pos. Returns the workplace unchanged if no zone contains pos.
+     * Erases the footprint that owns the glyph at pos. Failing that, erases the smallest footprint whose box contains pos
+     * for the given job reach.
+     *
+     * @return the workplace without the footprint, or empty if no footprint is at pos
      */
-    public static Workplace removeZoneAt(Workplace workplace, BlockPos pos) {
-        WorkZone smallest = null;
-        for (WorkZone zone : workplace.zones()) {
-            if (zone.contains(pos) && (smallest == null || zone.volume() < smallest.volume())) {
-                smallest = zone;
-            }
-        }
+    public static Optional<Workplace> removeFootprintAt(Workplace workplace, BlockPos pos, int below, int above) {
+        Optional<WorkFootprint> target = workplace.footprints().stream()
+                .filter(footprint -> footprint.hasGlyphAt(pos))
+                .findFirst()
+                .or(() -> workplace.footprints().stream()
+                        .filter(footprint -> footprint.zone(below, above).contains(pos))
+                        .min(Comparator.comparingInt(footprint -> footprint.zone(below, above).volume())));
 
-        if (smallest == null) {
-            return workplace;
-        }
-
-        List<WorkZone> zones = new ArrayList<>(workplace.zones());
-        zones.remove(smallest);
-        return workplace.withZones(zones).markInitialized();
+        return target.map(footprint -> {
+            List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+            footprints.remove(footprint);
+            return workplace.withFootprints(footprints).markInitialized();
+        });
     }
 
     /**
-     * Overwrites zones and links of the target with the relative clipboard placed at the target anchor. Options are kept.
+     * Overwrites footprints and links of the target with the relative clipboard placed at the target anchor. Options are kept.
      */
     public static Workplace paste(Workplace target, Workplace relativeClipboard, BlockPos anchor) {
         Workplace placed = toAbsolute(relativeClipboard, anchor);
-        return target.withZones(placed.zones()).withLinks(placed.links()).markInitialized();
+        return target.withFootprints(placed.footprints()).withLinks(placed.links()).markInitialized();
     }
 
     /**
@@ -113,8 +111,8 @@ public final class StylusActions {
     }
 
     private static Workplace shift(Workplace workplace, int dx, int dy, int dz, boolean clearMemory) {
-        List<WorkZone> zones = workplace.zones().stream()
-                .map(zone -> new WorkZone(zone.min().offset(dx, dy, dz), zone.max().offset(dx, dy, dz)))
+        List<WorkFootprint> footprints = workplace.footprints().stream()
+                .map(footprint -> footprint.offset(dx, dy, dz))
                 .toList();
         List<ContainerLink> links = workplace.links().stream()
                 .map(link -> new ContainerLink(link.pos().offset(dx, dy, dz), link.side(), link.role()))
@@ -122,6 +120,6 @@ public final class StylusActions {
 
         Map<BlockPos, Holder<Item>> memory = clearMemory ? Map.of() : workplace.itemMemory();
 
-        return new Workplace(zones, links, workplace.options(), memory, workplace.initialized());
+        return new Workplace(footprints, links, workplace.options(), memory, workplace.initialized());
     }
 }

@@ -74,6 +74,13 @@ final class GolemGuiText {
     }
 
     /**
+     * Formats a footprint's raise offset with an explicit sign, e.g. "+2", "0" or "-3".
+     */
+    static String signed(int raise) {
+        return raise == 0 ? "0" : String.format(Locale.ROOT, "%+d", raise);
+    }
+
+    /**
      * Formats an upgrade attribute modifier as e.g. "+20% Movement Speed" or "+3.0 Golem Inventory Slots".
      */
     static Component attribute(GolemUpgrade.AttributeEntry entry) {

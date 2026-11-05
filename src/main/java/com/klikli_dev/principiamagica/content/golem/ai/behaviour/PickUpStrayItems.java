@@ -7,7 +7,6 @@ package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.CommonJobOptions;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
@@ -39,7 +38,7 @@ public class PickUpStrayItems extends MoveToAndInteract {
     protected Optional<BlockPos> findTarget(ServerLevel level, GolemEntity golem) {
         return golem.getWorkplace(level)
                 .filter(workplace -> this.isEnabled(workplace))
-                .flatMap(workplace -> workplace.zones().stream()
+                .flatMap(workplace -> workplace.zones(this.job.below(), this.job.above()).stream()
                         .flatMap(zone -> level.getEntitiesOfClass(ItemEntity.class, zone.aabb(), item -> canPickUp(golem, item.getItem())).stream())
                         .filter(item -> isAvailable(level, golem, item.blockPosition()))
                         .min(Comparator.comparingDouble(item -> item.distanceToSqr(golem)))
@@ -49,7 +48,7 @@ public class PickUpStrayItems extends MoveToAndInteract {
     @Override
     protected boolean isTargetValid(ServerLevel level, GolemEntity golem, BlockPos pos) {
         return golem.getWorkplace(level)
-                .filter(workplace -> this.isEnabled(workplace) && workplace.containsInZone(pos))
+                .filter(workplace -> this.isEnabled(workplace) && workplace.containsInZone(this.job.below(), this.job.above(), pos))
                 .map(workplace -> !level.getEntitiesOfClass(ItemEntity.class, pickupArea(pos), item -> canPickUp(golem, item.getItem())).isEmpty())
                 .orElse(false);
     }
@@ -74,7 +73,7 @@ public class PickUpStrayItems extends MoveToAndInteract {
     private boolean isEnabled(Workplace workplace) {
         return this.job.options().contains(CommonJobOptions.PICKUP_ITEMS)
                 && workplace.options().get(CommonJobOptions.PICKUP_ITEMS)
-                && !workplace.zones().isEmpty();
+                && !workplace.footprints().isEmpty();
     }
 
     private static boolean canPickUp(GolemEntity golem, ItemStack stack) {

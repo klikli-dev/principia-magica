@@ -7,6 +7,8 @@ package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -20,6 +22,7 @@ public final class WorkplaceGeometry {
     private static final float MIN_WIDTH = 0.02F;
     private static final float MAX_WIDTH = 0.12F;
     private static final float WIDTH_PER_BLOCK = 0.01F;
+    private static final double DECAL_OFFSET = 0.01;
 
     /**
      * Corner index quads of a box, where bit 0 selects x, bit 1 y and bit 2 z of the corner (see {@link #boxCorner}).
@@ -31,6 +34,7 @@ public final class WorkplaceGeometry {
     private final VertexConsumer ribbons;
     private final VertexConsumer beams;
     private final VertexConsumer fills;
+    private final VertexConsumer decals;
 
     public WorkplaceGeometry(MultiBufferSource buffers, PoseStack.Pose pose, Vec3 camera) {
         this.pose = pose;
@@ -38,6 +42,7 @@ public final class WorkplaceGeometry {
         this.ribbons = buffers.getBuffer(WorkplaceRenderTypes.RIBBON);
         this.beams = buffers.getBuffer(WorkplaceRenderTypes.BEAM);
         this.fills = buffers.getBuffer(WorkplaceRenderTypes.FILL);
+        this.decals = buffers.getBuffer(WorkplaceRenderTypes.GLYPH);
     }
 
     public static int argb(int rgb, float alpha) {
@@ -96,6 +101,34 @@ public final class WorkplaceGeometry {
                 this.vertex(this.fills, boxCorner(box, index), 0.0F, 0.0F, argb);
             }
         }
+    }
+
+    /**
+     * Textured glyph decal lying flat on a face of a block, slightly off the face so it does not z-fight. Has no collision.
+     */
+    public void decal(BlockPos pos, Direction face, float size, int argb) {
+        Vec3 normal = new Vec3(face.getStepX(), face.getStepY(), face.getStepZ());
+        Vec3 centre = Vec3.atCenterOf(pos).add(normal.scale(0.5 + DECAL_OFFSET));
+        Vec3 u;
+        Vec3 v;
+        if (face.getAxis() == Direction.Axis.Y) {
+            u = new Vec3(1.0, 0.0, 0.0);
+            v = new Vec3(0.0, 0.0, 1.0);
+        } else if (face.getAxis() == Direction.Axis.Z) {
+            u = new Vec3(1.0, 0.0, 0.0);
+            v = new Vec3(0.0, 1.0, 0.0);
+        } else {
+            u = new Vec3(0.0, 0.0, 1.0);
+            v = new Vec3(0.0, 1.0, 0.0);
+        }
+
+        double half = size * 0.5;
+        Vec3 du = u.scale(half);
+        Vec3 dv = v.scale(half);
+        this.vertex(this.decals, centre.subtract(du).subtract(dv), 0.0F, 0.0F, argb);
+        this.vertex(this.decals, centre.subtract(du).add(dv), 0.0F, 1.0F, argb);
+        this.vertex(this.decals, centre.add(du).add(dv), 1.0F, 1.0F, argb);
+        this.vertex(this.decals, centre.add(du).subtract(dv), 1.0F, 0.0F, argb);
     }
 
     /**

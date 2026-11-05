@@ -31,6 +31,7 @@ public class PrincipiaMagicaClient {
         WorkplaceOverlayRenderer workplaceOverlay = new WorkplaceOverlayRenderer();
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onRenderLevelStage);
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onClientTick);
+        NeoForge.EVENT_BUS.addListener(workplaceOverlay::onMouseScrolling);
     }
 
     public static void onRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {

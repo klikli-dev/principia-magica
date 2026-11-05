@@ -10,9 +10,10 @@ import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingTargets;
 import com.klikli_dev.principiamagica.content.golem.job.JobOptionValues;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
@@ -53,10 +54,12 @@ public class PersistenceGameTests {
         golem.setAnchor(GlobalPos.of(level.dimension(), helper.absolutePos(GOLEM_POS)));
         golem.setMode(GolemMode.FOLLOW);
 
-        WorkZone zone = WorkZone.of(helper.absolutePos(new BlockPos(0, 1, 0)), helper.absolutePos(new BlockPos(4, 3, 4)));
+        WorkFootprint footprint = WorkFootprint.of(
+                new CarvedGlyph(helper.absolutePos(new BlockPos(0, 1, 0)), Direction.UP),
+                new CarvedGlyph(helper.absolutePos(new BlockPos(4, 3, 4)), Direction.EAST)).withRaise(2);
         ContainerLink link = new ContainerLink(helper.absolutePos(CHEST_POS), Direction.UP, ContainerRole.DEPOSIT);
         golem.updateWorkplace(workplace -> workplace
-                .withZones(List.of(zone))
+                .withFootprints(List.of(footprint))
                 .withLinks(List.of(link))
                 .withOptions(JobOptionValues.EMPTY.with(FarmingTargets.TILL, true))
                 .markInitialized());
@@ -84,6 +87,7 @@ public class PersistenceGameTests {
 
         Workplace original = golem.getWorkplace(level).orElseThrow();
         helper.assertTrue(loaded.getWorkplace(level).equals(Optional.of(original)), "Workplace should survive save and load");
+        helper.assertTrue(loaded.getWorkplace(level).orElseThrow().footprints().get(0).raise() == 2, "Footprint raise should survive save and load");
 
         helper.succeed();
     }

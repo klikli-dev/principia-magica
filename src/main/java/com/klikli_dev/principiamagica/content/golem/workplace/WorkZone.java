@@ -4,35 +4,19 @@
 
 package com.klikli_dev.principiamagica.content.golem.workplace;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.phys.AABB;
 
+/**
+ * The effective, inclusive box of a {@link WorkFootprint} for one job. Not persisted, see {@link WorkFootprint#zone}.
+ */
 public record WorkZone(BlockPos min, BlockPos max) {
-
-    public static final Codec<WorkZone> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            BlockPos.CODEC.fieldOf("min").forGetter(WorkZone::min),
-            BlockPos.CODEC.fieldOf("max").forGetter(WorkZone::max)
-    ).apply(instance, WorkZone::new));
-
-    public static final StreamCodec<ByteBuf, WorkZone> STREAM_CODEC = StreamCodec.composite(
-            BlockPos.STREAM_CODEC, WorkZone::min,
-            BlockPos.STREAM_CODEC, WorkZone::max,
-            WorkZone::new
-    );
 
     public static WorkZone of(BlockPos a, BlockPos b) {
         return new WorkZone(
                 new BlockPos(Math.min(a.getX(), b.getX()), Math.min(a.getY(), b.getY()), Math.min(a.getZ(), b.getZ())),
                 new BlockPos(Math.max(a.getX(), b.getX()), Math.max(a.getY(), b.getY()), Math.max(a.getZ(), b.getZ()))
         );
-    }
-
-    public static WorkZone centered(BlockPos center, int radius, int down, int up) {
-        return of(center.offset(-radius, -down, -radius), center.offset(radius, up, radius));
     }
 
     public boolean contains(BlockPos pos) {

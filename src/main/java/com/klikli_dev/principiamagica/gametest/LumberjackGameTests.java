@@ -17,7 +17,8 @@ import com.klikli_dev.principiamagica.content.golem.job.lumberjack.TreeDetector;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
@@ -54,6 +55,10 @@ public class LumberjackGameTests {
     private static final BlockPos FAR_POS = new BlockPos(0, 2, 3);
     private static final BlockPos ZONE_MIN = new BlockPos(0, 1, 0);
     private static final BlockPos ZONE_MAX = new BlockPos(7, 4, 7);
+    /**
+     * The opposite corner of the footprint, carved on the grass: the footprint's ground is the grass level.
+     */
+    private static final BlockPos GROUND_MAX = new BlockPos(7, 1, 7);
     private static final BlockPos CHEST_POS = new BlockPos(0, 2, 6);
     private static final BlockPos TREE = new BlockPos(3, 2, 3);
     private static final int BASE_Y = 2;
@@ -164,9 +169,11 @@ public class LumberjackGameTests {
         golem.setOwnerUUID(UUID.randomUUID());
         golem.setAnchor(GlobalPos.of(level.dimension(), helper.absolutePos(GOLEM_POS)));
 
-        WorkZone zone = WorkZone.of(helper.absolutePos(ZONE_MIN), helper.absolutePos(ZONE_MAX));
+        WorkFootprint footprint = WorkFootprint.of(
+                new CarvedGlyph(helper.absolutePos(ZONE_MIN), Direction.UP),
+                new CarvedGlyph(helper.absolutePos(GROUND_MAX), Direction.UP));
         golem.updateWorkplace(workplace -> workplace
-                .withZones(List.of(zone))
+                .withFootprints(List.of(footprint))
                 .withLinks(links)
                 .withOptions(options)
                 .markInitialized());
@@ -473,6 +480,24 @@ public class LumberjackGameTests {
         spawnLumberjack(helper, List.of(), true);
 
         helper.succeedWhen(() -> helper.assertTrue(logsGone(helper, 10), "The whole tree should be felled, even above the work zone"));
+    }
+
+    /**
+     * The footprint only defines the trunk area: a tree whose stump is outside of it is left standing.
+     */
+    public static void ignoresStumpOutsideFootprint(GameTestHelper helper) {
+        buildGround(helper);
+        buildTree(helper, List.of(TREE), 5, Blocks.OAK_LOG, naturalLeaves(Blocks.OAK_LEAVES));
+        GolemEntity golem = spawnLumberjack(helper, List.of(), true);
+        WorkFootprint beside = WorkFootprint.of(
+                new CarvedGlyph(helper.absolutePos(new BlockPos(0, 1, 0)), Direction.UP),
+                new CarvedGlyph(helper.absolutePos(new BlockPos(1, 1, 1)), Direction.UP));
+        golem.updateWorkplace(workplace -> workplace.withFootprints(List.of(beside)));
+
+        helper.runAfterDelay(300, () -> {
+            helper.assertTrue(logsPresent(helper, 5), "A tree outside the footprint should not be felled");
+            helper.succeed();
+        });
     }
 
     public static void missingAxeReportsStatus(GameTestHelper helper) {

@@ -4,12 +4,14 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import net.minecraft.world.phys.AABB;
 
 public final class ZoneRenderer {
 
     public static final int COLOR = 0x55FFFF;
+    public static final float GLYPH_SIZE = 0.8F;
 
     private ZoneRenderer() {
     }
@@ -25,5 +27,13 @@ public final class ZoneRenderer {
         for (int i = 0; i < 8; i++) {
             geometry.glyph(WorkplaceGeometry.boxCorner(box, i), 0.3F, WorkplaceGeometry.Glyph.PLUS, corner);
         }
+    }
+
+    /**
+     * A carved glyph decal on the block face it was carved into. Glows, so it reads while the stylus is held.
+     */
+    public static void renderGlyph(WorkplaceGeometry geometry, CarvedGlyph glyph, int color, float alpha, double time) {
+        float pulse = WorkplaceGeometry.pulse(time, 0.12, 0.7F);
+        geometry.decal(glyph.pos(), glyph.face(), GLYPH_SIZE, WorkplaceGeometry.argb(color, alpha * pulse));
     }
 }

@@ -37,6 +37,12 @@ import java.util.Set;
 public class FarmingJob implements GolemJob {
     public static final ResourceKey<GolemJob> KEY = ResourceKey.create(PrincipiaMagicaRegistries.Keys.GOLEM_JOB, PrincipiaMagica.loc("farming"));
 
+    /**
+     * The soil is the working level itself. Three blocks above it are the crop, a tall crop and a stacked plant on top of it.
+     */
+    public static final int BELOW = 0;
+    public static final int ABOVE = 3;
+
     private static final WorkTargetFinder TARGET_FINDER = new WorkTargetFinder() {
         @Override
         public boolean isTarget(ServerLevel level, GolemEntity golem, BlockPos pos) {
@@ -57,6 +63,16 @@ public class FarmingJob implements GolemJob {
     @Override
     public List<JobOption> options() {
         return List.of(FarmingTargets.REPLANT, FarmingTargets.CLEAR_OBSTRUCTIONS, FarmingTargets.TILL, FarmingTargets.BONEMEAL, CommonJobOptions.PICKUP_ITEMS);
+    }
+
+    @Override
+    public int below() {
+        return BELOW;
+    }
+
+    @Override
+    public int above() {
+        return ABOVE;
     }
 
     @Override

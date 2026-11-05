@@ -5,9 +5,10 @@
 package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -53,24 +54,68 @@ public class StylusGameTests {
         helper.succeed();
     }
 
-    public static void zoneAddAndRemove(GameTestHelper helper) {
-        Optional<Workplace> added = StylusActions.addZone(Workplace.EMPTY, WorkZone.of(new BlockPos(0, 0, 0), new BlockPos(4, 2, 4)));
-        helper.assertTrue(added.isPresent() && added.get().zones().size() == 1, "A small zone should be added");
+    /**
+     * Two glyphs carved on different faces make a footprint spanning both columns. The ground is the lower glyph block.
+     */
+    public static void carvingTwoGlyphsCreatesFootprint(GameTestHelper helper) {
+        BlockPos first = helper.absolutePos(new BlockPos(2, 1, 2));
+        BlockPos second = helper.absolutePos(new BlockPos(6, 3, 5));
 
-        Optional<Workplace> tooLarge = StylusActions.addZone(Workplace.EMPTY, WorkZone.of(new BlockPos(0, 0, 0), new BlockPos(StylusActions.MAX_ZONE_WIDTH, 0, 0)));
-        helper.assertTrue(tooLarge.isEmpty(), "A zone wider than the maximum should be rejected");
+        Optional<Workplace> carved = StylusActions.carve(Workplace.EMPTY,
+                new CarvedGlyph(first, Direction.UP), new CarvedGlyph(second, Direction.NORTH));
+        helper.assertTrue(carved.isPresent(), "Two glyphs should carve a footprint");
 
-        Workplace nested = added.get()
-                .withZones(List.of(
-                        WorkZone.of(new BlockPos(0, 0, 0), new BlockPos(10, 5, 10)),
-                        WorkZone.of(new BlockPos(2, 0, 2), new BlockPos(3, 0, 3))
-                ));
-        Workplace afterRemove = StylusActions.removeZoneAt(nested, new BlockPos(2, 0, 2));
-        helper.assertTrue(afterRemove.zones().size() == 1, "Removing inside nested zones should remove exactly one zone");
-        helper.assertTrue(afterRemove.zones().get(0).volume() > 4, "The smallest containing zone should be the one removed");
+        Workplace workplace = carved.get();
+        helper.assertTrue(workplace.footprints().size() == 1, "Carving should add exactly one footprint, got " + workplace.footprints().size());
+        WorkFootprint footprint = workplace.footprints().getFirst();
+        helper.assertTrue(footprint.minX() == first.getX() && footprint.maxX() == second.getX(), "Footprint should span the glyph columns on X");
+        helper.assertTrue(footprint.minZ() == first.getZ() && footprint.maxZ() == second.getZ(), "Footprint should span the glyph columns on Z");
+        helper.assertTrue(footprint.groundY() == first.getY(), "Ground should be the lower glyph block, got " + footprint.groundY());
+        helper.assertTrue(footprint.raise() == 0, "A carved footprint should start flat, raise " + footprint.raise());
+        helper.assertTrue(footprint.glyphs().equals(List.of(new CarvedGlyph(first, Direction.UP), new CarvedGlyph(second, Direction.NORTH))),
+                "The footprint should keep both carved glyphs");
+        helper.assertTrue(workplace.initialized(), "Carving should mark the workplace initialized");
 
-        Workplace unchanged = StylusActions.removeZoneAt(nested, new BlockPos(50, 50, 50));
-        helper.assertTrue(unchanged.zones().size() == 2, "Removing outside every zone should change nothing");
+        helper.succeed();
+    }
+
+    public static void oversizedFootprintIsRejected(GameTestHelper helper) {
+        Optional<Workplace> tooLarge = StylusActions.carve(Workplace.EMPTY,
+                new CarvedGlyph(new BlockPos(0, 0, 0), Direction.UP),
+                new CarvedGlyph(new BlockPos(WorkFootprint.MAX_SIZE, 0, 0), Direction.UP));
+        helper.assertTrue(tooLarge.isEmpty(), "A footprint wider than the maximum should be rejected");
+
+        Optional<Workplace> maximum = StylusActions.carve(Workplace.EMPTY,
+                new CarvedGlyph(new BlockPos(0, 0, 0), Direction.UP),
+                new CarvedGlyph(new BlockPos(WorkFootprint.MAX_SIZE - 1, 0, WorkFootprint.MAX_SIZE - 1), Direction.UP));
+        helper.assertTrue(maximum.isPresent(), "A footprint of exactly the maximum size should be accepted");
+
+        helper.succeed();
+    }
+
+    /**
+     * Erasing the glyph erases its footprint. Without a glyph at the position, the smallest footprint containing it goes.
+     */
+    public static void shiftCarveErasesFootprint(GameTestHelper helper) {
+        BlockPos first = helper.absolutePos(new BlockPos(0, 1, 0));
+        BlockPos second = helper.absolutePos(new BlockPos(4, 1, 4));
+        Workplace workplace = StylusActions.carve(Workplace.EMPTY,
+                new CarvedGlyph(first, Direction.UP), new CarvedGlyph(second, Direction.UP)).orElseThrow();
+
+        Optional<Workplace> erased = StylusActions.removeFootprintAt(workplace, first, 0, 3);
+        helper.assertTrue(erased.isPresent() && erased.get().footprints().isEmpty(), "Erasing a glyph should erase its footprint");
+
+        int ground = helper.absolutePos(new BlockPos(0, 1, 0)).getY();
+        Workplace nested = Workplace.EMPTY.withFootprints(List.of(
+                WorkFootprint.centered(helper.absolutePos(new BlockPos(2, 1, 2)), 4, ground),
+                WorkFootprint.centered(helper.absolutePos(new BlockPos(2, 1, 2)), 1, ground)
+        ));
+        Workplace afterNested = StylusActions.removeFootprintAt(nested, helper.absolutePos(new BlockPos(2, 1, 2)), 0, 3).orElseThrow();
+        helper.assertTrue(afterNested.footprints().size() == 1, "Erasing inside nested footprints should remove exactly one");
+        helper.assertTrue(afterNested.footprints().get(0).width() == 9, "The smallest containing footprint should be the one removed");
+
+        helper.assertTrue(StylusActions.removeFootprintAt(nested, helper.absolutePos(new BlockPos(50, 1, 50)), 0, 3).isEmpty(),
+                "Erasing outside every footprint should change nothing");
 
         helper.succeed();
     }
@@ -78,15 +123,19 @@ public class StylusGameTests {
     public static void copyAndPasteKeepsRelativeLayout(GameTestHelper helper) {
         BlockPos sourceAnchor = new BlockPos(10, 64, 10);
         Workplace source = Workplace.EMPTY
-                .withZones(List.of(WorkZone.of(new BlockPos(11, 64, 11), new BlockPos(13, 65, 12))))
+                .withFootprints(List.of(new WorkFootprint(11, 11, 13, 12, 64, 0, List.of())))
                 .withLinks(List.of(new ContainerLink(new BlockPos(12, 64, 9), Direction.NORTH, ContainerRole.BOTH)));
 
         Workplace clipboard = StylusActions.toRelative(source, sourceAnchor);
-        helper.assertTrue(clipboard.zones().get(0).min().equals(new BlockPos(1, 0, 1)), "Clipboard zones should be relative to the anchor");
+        helper.assertTrue(clipboard.footprints().get(0).minX() == 1 && clipboard.footprints().get(0).minZ() == 1,
+                "Clipboard footprints should be relative to the anchor");
+        helper.assertTrue(clipboard.footprints().get(0).groundY() == 0, "Clipboard ground should be relative to the anchor");
 
         BlockPos targetAnchor = new BlockPos(20, 70, 30);
         Workplace target = StylusActions.paste(Workplace.EMPTY, clipboard, targetAnchor);
-        helper.assertTrue(target.zones().get(0).min().equals(new BlockPos(21, 70, 31)), "Pasted zone should be placed at the target anchor");
+        WorkFootprint pasted = target.footprints().get(0);
+        helper.assertTrue(pasted.minX() == 21 && pasted.minZ() == 31, "Pasted footprint should be placed at the target anchor");
+        helper.assertTrue(pasted.groundY() == 70, "Pasted footprint ground should follow the target anchor height, got " + pasted.groundY());
         helper.assertTrue(target.links().get(0).pos().equals(new BlockPos(22, 70, 29)), "Pasted link should be placed at the target anchor");
         helper.assertTrue(target.links().get(0).role() == ContainerRole.BOTH, "Pasted link should keep its role");
 

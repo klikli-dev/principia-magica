@@ -171,6 +171,10 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         return this.entityData.get(DATA_SPEC);
     }
 
+    public Optional<GolemJob> getJob() {
+        return this.getSpec().job().map(Holder::value);
+    }
+
     public void setSpec(GolemSpec spec) {
         boolean jobChanged = !this.getSpec().job().equals(spec.job());
         this.entityData.set(DATA_SPEC, spec);

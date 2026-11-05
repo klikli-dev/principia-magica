@@ -15,22 +15,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Zero-config workplace: a 9x9 zone centred on the golem, plus any container touching the golem as BOTH.
+ * Zero-config workplace: a 9x9 footprint centred on the golem, plus any container touching the golem as BOTH.
  */
 public final class WorkplaceDefaults {
     public static final int RADIUS = 4;
-    public static final int DOWN = 1;
-    public static final int UP = 2;
+    /**
+     * The footprint's ground is the block below the golem.
+     */
+    public static final int GROUND_OFFSET = 1;
 
     private WorkplaceDefaults() {
     }
 
     /**
-     * Applies the default work area around the golem's current position when it has no zones yet, e.g. when it is given an axiom.
-     * The anchor moves to the current position so the zone and the golem's home agree. Existing zones and links are kept.
+     * Applies the default work area around the golem's current position when it has no footprints yet, e.g. when it is given an axiom.
+     * The anchor moves to the current position so the footprint and the golem's home agree. Existing footprints and links are kept.
      */
     public static void applyIfEmpty(GolemEntity golem, ServerLevel level) {
-        if (golem.getWorkplace(level).map(workplace -> !workplace.zones().isEmpty()).orElse(true)) {
+        if (golem.getWorkplace(level).map(workplace -> !workplace.footprints().isEmpty()).orElse(true)) {
             return;
         }
 
@@ -51,7 +53,7 @@ public final class WorkplaceDefaults {
         }
 
         return workplace
-                .withZones(List.of(WorkZone.centered(anchor, RADIUS, DOWN, UP)))
+                .withFootprints(List.of(WorkFootprint.centered(anchor, RADIUS, anchor.getY() - GROUND_OFFSET)))
                 .withLinks(links)
                 .markInitialized();
     }

@@ -7,16 +7,21 @@ package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
+import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
+import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.network.Networking;
+import com.klikli_dev.principiamagica.network.messages.MessageShiftZone;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.GlobalPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +29,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.jspecify.annotations.Nullable;
 
@@ -32,9 +38,9 @@ import java.util.SequencedMap;
 import java.util.UUID;
 
 /**
- * Draws the workplace of the golem selected on a held stylus: zones, container links, anchor, work target, and the
- * pending zone corner with a preview of the zone under the cursor. Elements fade in and out when the stylus is equipped,
- * unequipped or the selection changes.
+ * Draws the workplace of the golem selected on a held stylus: footprints, carved glyphs, container links, anchor, work
+ * target, and the pending glyph with a preview of the footprint under the cursor. Elements fade in and out when the stylus
+ * is equipped, unequipped or the selection changes.
  */
 public class WorkplaceOverlayRenderer {
 
@@ -43,7 +49,7 @@ public class WorkplaceOverlayRenderer {
     private static final int BUFFER_SIZE = 1536;
 
     private final FadingElementTracker<UUID> golemFade = new FadingElementTracker<>();
-    private final FadingElementTracker<GlobalPos> cornerFade = new FadingElementTracker<>();
+    private final FadingElementTracker<PendingGlyph> cornerFade = new FadingElementTracker<>();
     private final PendingZoneRenderer pending = new PendingZoneRenderer();
     private MultiBufferSource.@Nullable BufferSource buffers;
 
@@ -54,15 +60,46 @@ public class WorkplaceOverlayRenderer {
 
         ItemStack stylus = player == null || level == null ? null : heldStylus(player);
         UUID selected = stylus == null ? null : stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
-        GlobalPos corner = stylus == null ? null : pendingCorner(stylus, level);
+        PendingGlyph corner = stylus == null ? null : pendingGlyph(stylus, level);
 
         this.golemFade.tick(selected);
         this.cornerFade.tick(corner);
-        this.pending.tick(corner == null ? null : corner.pos(), hoveredBlock(minecraft));
+        this.pending.tick(corner == null ? null : corner.pos().pos(), hoveredBlock(minecraft));
 
         if (player != null && level != null) {
             this.spawnSparkles(level, player);
         }
+    }
+
+    /**
+     * Shift+scroll with a stylus that has a golem selected raises or lowers the footprint under the cursor, instead of changing the hotbar slot.
+     */
+    public void onMouseScrolling(InputEvent.MouseScrollingEvent event) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Player player = minecraft.player;
+        ClientLevel level = minecraft.level;
+        if (player == null || level == null || minecraft.screen != null || !player.isShiftKeyDown()) {
+            return;
+        }
+
+        ItemStack stylus = heldStylus(player);
+        UUID selected = stylus == null ? null : stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
+        GolemEntity golem = findGolem(level, selected);
+        BlockPos hovered = hoveredBlock(minecraft);
+        if (golem == null || hovered == null) {
+            return;
+        }
+
+        int index = ClientGolemWorkplaceCache.latest(golem.getId())
+                .map(entry -> entry.workplace().footprintIndexAt(hovered))
+                .orElse(-1);
+        if (index < 0) {
+            return;
+        }
+
+        event.setCanceled(true);
+        int delta = event.getScrollDeltaY() > 0 ? 1 : -1;
+        Networking.sendToServer(new MessageShiftZone(golem.getId(), index, delta));
     }
 
     public void onRenderLevelStage(RenderLevelStageEvent.AfterTranslucentParticles event) {
@@ -74,7 +111,7 @@ public class WorkplaceOverlayRenderer {
 
         float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
         boolean golemVisible = this.golemFade.isVisible(partialTick);
-        GlobalPos corner = this.cornerFade.isVisible(partialTick) ? this.cornerFade.key() : null;
+        PendingGlyph corner = this.cornerFade.isVisible(partialTick) ? this.cornerFade.key() : null;
         if (!golemVisible && corner == null) {
             return;
         }
@@ -89,16 +126,16 @@ public class WorkplaceOverlayRenderer {
         }
 
         if (corner != null) {
-            this.pending.render(geometry, corner.pos(), this.cornerFade.alpha(partialTick), partialTick, time);
+            this.pending.render(geometry, corner.glyph(), this.cornerFade.alpha(partialTick), partialTick, time);
         }
 
-        // Draws in the insertion order of the fixed buffers: fill, beam, ribbon.
+        // Draws in the insertion order of the fixed buffers: fill, beam, ribbon, glyph.
         buffers.endBatch();
     }
 
     /**
-     * Buffer source with a fixed buffer per workplace render type. The geometry holds vertex consumers for all three
-     * render types at once, which the shared vanilla buffer source does not support: requesting a second non-fixed
+     * Buffer source with a fixed buffer per workplace render type. The geometry holds vertex consumers for all render types at once,
+     * which the shared vanilla buffer source does not support: requesting a second non-fixed
      * render type ends the batch of the previous one.
      */
     private MultiBufferSource.BufferSource buffers() {
@@ -107,6 +144,7 @@ public class WorkplaceOverlayRenderer {
             fixed.put(WorkplaceRenderTypes.FILL, new ByteBufferBuilder(BUFFER_SIZE));
             fixed.put(WorkplaceRenderTypes.BEAM, new ByteBufferBuilder(BUFFER_SIZE));
             fixed.put(WorkplaceRenderTypes.RIBBON, new ByteBufferBuilder(BUFFER_SIZE));
+            fixed.put(WorkplaceRenderTypes.GLYPH, new ByteBufferBuilder(BUFFER_SIZE));
             this.buffers = MultiBufferSource.immediateWithBuffers(fixed, new ByteBufferBuilder(BUFFER_SIZE));
         }
         return this.buffers;
@@ -123,7 +161,9 @@ public class WorkplaceOverlayRenderer {
             return;
         }
 
-        ClientGolemWorkplaceCache.latest(golem.getId()).ifPresent(entry -> WorkplaceSparkles.spawn(level, entry.workplace().zones()));
+        int below = golem.getJob().map(GolemJob::below).orElse(WorkFootprint.DEFAULT_BELOW);
+        int above = golem.getJob().map(GolemJob::above).orElse(WorkFootprint.DEFAULT_ABOVE);
+        ClientGolemWorkplaceCache.latest(golem.getId()).ifPresent(entry -> WorkplaceSparkles.spawn(level, entry.workplace().zones(below, above)));
     }
 
     private void renderGolem(Minecraft minecraft, WorkplaceGeometry geometry, ClientLevel level, @Nullable UUID golemId, float alpha, float partialTick, double time) {
@@ -143,12 +183,22 @@ public class WorkplaceOverlayRenderer {
 
         SelectedGolemRenderer.render(geometry, feet, golem.getBbWidth(), alpha, time);
 
+        int below = golem.getJob().map(GolemJob::below).orElse(WorkFootprint.DEFAULT_BELOW);
+        int above = golem.getJob().map(GolemJob::above).orElse(WorkFootprint.DEFAULT_ABOVE);
+
         ClientGolemWorkplaceCache.latest(golem.getId()).ifPresent(entry -> {
             entry.anchor().ifPresent(anchor -> AnchorRenderer.render(geometry, anchor.pos(), alpha, time));
 
-            for (WorkZone zone : entry.workplace().zones()) {
+            for (WorkFootprint footprint : entry.workplace().footprints()) {
+                WorkZone zone = footprint.zone(below, above);
                 if (WorkplaceGeometry.isWithin(zone.aabb().getCenter(), camera, rangeSqr)) {
                     ZoneRenderer.render(geometry, zone, alpha, time);
+                }
+
+                for (CarvedGlyph glyph : footprint.glyphs()) {
+                    if (WorkplaceGeometry.isWithin(Vec3.atCenterOf(glyph.pos()), camera, rangeSqr)) {
+                        ZoneRenderer.renderGlyph(geometry, glyph, ZoneRenderer.COLOR, alpha, time);
+                    }
                 }
             }
 
@@ -174,9 +224,9 @@ public class WorkplaceOverlayRenderer {
     }
 
     @Nullable
-    private static GlobalPos pendingCorner(ItemStack stylus, ClientLevel level) {
-        GlobalPos corner = stylus.get(DataComponentRegistry.STYLUS_PENDING_CORNER.get());
-        return corner != null && corner.dimension().equals(level.dimension()) ? corner : null;
+    private static PendingGlyph pendingGlyph(ItemStack stylus, ClientLevel level) {
+        PendingGlyph glyph = stylus.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+        return glyph != null && glyph.pos().dimension().equals(level.dimension()) ? glyph : null;
     }
 
     @Nullable

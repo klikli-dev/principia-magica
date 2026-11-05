@@ -128,7 +128,7 @@ public final class LumberjackTargets {
      * A remembered replant spot that is inside the zone and currently free for a sapling.
      */
     private static boolean isPlantSpot(ServerLevel level, Workplace workplace, BlockPos pos) {
-        if (!workplace.itemMemory().containsKey(pos) || !workplace.containsInZone(pos)) {
+        if (!workplace.itemMemory().containsKey(pos) || !workplace.containsInZone(LumberjackJob.BELOW, LumberjackJob.ABOVE, pos)) {
             return false;
         }
 
@@ -152,7 +152,7 @@ public final class LumberjackTargets {
     }
 
     private static boolean isValidMemory(ServerLevel level, Workplace workplace, BlockPos pos, Holder<Item> item) {
-        return workplace.containsInZone(pos) && survives(level, pos, item.value());
+        return workplace.containsInZone(LumberjackJob.BELOW, LumberjackJob.ABOVE, pos) && survives(level, pos, item.value());
     }
 
     /**

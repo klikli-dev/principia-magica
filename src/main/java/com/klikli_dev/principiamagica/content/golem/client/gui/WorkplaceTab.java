@@ -9,7 +9,7 @@ import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
 import com.klikli_dev.principiamagica.client.gui.widget.ScrollList;
 import com.klikli_dev.principiamagica.client.gui.widget.TabIcon;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
@@ -75,12 +75,12 @@ final class WorkplaceTab extends GolemTab {
     private static List<Row> rows(Workplace workplace) {
         List<Row> rows = new ArrayList<>();
 
-        rows.add(new Header(Component.translatable("gui.principiamagica.golem.zones", workplace.zones().size())));
-        if (workplace.zones().isEmpty()) {
+        rows.add(new Header(Component.translatable("gui.principiamagica.golem.zones", workplace.footprints().size())));
+        if (workplace.footprints().isEmpty()) {
             rows.add(new Header(Component.translatable("gui.principiamagica.golem.no_zones")));
         }
-        for (int i = 0; i < workplace.zones().size(); i++) {
-            rows.add(new ZoneRow(i, workplace.zones().get(i)));
+        for (int i = 0; i < workplace.footprints().size(); i++) {
+            rows.add(new ZoneRow(i, workplace.footprints().get(i)));
         }
 
         rows.add(new Header(Component.translatable("gui.principiamagica.golem.containers", workplace.links().size())));
@@ -101,9 +101,9 @@ final class WorkplaceTab extends GolemTab {
         switch (row) {
             case Header header -> graphics.text(font, font.plainSubstrByWidth(header.text().getString(), width - 4), x + 2, textY, textColor, false);
             case ZoneRow zone -> {
-                WorkZone bounds = zone.zone();
+                WorkFootprint footprint = zone.footprint();
                 Component text = Component.translatable("gui.principiamagica.golem.zone_row",
-                        bounds.width(), bounds.height(), bounds.depth(), bounds.min().getX(), bounds.min().getY(), bounds.min().getZ());
+                        footprint.width(), footprint.depth(), GolemGuiText.signed(footprint.raise()));
                 graphics.text(font, font.plainSubstrByWidth(text.getString(), width - 4), x + 2, textY, textColor, false);
             }
             case LinkRow link -> {
@@ -124,7 +124,7 @@ final class WorkplaceTab extends GolemTab {
     private record Header(Component text) implements Row {
     }
 
-    private record ZoneRow(int index, WorkZone zone) implements Row {
+    private record ZoneRow(int index, WorkFootprint footprint) implements Row {
     }
 
     private record LinkRow(int index, ContainerLink link) implements Row {

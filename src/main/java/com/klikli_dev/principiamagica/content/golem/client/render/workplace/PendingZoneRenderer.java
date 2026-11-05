@@ -4,15 +4,17 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The zone that is being created with a stylus: a magenta corner block plus a ghost box that chases the block under the
- * crosshair. The ghost box position is lerped between client ticks, like theurgy's ChasingAABBOutline.
+ * The footprint that is being carved with a stylus: a magenta glyph decal on the first corner plus a flat ghost of the
+ * footprint that chases the block under the crosshair. The ghost position is lerped between client ticks, like theurgy's ChasingAABBOutline.
  */
 public class PendingZoneRenderer {
 
@@ -24,7 +26,7 @@ public class PendingZoneRenderer {
     private AABB current;
 
     /**
-     * @param corner  the pending corner, or null if there is none
+     * @param corner  the block of the pending glyph, or null if there is none
      * @param hovered the block under the crosshair, or null if there is none
      */
     public void tick(@Nullable BlockPos corner, @Nullable BlockPos hovered) {
@@ -32,7 +34,9 @@ public class PendingZoneRenderer {
             return;
         }
 
-        AABB target = hovered == null ? new AABB(corner) : WorkZone.of(corner, hovered).aabb();
+        AABB target = hovered == null
+                ? new AABB(corner)
+                : WorkFootprint.of(new CarvedGlyph(corner, Direction.UP), new CarvedGlyph(hovered, Direction.UP)).zone(0, 0).aabb();
         if (this.current == null) {
             this.current = target;
             this.previous = target;
@@ -43,9 +47,9 @@ public class PendingZoneRenderer {
         this.current = lerp(this.current, target, 0.5);
     }
 
-    public void render(WorkplaceGeometry geometry, BlockPos corner, float alpha, float partialTick, double time) {
+    public void render(WorkplaceGeometry geometry, CarvedGlyph corner, float alpha, float partialTick, double time) {
         float pulse = WorkplaceGeometry.pulse(time, 0.25, 0.4F);
-        geometry.boxEdges(new AABB(corner).inflate(0.02), WorkplaceGeometry.argb(COLOR, alpha * pulse));
+        ZoneRenderer.renderGlyph(geometry, corner, COLOR, alpha, time);
 
         if (this.previous == null || this.current == null) {
             return;

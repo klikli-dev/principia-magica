@@ -25,11 +25,12 @@ import java.util.stream.Collectors;
 /**
  * Where and how a golem works. The anchor is not stored here; it lives in the brain's ANCHOR memory.
  *
- * @param itemMemory generic per-position memory for jobs (e.g. which item was last grown at a field spot)
- * @param initialized whether the zero-config defaults were already applied, so removing all zones is respected
+ * @param footprints          the carved work areas
+ * @param itemMemory          generic per-position memory for jobs (e.g. which item was last grown at a field spot)
+ * @param initialized         whether the zero-config defaults were already applied, so removing all footprints is respected
  */
 public record Workplace(
-        List<WorkZone> zones,
+        List<WorkFootprint> footprints,
         List<ContainerLink> links,
         JobOptionValues options,
         Map<BlockPos, Holder<Item>> itemMemory,
@@ -39,52 +40,88 @@ public record Workplace(
     public static final Workplace EMPTY = new Workplace(List.of(), List.of(), JobOptionValues.EMPTY, Map.of(), false);
 
     public static final Codec<Workplace> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            WorkZone.CODEC.listOf().optionalFieldOf("zones", List.of()).forGetter(Workplace::zones),
+            WorkFootprint.CODEC.listOf().optionalFieldOf("footprints", List.of()).forGetter(Workplace::footprints),
             ContainerLink.CODEC.listOf().optionalFieldOf("links", List.of()).forGetter(Workplace::links),
             JobOptionValues.CODEC.optionalFieldOf("options", JobOptionValues.EMPTY).forGetter(Workplace::options),
             MemoryEntry.CODEC.listOf().optionalFieldOf("item_memory", List.of()).forGetter(Workplace::memoryEntries),
             Codec.BOOL.optionalFieldOf("initialized", false).forGetter(Workplace::initialized)
-    ).apply(instance, (zones, links, options, memory, initialized) -> new Workplace(zones, links, options, MemoryEntry.toMap(memory), initialized)));
+    ).apply(instance, (footprints, links, options, memory, initialized) -> new Workplace(footprints, links, options, MemoryEntry.toMap(memory), initialized)));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, Workplace> STREAM_CODEC = StreamCodec.composite(
-            WorkZone.STREAM_CODEC.apply(ByteBufCodecs.list()), Workplace::zones,
+            WorkFootprint.STREAM_CODEC.apply(ByteBufCodecs.list()), Workplace::footprints,
             ContainerLink.STREAM_CODEC.apply(ByteBufCodecs.list()), Workplace::links,
             JobOptionValues.STREAM_CODEC, Workplace::options,
             MemoryEntry.STREAM_CODEC.apply(ByteBufCodecs.list()), Workplace::memoryEntries,
             ByteBufCodecs.BOOL, Workplace::initialized,
-            (zones, links, options, memory, initialized) -> new Workplace(zones, links, options, MemoryEntry.toMap(memory), initialized)
+            (footprints, links, options, memory, initialized) -> new Workplace(footprints, links, options, MemoryEntry.toMap(memory), initialized)
     );
 
-    public Workplace withZones(List<WorkZone> zones) {
-        List<WorkZone> kept = List.copyOf(zones);
+    public Workplace withFootprints(List<WorkFootprint> footprints) {
+        List<WorkFootprint> kept = List.copyOf(footprints);
         Map<BlockPos, Holder<Item>> memory = this.itemMemory.entrySet().stream()
-                .filter(entry -> containsInZone(kept, entry.getKey()))
+                .filter(entry -> kept.stream().anyMatch(footprint -> footprint.containsColumn(entry.getKey())))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         return new Workplace(kept, this.links, this.options, memory, this.initialized);
     }
 
     public Workplace withLinks(List<ContainerLink> links) {
-        return new Workplace(this.zones, List.copyOf(links), this.options, this.itemMemory, this.initialized);
+        return new Workplace(this.footprints, List.copyOf(links), this.options, this.itemMemory, this.initialized);
     }
 
     public Workplace withOptions(JobOptionValues options) {
-        return new Workplace(this.zones, this.links, options, this.itemMemory, this.initialized);
+        return new Workplace(this.footprints, this.links, options, this.itemMemory, this.initialized);
     }
 
     public Workplace withItemMemory(Map<BlockPos, Holder<Item>> itemMemory) {
-        return new Workplace(this.zones, this.links, this.options, Map.copyOf(itemMemory), this.initialized);
+        return new Workplace(this.footprints, this.links, this.options, Map.copyOf(itemMemory), this.initialized);
     }
 
     public Workplace markInitialized() {
-        return new Workplace(this.zones, this.links, this.options, this.itemMemory, true);
+        return new Workplace(this.footprints, this.links, this.options, this.itemMemory, true);
     }
 
-    public boolean containsInZone(BlockPos pos) {
-        return containsInZone(this.zones, pos);
+    /**
+     * @return the effective boxes of all footprints for a job that reaches the given distances from the working level
+     */
+    public List<WorkZone> zones(int below, int above) {
+        return this.footprints.stream().map(footprint -> footprint.zone(below, above)).toList();
     }
 
-    private static boolean containsInZone(List<WorkZone> zones, BlockPos pos) {
-        return zones.stream().anyMatch(zone -> zone.contains(pos));
+    public boolean containsInZone(int below, int above, BlockPos pos) {
+        return this.zones(below, above).stream().anyMatch(zone -> zone.contains(pos));
+    }
+
+    public boolean hasGlyphAt(BlockPos pos) {
+        return this.footprints.stream().anyMatch(footprint -> footprint.hasGlyphAt(pos));
+    }
+
+    /**
+     * @return the workplace without the footprints that have a glyph at pos. Returns the workplace unchanged if none has.
+     */
+    public Workplace withoutGlyphAt(BlockPos pos) {
+        if (!this.hasGlyphAt(pos)) {
+            return this;
+        }
+
+        return this.withFootprints(this.footprints.stream().filter(footprint -> !footprint.hasGlyphAt(pos)).toList());
+    }
+
+    /**
+     * @return the index of the smallest footprint whose rectangle contains the column of pos, or -1 if none does
+     */
+    public int footprintIndexAt(BlockPos pos) {
+        int best = -1;
+        int bestArea = Integer.MAX_VALUE;
+        for (int i = 0; i < this.footprints.size(); i++) {
+            WorkFootprint footprint = this.footprints.get(i);
+            int area = footprint.width() * footprint.depth();
+            if (footprint.containsColumn(pos) && area < bestArea) {
+                best = i;
+                bestArea = area;
+            }
+        }
+
+        return best;
     }
 
     private List<MemoryEntry> memoryEntries() {

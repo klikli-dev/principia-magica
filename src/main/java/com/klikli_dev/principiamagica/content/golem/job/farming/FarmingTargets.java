@@ -150,10 +150,10 @@ public final class FarmingTargets {
     public static void pruneItemMemory(ServerLevel level, GolemEntity golem) {
         golem.getWorkplace(level).ifPresent(workplace -> {
             boolean stale = workplace.itemMemory().keySet().stream()
-                    .anyMatch(pos -> !workplace.containsInZone(pos) || !isFarmSoil(level, pos.below()));
+                    .anyMatch(pos -> !workplace.containsInZone(FarmingJob.BELOW, FarmingJob.ABOVE, pos) || !isFarmSoil(level, pos.below()));
             if (stale) {
                 golem.updateWorkplace(current -> current.withItemMemory(current.itemMemory().entrySet().stream()
-                        .filter(entry -> current.containsInZone(entry.getKey()) && isFarmSoil(level, entry.getKey().below()))
+                        .filter(entry -> current.containsInZone(FarmingJob.BELOW, FarmingJob.ABOVE, entry.getKey()) && isFarmSoil(level, entry.getKey().below()))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
             }
         });

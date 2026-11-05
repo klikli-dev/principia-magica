@@ -89,7 +89,7 @@ public class GolemAi {
         GolemStatus setupProblem = GolemStatus.OK;
         if (job.isEmpty()) {
             setupProblem = GolemStatus.NO_PURPOSE;
-        } else if (golem.getWorkplace(level).map(workplace -> workplace.zones().isEmpty()).orElse(true)) {
+        } else if (golem.getWorkplace(level).map(workplace -> workplace.footprints().isEmpty()).orElse(true)) {
             setupProblem = GolemStatus.NO_ZONE;
         } else if (job.get().requiredTool().isPresent() && !golem.getMainHandItem().is(job.get().requiredTool().get())) {
             setupProblem = GolemStatus.MISSING_TOOL;

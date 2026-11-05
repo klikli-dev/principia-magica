@@ -6,8 +6,8 @@ package com.klikli_dev.principiamagica.registry;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
+import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
-import net.minecraft.core.GlobalPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -38,9 +38,9 @@ public class DataComponentRegistry {
             .networkSynchronized(UUIDUtil.STREAM_CODEC)
     );
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> STYLUS_PENDING_CORNER = DATA_COMPONENTS.registerComponentType("stylus_pending_corner", builder -> builder
-            .persistent(GlobalPos.CODEC)
-            .networkSynchronized(GlobalPos.STREAM_CODEC)
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<PendingGlyph>> STYLUS_PENDING_GLYPH = DATA_COMPONENTS.registerComponentType("stylus_pending_glyph", builder -> builder
+            .persistent(PendingGlyph.CODEC)
+            .networkSynchronized(PendingGlyph.STREAM_CODEC)
     );
 
     /**

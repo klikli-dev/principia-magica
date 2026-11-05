@@ -27,7 +27,7 @@ public record MessageRemoveZone(int entityId, int index) implements Message {
     @Override
     public void onServerReceived(MinecraftServer minecraftServer, ServerPlayer player) {
         GolemCommands.findOwnedGolem(player, this.entityId).ifPresent(golem ->
-                GolemCommands.editWorkplace(player, golem, workplace -> GolemCommands.removeZone(workplace, this.index)));
+                GolemCommands.editWorkplace(player, golem, workplace -> GolemCommands.removeFootprint(workplace, this.index)));
     }
 
     @Override

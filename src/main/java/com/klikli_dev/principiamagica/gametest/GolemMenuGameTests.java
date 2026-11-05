@@ -9,7 +9,7 @@ import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemCommands;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -33,12 +33,20 @@ public class GolemMenuGameTests {
 
     public static void zoneAndLinkIndicesAreValidated(GameTestHelper helper) {
         Workplace workplace = Workplace.EMPTY
-                .withZones(List.of(WorkZone.of(BlockPos.ZERO, new BlockPos(2, 2, 2))))
+                .withFootprints(List.of(WorkFootprint.centered(BlockPos.ZERO, 1, 0)))
                 .withLinks(List.of(new ContainerLink(new BlockPos(1, 1, 1), Direction.NORTH, ContainerRole.SUPPLY)));
 
-        helper.assertTrue(GolemCommands.removeZone(workplace, 1).isEmpty(), "Zone index past the end should be rejected");
-        helper.assertTrue(GolemCommands.removeZone(workplace, -1).isEmpty(), "Negative zone index should be rejected");
-        helper.assertTrue(GolemCommands.removeZone(workplace, 0).orElseThrow().zones().isEmpty(), "A valid zone index should remove the zone");
+        helper.assertTrue(GolemCommands.removeFootprint(workplace, 1).isEmpty(), "Footprint index past the end should be rejected");
+        helper.assertTrue(GolemCommands.removeFootprint(workplace, -1).isEmpty(), "Negative footprint index should be rejected");
+        helper.assertTrue(GolemCommands.removeFootprint(workplace, 0).orElseThrow().footprints().isEmpty(), "A valid footprint index should remove the footprint");
+
+        helper.assertTrue(GolemCommands.shiftFootprint(workplace, 1, 1).isEmpty(), "Footprint index past the end should be rejected when raising");
+        helper.assertTrue(GolemCommands.shiftFootprint(workplace, 0, 3).orElseThrow().footprints().get(0).raise() == 3, "Raising should move the footprint up");
+        helper.assertTrue(GolemCommands.shiftFootprint(workplace, 0, -2).orElseThrow().footprints().get(0).raise() == -2, "Lowering should move the footprint down");
+        helper.assertTrue(GolemCommands.shiftFootprint(workplace, 0, 100).orElseThrow().footprints().get(0).raise() == WorkFootprint.MAX_RAISE,
+                "Raising should be clamped to the maximum");
+        helper.assertTrue(GolemCommands.shiftFootprint(workplace, 0, -100).orElseThrow().footprints().get(0).raise() == WorkFootprint.MIN_RAISE,
+                "Lowering should be clamped to the minimum");
 
         helper.assertTrue(GolemCommands.setLinkRole(workplace, 1, ContainerRole.DEPOSIT).isEmpty(), "Link index past the end should be rejected");
         helper.assertTrue(GolemCommands.setLinkRole(workplace, 0, ContainerRole.DEPOSIT).orElseThrow().links().get(0).role() == ContainerRole.DEPOSIT, "Setting a role should replace the link role");
