@@ -30,6 +30,12 @@ versionRange = "[${code_defined_gui_version},)"
 side = "BOTH"
 
 [[dependencies.${ mod_id }]]
+modId = "geckolib"
+type = "required"
+versionRange = "[${geckolib_version},)"
+side = "BOTH"
+
+[[dependencies.${ mod_id }]]
 modId = "jei"
 type = "optional"
 versionRange = "[${jei_version},)"

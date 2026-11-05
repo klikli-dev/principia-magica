@@ -99,6 +99,8 @@ dependencies {
     localRuntime ("maven.modrinth:jade:${jade_version}+neoforge") {transitive=false}
 
     implementation ("com.klikli_dev:modonomicon-${minecraft_version}-neoforge:${modonomicon_version}") {transitive=false}
+
+    implementation ("com.geckolib:geckolib-neoforge-${minecraft_major_version}:${geckolib_version}") {transitive=false}
 }
 
 repositories {
@@ -110,11 +112,19 @@ repositories {
         }
     }
     maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup "com.geckolib"
+        }
+    }
+    maven {
         name = "JEI, AlmostUnified"
         url = 'https://maven.blamejared.com/'
         content {
             includeGroup "mezz.jei"
             includeGroup "com.almostreliable.mods"
+            includeGroup "net.mezzdev.config"
         }
     }
     maven {
@@ -147,6 +157,7 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             modonomicon_version    : modonomicon_version,
             code_defined_gui_version: code_defined_gui_version,
             magic_particles_lib_version: magic_particles_lib_version,
+            geckolib_version       : geckolib_version,
             jei_version            : jei_version,
             jade_version            : jade_version,
     ]

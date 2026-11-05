@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:amethyst_shard",
+    "F": "minecraft:feather",
+    "R": "minecraft:redstone",
+    "S": "minecraft:sugar"
+  },
+  "pattern": [
+    " S ",
+    "FAR"
+  ],
+  "result": {
+    "id": "principiamagica:swiftness_upgrade"
+  }
+}

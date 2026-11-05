@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "M": "#c:ingots/iron",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "M M",
+    " R ",
+    "M M"
+  ],
+  "result": {
+    "components": {
+      "principiamagica:golem_spec": {
+        "material": "principiamagica:metal"
+      }
+    },
+    "id": "principiamagica:golem"
+  }
+}

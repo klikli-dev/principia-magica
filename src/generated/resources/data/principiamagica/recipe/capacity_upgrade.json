@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:amethyst_shard",
+    "C": "minecraft:chest",
+    "L": "minecraft:leather"
+  },
+  "pattern": [
+    "LCL",
+    " A "
+  ],
+  "result": {
+    "id": "principiamagica:capacity_upgrade"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "M": "#minecraft:logs",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "M M",
+    " R ",
+    "M M"
+  ],
+  "result": {
+    "components": {
+      "principiamagica:golem_spec": {
+        "material": "principiamagica:wood"
+      }
+    },
+    "id": "principiamagica:golem"
+  }
+}
