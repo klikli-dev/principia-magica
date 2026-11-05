@@ -219,6 +219,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CLAY_ADVANCEMENT_AND_PRINCIPIA_RECIPE_EXIST =
             TEST_FUNCTIONS.register("clay_advancement_and_principia_recipe_exist", () -> ProgressionGameTests::clayAdvancementAndPrincipiaRecipeExist);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PRINCIPIA_BOOK_AND_FIRST_ENTRY_LOAD =
+            TEST_FUNCTIONS.register("principia_book_and_first_entry_load", () -> ProgressionGameTests::principiaBookAndFirstEntryLoad);
+
     public static void onRegisterGameTests(RegisterGameTestsEvent event) {
         registerGolemTests(event);
         registerProgressionTests(event);
@@ -229,6 +232,7 @@ public class GameTestRegistry {
         var structure = PrincipiaMagica.loc("golem_test");
 
         registerTest(event, CLAY_ADVANCEMENT_AND_PRINCIPIA_RECIPE_EXIST, environment, structure, 40, 0);
+        registerTest(event, PRINCIPIA_BOOK_AND_FIRST_ENTRY_LOAD, environment, structure, 40, 0);
     }
 
     private static void registerGolemTests(RegisterGameTestsEvent event) {

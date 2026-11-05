@@ -4,13 +4,17 @@
 
 package com.klikli_dev.principiamagica.datagen.lang;
 
+import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 public class ENUSProvider extends LanguageProvider {
-    public ENUSProvider(PackOutput packOutput) {
+    private final LanguageProviderCache langCache;
+
+    public ENUSProvider(PackOutput packOutput, LanguageProviderCache langCache) {
         super(packOutput, PrincipiaMagica.MODID, "en_us");
+        this.langCache = langCache;
     }
 
     @Override
@@ -172,5 +176,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("tooltip.principiamagica.golem_baton.hint_remove", "Shift-right-click zone or container: remove it");
         this.add("tooltip.principiamagica.golem_baton.hint_pickup", "Shift-left-click own golem: pick up (keeps workplace)");
         this.add("tooltip.principiamagica.golem_baton.hint_clear", "Shift-right-click air: clear selection and clipboard");
+
+        this.langCache.data().forEach(this::add);
     }
 }
