@@ -106,9 +106,9 @@ public class ShapedRecipeProvider implements DataProvider {
         lumberjackIngredients.put('A', Ingredient.of(Items.AMETHYST_SHARD));
         this.shapedIngredients(consumer, ItemRegistry.LUMBERJACK_CORE.get(), List.of("SLS", "LAL", "SLS"), lumberjackIngredients);
 
-        this.shaped(consumer, ItemRegistry.GOLEM_BATON.get(),
-                List.of(" AG", " S ", "S  "),
-                Map.of('A', Items.AMETHYST_SHARD, 'G', Items.GOLD_INGOT, 'S', Items.STICK));
+        this.shaped(consumer, ItemRegistry.COPPER_STYLUS.get(),
+                List.of("  C", " S ", "S  "),
+                Map.of('C', Items.COPPER_INGOT, 'S', Items.STICK));
 
         this.shaped(consumer, ItemRegistry.SWIFTNESS_UPGRADE.get(),
                 List.of(" S ", "FAR"),

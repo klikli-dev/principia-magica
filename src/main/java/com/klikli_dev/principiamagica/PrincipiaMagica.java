@@ -6,7 +6,7 @@ package com.klikli_dev.principiamagica;
 
 import com.klikli_dev.principiamagica.datagen.PrincipiaMagicaDataGenerators;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
-import com.klikli_dev.principiamagica.content.golem.item.GolemBatonItem;
+import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.gametest.GameTestRegistry;
 import com.klikli_dev.principiamagica.registry.ActivityRegistry;
@@ -69,7 +69,7 @@ public class PrincipiaMagica {
 
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
-            GolemBatonItem.onPlayerTick(serverPlayer);
+            StylusItem.onPlayerTick(serverPlayer);
         }
     }
 

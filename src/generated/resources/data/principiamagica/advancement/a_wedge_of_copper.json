@@ -1,0 +1,33 @@
+{
+  "parent": "principiamagica:the_clay_remembers",
+  "criteria": {
+    "has_copper_stylus": {
+      "conditions": {
+        "items": [
+          {
+            "items": "principiamagica:copper_stylus"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.principiamagica.a_wedge_of_copper.description"
+    },
+    "icon": {
+      "id": "principiamagica:copper_stylus"
+    },
+    "title": {
+      "translate": "advancements.principiamagica.a_wedge_of_copper.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_copper_stylus"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

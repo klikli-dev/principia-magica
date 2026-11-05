@@ -27,7 +27,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
@@ -39,14 +41,19 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * Tasking tool for golems. See the tooltip for the controls.
+ * Copper stylus: a crafting tool that is never consumed, and the tool used to configure golems. See the tooltip for the controls.
  */
-public class GolemBatonItem extends Item {
+public class StylusItem extends Item {
 
     private static final double MAX_DISTANCE_SQR = 64.0 * 64.0;
 
-    public GolemBatonItem(Properties properties) {
+    public StylusItem(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public ItemStackTemplate getCraftingRemainder(ItemInstance instance) {
+        return new ItemStackTemplate(this);
     }
 
     @Override
@@ -60,33 +67,33 @@ public class GolemBatonItem extends Item {
         }
 
         if (!player.getUUID().equals(golem.getOwnerUUID())) {
-            serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.baton.not_owner"));
+            serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.not_owner"));
             return InteractionResult.FAIL;
         }
 
         if (player.isShiftKeyDown()) {
-            Workplace clipboard = stack.get(DataComponentRegistry.BATON_CLIPBOARD.get());
+            Workplace clipboard = stack.get(DataComponentRegistry.STYLUS_CLIPBOARD.get());
             if (clipboard == null) {
                 Workplace workplace = golem.getWorkplace((ServerLevel) golem.level()).orElse(Workplace.EMPTY);
-                Workplace copied = BatonActions.toRelative(workplace, anchorOf(golem));
-                stack.set(DataComponentRegistry.BATON_CLIPBOARD.get(), copied);
-                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.baton.copied",
+                Workplace copied = StylusActions.toRelative(workplace, anchorOf(golem));
+                stack.set(DataComponentRegistry.STYLUS_CLIPBOARD.get(), copied);
+                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.copied",
                         copied.zones().size(), copied.links().size()));
             } else {
                 BlockPos anchor = anchorOf(golem);
-                golem.updateWorkplace(current -> BatonActions.paste(current, clipboard, anchor));
-                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.baton.pasted"));
+                golem.updateWorkplace(current -> StylusActions.paste(current, clipboard, anchor));
+                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.pasted"));
                 syncWorkplace(serverPlayer, golem);
             }
         } else {
-            UUID selected = stack.get(DataComponentRegistry.BATON_SELECTION.get());
+            UUID selected = stack.get(DataComponentRegistry.STYLUS_SELECTION.get());
             if (golem.getUUID().equals(selected)) {
-                stack.remove(DataComponentRegistry.BATON_SELECTION.get());
-                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.baton.deselected"));
+                stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
+                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.deselected"));
             } else {
-                stack.set(DataComponentRegistry.BATON_SELECTION.get(), golem.getUUID());
-                stack.remove(DataComponentRegistry.BATON_PENDING_CORNER.get());
-                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.baton.selected"));
+                stack.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+                stack.remove(DataComponentRegistry.STYLUS_PENDING_CORNER.get());
+                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.selected"));
                 syncWorkplace(serverPlayer, golem);
             }
         }
@@ -106,21 +113,21 @@ public class GolemBatonItem extends Item {
         }
 
         ItemStack stack = context.getItemInHand();
-        if (stack.get(DataComponentRegistry.BATON_SELECTION.get()) == null) {
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.no_golem_selected"));
+        if (stack.get(DataComponentRegistry.STYLUS_SELECTION.get()) == null) {
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.no_golem_selected"));
             return InteractionResult.FAIL;
         }
 
         Optional<GolemEntity> selected = findSelectedGolem(player, stack);
         if (selected.isEmpty()) {
-            stack.remove(DataComponentRegistry.BATON_SELECTION.get());
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.golem_not_found"));
+            stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.golem_not_found"));
             return InteractionResult.FAIL;
         }
 
         GolemEntity golem = selected.get();
         if (!player.getUUID().equals(golem.getOwnerUUID())) {
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.not_owner"));
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.not_owner"));
             return InteractionResult.FAIL;
         }
 
@@ -131,40 +138,40 @@ public class GolemBatonItem extends Item {
         Workplace workplace = golem.getWorkplace(serverLevel).orElse(Workplace.EMPTY);
 
         if (container) {
-            Workplace updated = BatonActions.cycleLink(workplace, pos, face);
+            Workplace updated = StylusActions.cycleLink(workplace, pos, face);
             golem.updateWorkplace(current -> updated);
             Optional<ContainerRole> role = updated.links().stream()
                     .filter(link -> link.pos().equals(pos))
                     .map(ContainerLink::role)
                     .findFirst();
             Component message = role.isPresent()
-                    ? Component.translatable("message.principiamagica.baton.link_set", Component.translatable("golem_role.principiamagica." + role.get().getSerializedName()))
-                    : Component.translatable("message.principiamagica.baton.link_removed");
+                    ? Component.translatable("message.principiamagica.stylus.link_set", Component.translatable("golem_role.principiamagica." + role.get().getSerializedName()))
+                    : Component.translatable("message.principiamagica.stylus.link_removed");
             player.sendOverlayMessage(message);
         } else if (sneaking) {
             if (workplace.containsInZone(pos)) {
-                Workplace updated = BatonActions.removeZoneAt(workplace, pos);
+                Workplace updated = StylusActions.removeZoneAt(workplace, pos);
                 golem.updateWorkplace(current -> updated);
-                player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.zone_removed"));
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.zone_removed"));
             } else {
-                player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.nothing_to_remove"));
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
             }
         } else {
-            Optional<GlobalPos> pending = Optional.ofNullable(stack.get(DataComponentRegistry.BATON_PENDING_CORNER.get()))
+            Optional<GlobalPos> pending = Optional.ofNullable(stack.get(DataComponentRegistry.STYLUS_PENDING_CORNER.get()))
                     .filter(corner -> corner.dimension().equals(level.dimension()));
             if (pending.isEmpty()) {
-                stack.set(DataComponentRegistry.BATON_PENDING_CORNER.get(), GlobalPos.of(level.dimension(), pos));
-                player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.corner_set"));
+                stack.set(DataComponentRegistry.STYLUS_PENDING_CORNER.get(), GlobalPos.of(level.dimension(), pos));
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_set"));
             } else {
                 WorkZone zone = WorkZone.of(pending.get().pos(), pos);
-                stack.remove(DataComponentRegistry.BATON_PENDING_CORNER.get());
-                Optional<Workplace> updated = BatonActions.addZone(workplace, zone);
+                stack.remove(DataComponentRegistry.STYLUS_PENDING_CORNER.get());
+                Optional<Workplace> updated = StylusActions.addZone(workplace, zone);
                 if (updated.isPresent()) {
                     golem.updateWorkplace(current -> updated.get());
-                    player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.zone_added"));
+                    player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.zone_added"));
                 } else {
-                    player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.zone_too_large",
-                            BatonActions.MAX_ZONE_WIDTH, BatonActions.MAX_ZONE_HEIGHT, BatonActions.MAX_ZONE_DEPTH));
+                    player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.zone_too_large",
+                            StylusActions.MAX_ZONE_WIDTH, StylusActions.MAX_ZONE_HEIGHT, StylusActions.MAX_ZONE_DEPTH));
                 }
             }
         }
@@ -181,12 +188,12 @@ public class GolemBatonItem extends Item {
 
         ItemStack stack = player.getItemInHand(hand);
         if (player.isShiftKeyDown()) {
-            stack.remove(DataComponentRegistry.BATON_SELECTION.get());
-            stack.remove(DataComponentRegistry.BATON_CLIPBOARD.get());
-            stack.remove(DataComponentRegistry.BATON_PENDING_CORNER.get());
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.cleared"));
+            stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
+            stack.remove(DataComponentRegistry.STYLUS_CLIPBOARD.get());
+            stack.remove(DataComponentRegistry.STYLUS_PENDING_CORNER.get());
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
         } else {
-            stack.remove(DataComponentRegistry.BATON_PENDING_CORNER.get());
+            stack.remove(DataComponentRegistry.STYLUS_PENDING_CORNER.get());
         }
 
         return InteractionResult.SUCCESS;
@@ -210,7 +217,7 @@ public class GolemBatonItem extends Item {
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
 
         ItemStack stack = golem.toItemStack();
-        stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), BatonActions.toRelative(workplace, anchorOf(golem)));
+        stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), StylusActions.toRelative(workplace, anchorOf(golem)));
 
         for (int i = 0; i < golem.getInventory().getContainerSize(); i++) {
             ItemStack contained = golem.getInventory().removeItemNoUpdate(i);
@@ -219,14 +226,14 @@ public class GolemBatonItem extends Item {
 
         golem.discard();
         player.getInventory().placeItemBackInInventory(stack);
-        player.sendOverlayMessage(Component.translatable("message.principiamagica.baton.picked_up"));
+        player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.picked_up"));
     }
 
     /**
      * Resolves the golem selected on the stack, if it still exists in the player's level and is near the player.
      */
     public static Optional<GolemEntity> findSelectedGolem(ServerPlayer player, ItemStack stack) {
-        UUID selected = stack.get(DataComponentRegistry.BATON_SELECTION.get());
+        UUID selected = stack.get(DataComponentRegistry.STYLUS_SELECTION.get());
         if (selected == null || !(player.level() instanceof ServerLevel level)) {
             return Optional.empty();
         }
@@ -239,7 +246,7 @@ public class GolemBatonItem extends Item {
     }
 
     /**
-     * Sends the golem workplace to the player. Called whenever the player's baton selection changes or is modified.
+     * Sends the golem workplace to the player. Called whenever the player's stylus selection changes or is modified.
      */
     public static void syncWorkplace(ServerPlayer player, GolemEntity golem) {
         ServerLevel level = (ServerLevel) golem.level();
@@ -249,7 +256,7 @@ public class GolemBatonItem extends Item {
     }
 
     /**
-     * Periodically refreshes the workplace of the golem selected on a held baton, so the client overlay stays current.
+     * Periodically refreshes the workplace of the golem selected on a held stylus, so the client overlay stays current.
      */
     public static void onPlayerTick(ServerPlayer player) {
         if (player.tickCount % 10 != 0) {
@@ -257,7 +264,7 @@ public class GolemBatonItem extends Item {
         }
 
         for (ItemStack stack : new ItemStack[]{player.getMainHandItem(), player.getOffhandItem()}) {
-            if (stack.getItem() instanceof GolemBatonItem) {
+            if (stack.getItem() instanceof StylusItem) {
                 findSelectedGolem(player, stack).ifPresent(golem -> syncWorkplace(player, golem));
             }
         }
@@ -269,28 +276,28 @@ public class GolemBatonItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> adder, TooltipFlag flag) {
-        boolean selected = stack.has(DataComponentRegistry.BATON_SELECTION.get());
-        adder.accept(Component.translatable("tooltip.principiamagica.golem_baton.selected", selected
-                ? Component.translatable("tooltip.principiamagica.golem_baton.yes")
-                : Component.translatable("tooltip.principiamagica.golem_baton.none")).withStyle(ChatFormatting.GRAY));
+        boolean selected = stack.has(DataComponentRegistry.STYLUS_SELECTION.get());
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.selected", selected
+                ? Component.translatable("tooltip.principiamagica.copper_stylus.yes")
+                : Component.translatable("tooltip.principiamagica.copper_stylus.none")).withStyle(ChatFormatting.GRAY));
 
-        GlobalPos corner = stack.get(DataComponentRegistry.BATON_PENDING_CORNER.get());
+        GlobalPos corner = stack.get(DataComponentRegistry.STYLUS_PENDING_CORNER.get());
         if (corner != null) {
-            adder.accept(Component.translatable("tooltip.principiamagica.golem_baton.pending_corner",
+            adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.pending_corner",
                     corner.pos().getX(), corner.pos().getY(), corner.pos().getZ()).withStyle(ChatFormatting.GRAY));
         }
 
-        Workplace clipboard = stack.get(DataComponentRegistry.BATON_CLIPBOARD.get());
+        Workplace clipboard = stack.get(DataComponentRegistry.STYLUS_CLIPBOARD.get());
         adder.accept(clipboard == null
-                ? Component.translatable("tooltip.principiamagica.golem_baton.clipboard_empty").withStyle(ChatFormatting.GRAY)
-                : Component.translatable("tooltip.principiamagica.golem_baton.clipboard", clipboard.zones().size(), clipboard.links().size()).withStyle(ChatFormatting.GRAY));
+                ? Component.translatable("tooltip.principiamagica.copper_stylus.clipboard_empty").withStyle(ChatFormatting.GRAY)
+                : Component.translatable("tooltip.principiamagica.copper_stylus.clipboard", clipboard.zones().size(), clipboard.links().size()).withStyle(ChatFormatting.GRAY));
 
-        adder.accept(Component.translatable("tooltip.principiamagica.golem_baton.hint_select").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.golem_baton.hint_copy_paste").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.golem_baton.hint_link").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.golem_baton.hint_zone").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.golem_baton.hint_remove").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.golem_baton.hint_pickup").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.golem_baton.hint_clear").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_select").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_copy_paste").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_link").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_zone").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_remove").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_pickup").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_clear").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

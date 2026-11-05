@@ -11,7 +11,7 @@ import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The zone that is being created with a baton: a magenta corner block plus a ghost box that chases the block under the
+ * The zone that is being created with a stylus: a magenta corner block plus a ghost box that chases the block under the
  * crosshair. The ghost box position is lerped between client ticks, like theurgy's ChasingAABBOutline.
  */
 public class PendingZoneRenderer {

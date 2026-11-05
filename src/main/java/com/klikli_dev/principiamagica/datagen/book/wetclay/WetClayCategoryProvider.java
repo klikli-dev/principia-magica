@@ -21,6 +21,10 @@ public class WetClayCategoryProvider extends CategoryProvider {
     protected void generateEntries() {
         var principiaEntry = this.add(new PrincipiaEntry(this).generate());
         this.layout().entry(principiaEntry).at(0, 0);
+
+        var stylusEntry = this.add(new StylusEntry(this).generate());
+        this.layout().entry(stylusEntry).at(1, 0);
+        stylusEntry.withParent(principiaEntry).hideWhileLocked(true);
     }
 
     @Override

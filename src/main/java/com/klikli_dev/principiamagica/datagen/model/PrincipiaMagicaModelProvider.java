@@ -27,7 +27,7 @@ public class PrincipiaMagicaModelProvider extends ModelProvider {
     @Override
     protected void registerModels(@NotNull BlockModelGenerators blockModels, @NotNull ItemModelGenerators itemModels) {
         itemModels.generateFlatItem(ItemRegistry.GOLEM.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(ItemRegistry.GOLEM_BATON.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ItemRegistry.COPPER_STYLUS.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModels.generateFlatItem(ItemRegistry.PRINCIPIA.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.FARMING_CORE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.LUMBERJACK_CORE.get(), ModelTemplates.FLAT_ITEM);

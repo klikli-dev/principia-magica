@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.datagen.advancement;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRewards;
@@ -25,6 +26,7 @@ import java.util.function.Consumer;
 public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProvider {
 
     public static final Identifier THE_CLAY_REMEMBERS = PrincipiaMagica.loc("the_clay_remembers");
+    public static final Identifier A_WEDGE_OF_COPPER = PrincipiaMagica.loc("a_wedge_of_copper");
 
     public static final ResourceKey<Recipe<?>> PRINCIPIA_RECIPE = ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("principia"));
 
@@ -45,5 +47,21 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
                 .build(THE_CLAY_REMEMBERS);
 
         writer.accept(theClayRemembers);
+
+        var aWedgeOfCopper = Advancement.Builder.advancement()
+                .parent(theClayRemembers)
+                .display(
+                        ItemRegistry.COPPER_STYLUS.get(),
+                        Component.translatable("advancements.principiamagica.a_wedge_of_copper.title"),
+                        Component.translatable("advancements.principiamagica.a_wedge_of_copper.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        false,
+                        false)
+                .addCriterion("has_copper_stylus", InventoryChangeTrigger.TriggerInstance.hasItems(ItemRegistry.COPPER_STYLUS.get()))
+                .build(A_WEDGE_OF_COPPER);
+
+        writer.accept(aWedgeOfCopper);
     }
 }

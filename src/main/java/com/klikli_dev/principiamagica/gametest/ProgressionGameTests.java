@@ -9,8 +9,11 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
 import com.klikli_dev.principiamagica.datagen.advancement.PrincipiaMagicaAdvancementSubProvider;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.PrincipiaEntry;
+import com.klikli_dev.principiamagica.datagen.book.wetclay.StylusEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.WetClayCategoryProvider;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
 
 public class ProgressionGameTests {
 
@@ -31,6 +34,26 @@ public class ProgressionGameTests {
                 "Advancement the_clay_remembers is missing");
         helper.assertTrue(server.getRecipeManager().byKey(PrincipiaMagicaAdvancementSubProvider.PRINCIPIA_RECIPE).isPresent(),
                 "Recipe principia is missing");
+        helper.succeed();
+    }
+
+    public static void wedgeOfCopperAdvancementAndStylusRecipeExist(GameTestHelper helper) {
+        var server = helper.getLevel().getServer();
+
+        helper.assertTrue(server.getAdvancements().get(PrincipiaMagicaAdvancementSubProvider.A_WEDGE_OF_COPPER) != null,
+                "Advancement a_wedge_of_copper is missing");
+        helper.assertTrue(server.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("copper_stylus"))).isPresent(),
+                "Recipe copper_stylus is missing");
+        helper.succeed();
+    }
+
+    public static void stylusEntryLoads(GameTestHelper helper) {
+        var book = BookDataManager.get().getBook(PrincipiaItem.PRINCIPIA);
+        helper.assertTrue(book != null, "Modonomicon book principia is missing");
+        var category = book.getCategory(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID));
+        helper.assertTrue(category != null, "Category the_wet_clay is missing");
+        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + StylusEntry.ENTRY_ID)) != null,
+                "Entry the_stylus is missing from category the_wet_clay");
         helper.succeed();
     }
 }

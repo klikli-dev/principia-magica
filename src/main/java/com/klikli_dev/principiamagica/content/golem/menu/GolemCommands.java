@@ -5,7 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.menu;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
-import com.klikli_dev.principiamagica.content.golem.item.GolemBatonItem;
+import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
@@ -54,7 +54,7 @@ public final class GolemCommands {
         Workplace current = golem.getWorkplace(level).orElse(Workplace.EMPTY);
         edit.apply(current).ifPresent(updated -> {
             golem.updateWorkplace(ignored -> updated);
-            GolemBatonItem.syncWorkplace(player, golem);
+            StylusItem.syncWorkplace(player, golem);
         });
     }
 

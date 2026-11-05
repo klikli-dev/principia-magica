@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Client-side copy of the workplace of the golem currently selected with a baton. Entries expire when not refreshed.
+ * Client-side copy of the workplace of the golem currently selected with a stylus. Entries expire when not refreshed.
  */
 public class ClientGolemWorkplaceCache {
 

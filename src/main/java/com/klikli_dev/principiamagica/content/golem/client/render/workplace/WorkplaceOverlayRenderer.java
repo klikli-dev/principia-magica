@@ -6,7 +6,7 @@ package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
-import com.klikli_dev.principiamagica.content.golem.item.GolemBatonItem;
+import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
@@ -32,8 +32,8 @@ import java.util.SequencedMap;
 import java.util.UUID;
 
 /**
- * Draws the workplace of the golem selected on a held baton: zones, container links, anchor, work target, and the
- * pending zone corner with a preview of the zone under the cursor. Elements fade in and out when the baton is equipped,
+ * Draws the workplace of the golem selected on a held stylus: zones, container links, anchor, work target, and the
+ * pending zone corner with a preview of the zone under the cursor. Elements fade in and out when the stylus is equipped,
  * unequipped or the selection changes.
  */
 public class WorkplaceOverlayRenderer {
@@ -52,9 +52,9 @@ public class WorkplaceOverlayRenderer {
         Player player = minecraft.player;
         ClientLevel level = minecraft.level;
 
-        ItemStack baton = player == null || level == null ? null : heldBaton(player);
-        UUID selected = baton == null ? null : baton.get(DataComponentRegistry.BATON_SELECTION.get());
-        GlobalPos corner = baton == null ? null : pendingCorner(baton, level);
+        ItemStack stylus = player == null || level == null ? null : heldStylus(player);
+        UUID selected = stylus == null ? null : stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
+        GlobalPos corner = stylus == null ? null : pendingCorner(stylus, level);
 
         this.golemFade.tick(selected);
         this.cornerFade.tick(corner);
@@ -163,19 +163,19 @@ public class WorkplaceOverlayRenderer {
         });
     }
 
-    private static ItemStack heldBaton(Player player) {
-        if (player.getMainHandItem().getItem() instanceof GolemBatonItem) {
+    private static ItemStack heldStylus(Player player) {
+        if (player.getMainHandItem().getItem() instanceof StylusItem) {
             return player.getMainHandItem();
         }
-        if (player.getOffhandItem().getItem() instanceof GolemBatonItem) {
+        if (player.getOffhandItem().getItem() instanceof StylusItem) {
             return player.getOffhandItem();
         }
         return null;
     }
 
     @Nullable
-    private static GlobalPos pendingCorner(ItemStack baton, ClientLevel level) {
-        GlobalPos corner = baton.get(DataComponentRegistry.BATON_PENDING_CORNER.get());
+    private static GlobalPos pendingCorner(ItemStack stylus, ClientLevel level) {
+        GlobalPos corner = stylus.get(DataComponentRegistry.STYLUS_PENDING_CORNER.get());
         return corner != null && corner.dimension().equals(level.dimension()) ? corner : null;
     }
 

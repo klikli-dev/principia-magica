@@ -26,27 +26,27 @@ public class DataComponentRegistry {
     );
 
     /**
-     * Relative workplace (positions relative to the golem's anchor) of a golem picked up with the baton.
+     * Relative workplace (positions relative to the golem's anchor) of a golem picked up with the stylus.
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Workplace>> GOLEM_WORKPLACE = DATA_COMPONENTS.registerComponentType("golem_workplace", builder -> builder
             .persistent(Workplace.CODEC)
             .networkSynchronized(Workplace.STREAM_CODEC)
     );
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<UUID>> BATON_SELECTION = DATA_COMPONENTS.registerComponentType("baton_selection", builder -> builder
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<UUID>> STYLUS_SELECTION = DATA_COMPONENTS.registerComponentType("stylus_selection", builder -> builder
             .persistent(UUIDUtil.CODEC)
             .networkSynchronized(UUIDUtil.STREAM_CODEC)
     );
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> BATON_PENDING_CORNER = DATA_COMPONENTS.registerComponentType("baton_pending_corner", builder -> builder
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> STYLUS_PENDING_CORNER = DATA_COMPONENTS.registerComponentType("stylus_pending_corner", builder -> builder
             .persistent(GlobalPos.CODEC)
             .networkSynchronized(GlobalPos.STREAM_CODEC)
     );
 
     /**
-     * Relative workplace copied from a golem with the baton (positions relative to the source golem's anchor).
+     * Relative workplace copied from a golem with the stylus (positions relative to the source golem's anchor).
      */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Workplace>> BATON_CLIPBOARD = DATA_COMPONENTS.registerComponentType("baton_clipboard", builder -> builder
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Workplace>> STYLUS_CLIPBOARD = DATA_COMPONENTS.registerComponentType("stylus_clipboard", builder -> builder
             .persistent(Workplace.CODEC)
             .networkSynchronized(Workplace.STREAM_CODEC)
     );

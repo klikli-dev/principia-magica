@@ -24,6 +24,8 @@ public class ENUSProvider extends LanguageProvider {
 
         this.add("advancements.principiamagica.the_clay_remembers.title", "The Clay Remembers");
         this.add("advancements.principiamagica.the_clay_remembers.description", "Something was pressed into this clay long ago. You should write it down.");
+        this.add("advancements.principiamagica.a_wedge_of_copper.title", "A Wedge of Copper");
+        this.add("advancements.principiamagica.a_wedge_of_copper.description", "Carve the clay as the scribe did.");
         this.add("item.principiamagica.principia", "Principia");
 
         this.add("golem_material.principiamagica.wood", "Wood");
@@ -52,7 +54,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("golem_status.principiamagica.needs_supplies", "Needs supplies");
         this.add("golem_status.principiamagica.ok.description", "The golem is working on its job.");
         this.add("golem_status.principiamagica.no_job.description", "Insert a job core to give the golem a job.");
-        this.add("golem_status.principiamagica.no_zone.description", "Add a work zone with the Golem Baton.");
+        this.add("golem_status.principiamagica.no_zone.description", "Add a work zone with the Copper Stylus.");
         this.add("golem_status.principiamagica.missing_tool.description", "The job needs its tool in the golem's main hand.");
         this.add("golem_status.principiamagica.no_deposit.description", "Link a container with the deposit or both role.");
         this.add("golem_status.principiamagica.deposit_full.description", "The deposit containers have no room left.");
@@ -105,11 +107,11 @@ public class ENUSProvider extends LanguageProvider {
         this.add("gui.principiamagica.golem.tab.inventory", "Inventory");
         this.add("gui.principiamagica.golem.back", "Back");
         this.add("gui.principiamagica.golem.zones", "Work zones (%s)");
-        this.add("gui.principiamagica.golem.no_zones", "No work zones, use the baton to add one");
+        this.add("gui.principiamagica.golem.no_zones", "No work zones, use the stylus to add one");
         this.add("gui.principiamagica.golem.zone_row", "Zone %sx%sx%s at %s, %s, %s");
         this.add("gui.principiamagica.golem.containers", "Containers (%s)");
-        this.add("gui.principiamagica.golem.no_containers", "No containers, use the baton to link one");
-        this.add("gui.principiamagica.golem.workplace_hint", "Edit zones and containers with the Golem Baton");
+        this.add("gui.principiamagica.golem.no_containers", "No containers, use the stylus to link one");
+        this.add("gui.principiamagica.golem.workplace_hint", "Edit zones and containers with the Copper Stylus");
         this.add("gui.principiamagica.golem.zone.title", "Zone %s");
         this.add("gui.principiamagica.golem.zone.size", "Size: %s x %s x %s");
         this.add("gui.principiamagica.golem.zone.from", "From: %s, %s, %s");
@@ -133,7 +135,7 @@ public class ENUSProvider extends LanguageProvider {
 
         this.add("tooltip.principiamagica.golem.material", "Material: %s");
         this.add("tooltip.principiamagica.golem.upgrades", "Upgrades: %s/%s");
-        this.add("item.principiamagica.golem_baton", "Golem Baton");
+        this.add("item.principiamagica.copper_stylus", "Copper Stylus");
         this.add("golem_role.principiamagica.supply", "Supply");
         this.add("golem_role.principiamagica.deposit", "Deposit");
         this.add("golem_role.principiamagica.both", "Supply and deposit");
@@ -146,36 +148,36 @@ public class ENUSProvider extends LanguageProvider {
         this.add("message.principiamagica.golem.upgrade_duplicate", "This golem already has this upgrade");
         this.add("message.principiamagica.golem.upgrade_no_slot", "This golem has no free upgrade slot");
 
-        this.add("message.principiamagica.baton.not_owner", "You do not own this golem");
-        this.add("message.principiamagica.baton.no_golem_selected", "Select a golem first by right-clicking it");
-        this.add("message.principiamagica.baton.golem_not_found", "The selected golem is not nearby");
-        this.add("message.principiamagica.baton.selected", "Golem selected");
-        this.add("message.principiamagica.baton.deselected", "Golem deselected");
-        this.add("message.principiamagica.baton.copied", "Copied workplace: %s zones, %s container links");
-        this.add("message.principiamagica.baton.pasted", "Pasted workplace");
-        this.add("message.principiamagica.baton.cleared", "Cleared selection and clipboard");
-        this.add("message.principiamagica.baton.corner_set", "First corner set, right-click the opposite corner");
-        this.add("message.principiamagica.baton.zone_added", "Work zone added");
-        this.add("message.principiamagica.baton.zone_removed", "Work zone removed");
-        this.add("message.principiamagica.baton.zone_too_large", "Zone too large, maximum is %s x %s x %s");
-        this.add("message.principiamagica.baton.nothing_to_remove", "Nothing to remove here");
-        this.add("message.principiamagica.baton.link_set", "Container link: %s");
-        this.add("message.principiamagica.baton.link_removed", "Container link removed");
-        this.add("message.principiamagica.baton.picked_up", "Golem picked up, its workplace is kept");
+        this.add("message.principiamagica.stylus.not_owner", "You do not own this golem");
+        this.add("message.principiamagica.stylus.no_golem_selected", "Select a golem first by right-clicking it");
+        this.add("message.principiamagica.stylus.golem_not_found", "The selected golem is not nearby");
+        this.add("message.principiamagica.stylus.selected", "Golem selected");
+        this.add("message.principiamagica.stylus.deselected", "Golem deselected");
+        this.add("message.principiamagica.stylus.copied", "Copied workplace: %s zones, %s container links");
+        this.add("message.principiamagica.stylus.pasted", "Pasted workplace");
+        this.add("message.principiamagica.stylus.cleared", "Cleared selection and clipboard");
+        this.add("message.principiamagica.stylus.corner_set", "First corner set, right-click the opposite corner");
+        this.add("message.principiamagica.stylus.zone_added", "Work zone added");
+        this.add("message.principiamagica.stylus.zone_removed", "Work zone removed");
+        this.add("message.principiamagica.stylus.zone_too_large", "Zone too large, maximum is %s x %s x %s");
+        this.add("message.principiamagica.stylus.nothing_to_remove", "Nothing to remove here");
+        this.add("message.principiamagica.stylus.link_set", "Container link: %s");
+        this.add("message.principiamagica.stylus.link_removed", "Container link removed");
+        this.add("message.principiamagica.stylus.picked_up", "Golem picked up, its workplace is kept");
 
-        this.add("tooltip.principiamagica.golem_baton.selected", "Selected golem: %s");
-        this.add("tooltip.principiamagica.golem_baton.yes", "yes");
-        this.add("tooltip.principiamagica.golem_baton.none", "none");
-        this.add("tooltip.principiamagica.golem_baton.pending_corner", "Pending corner: %s, %s, %s");
-        this.add("tooltip.principiamagica.golem_baton.clipboard_empty", "Clipboard: empty");
-        this.add("tooltip.principiamagica.golem_baton.clipboard", "Clipboard: %s zones, %s container links");
-        this.add("tooltip.principiamagica.golem_baton.hint_select", "Right-click golem: select / deselect");
-        this.add("tooltip.principiamagica.golem_baton.hint_copy_paste", "Shift-right-click golem: copy workplace / paste clipboard");
-        this.add("tooltip.principiamagica.golem_baton.hint_link", "Right-click container: cycle supply, deposit, both, removed");
-        this.add("tooltip.principiamagica.golem_baton.hint_zone", "Right-click two blocks: create a work zone");
-        this.add("tooltip.principiamagica.golem_baton.hint_remove", "Shift-right-click zone or container: remove it");
-        this.add("tooltip.principiamagica.golem_baton.hint_pickup", "Shift-left-click own golem: pick up (keeps workplace)");
-        this.add("tooltip.principiamagica.golem_baton.hint_clear", "Shift-right-click air: clear selection and clipboard");
+        this.add("tooltip.principiamagica.copper_stylus.selected", "Selected golem: %s");
+        this.add("tooltip.principiamagica.copper_stylus.yes", "yes");
+        this.add("tooltip.principiamagica.copper_stylus.none", "none");
+        this.add("tooltip.principiamagica.copper_stylus.pending_corner", "Pending corner: %s, %s, %s");
+        this.add("tooltip.principiamagica.copper_stylus.clipboard_empty", "Clipboard: empty");
+        this.add("tooltip.principiamagica.copper_stylus.clipboard", "Clipboard: %s zones, %s container links");
+        this.add("tooltip.principiamagica.copper_stylus.hint_select", "Right-click golem: select / deselect");
+        this.add("tooltip.principiamagica.copper_stylus.hint_copy_paste", "Shift-right-click golem: copy workplace / paste clipboard");
+        this.add("tooltip.principiamagica.copper_stylus.hint_link", "Right-click container: cycle supply, deposit, both, removed");
+        this.add("tooltip.principiamagica.copper_stylus.hint_zone", "Right-click two blocks: create a work zone");
+        this.add("tooltip.principiamagica.copper_stylus.hint_remove", "Shift-right-click zone or container: remove it");
+        this.add("tooltip.principiamagica.copper_stylus.hint_pickup", "Shift-left-click own golem: pick up (keeps workplace)");
+        this.add("tooltip.principiamagica.copper_stylus.hint_clear", "Shift-right-click air: clear selection and clipboard");
 
         this.langCache.data().forEach(this::add);
     }

@@ -14,7 +14,7 @@ import com.geckolib.animation.state.AnimationTest;
 import com.geckolib.util.GeckoLibUtil;
 import com.klikli_dev.principiamagica.content.golem.ai.GolemAi;
 import com.klikli_dev.principiamagica.content.golem.ai.GolemPathNavigation;
-import com.klikli_dev.principiamagica.content.golem.item.GolemBatonItem;
+import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemCoreItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemUpgradeItem;
@@ -421,7 +421,7 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
                 new SimpleMenuProvider((containerId, inventory, menuPlayer) -> new GolemMenu(containerId, inventory, this.getId()), this.getDisplayName()),
                 buf -> buf.writeVarInt(this.getId())
         );
-        GolemBatonItem.syncWorkplace(player, this);
+        StylusItem.syncWorkplace(player, this);
     }
 
     @Override

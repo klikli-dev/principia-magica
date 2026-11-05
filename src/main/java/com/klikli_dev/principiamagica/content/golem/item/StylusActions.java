@@ -19,15 +19,15 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Pure workplace edits used by the golem baton. No world access, so they can be unit tested as gametests.
+ * Pure workplace edits used by the golem stylus. No world access, so they can be unit tested as gametests.
  */
-public final class BatonActions {
+public final class StylusActions {
 
     public static final int MAX_ZONE_WIDTH = 64;
     public static final int MAX_ZONE_HEIGHT = 16;
     public static final int MAX_ZONE_DEPTH = 64;
 
-    private BatonActions() {
+    private StylusActions() {
     }
 
     /**

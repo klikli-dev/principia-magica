@@ -43,7 +43,7 @@ final class WorkplaceTab extends GolemTab {
 
     @Override
     public TabIcon icon() {
-        return TabIcon.item(new ItemStack(ItemRegistry.GOLEM_BATON.get()));
+        return TabIcon.item(new ItemStack(ItemRegistry.COPPER_STYLUS.get()));
     }
 
     @Override

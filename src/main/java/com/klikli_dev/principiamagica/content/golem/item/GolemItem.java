@@ -43,7 +43,7 @@ public class GolemItem extends Item {
     }
 
     /**
-     * Places the golem at the clicked block. A golem picked up with a baton keeps its workplace, re-anchored to the new position.
+     * Places the golem at the clicked block. A golem picked up with a stylus keeps its workplace, re-anchored to the new position.
      */
     @Override
     public InteractionResult useOn(UseOnContext context) {
@@ -72,7 +72,7 @@ public class GolemItem extends Item {
 
         Workplace stored = stack.get(DataComponentRegistry.GOLEM_WORKPLACE.get());
         if (stored != null) {
-            golem.updateWorkplace(current -> BatonActions.toAbsolute(stored, pos));
+            golem.updateWorkplace(current -> StylusActions.toAbsolute(stored, pos));
         }
 
         if (player != null) {

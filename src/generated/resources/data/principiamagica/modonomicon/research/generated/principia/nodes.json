@@ -1,0 +1,8 @@
+[
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_the_stylus",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia"
+    ]
+  }
+]

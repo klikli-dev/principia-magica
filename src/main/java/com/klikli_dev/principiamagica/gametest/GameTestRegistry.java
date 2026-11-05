@@ -43,16 +43,19 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST =
             TEST_FUNCTIONS.register("workplace_defaults_link_adjacent_chest", () -> GolemGameTests::workplaceDefaultsLinkAdjacentChest);
 
-    // --- Golem baton ---
+    // --- Golem stylus ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CONTAINER_LINK_CYCLES =
-            TEST_FUNCTIONS.register("container_link_cycles", () -> BatonGameTests::containerLinkCycles);
+            TEST_FUNCTIONS.register("container_link_cycles", () -> StylusGameTests::containerLinkCycles);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> ZONE_ADD_AND_REMOVE =
-            TEST_FUNCTIONS.register("zone_add_and_remove", () -> BatonGameTests::zoneAddAndRemove);
+            TEST_FUNCTIONS.register("zone_add_and_remove", () -> StylusGameTests::zoneAddAndRemove);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT =
-            TEST_FUNCTIONS.register("copy_and_paste_keeps_relative_layout", () -> BatonGameTests::copyAndPasteKeepsRelativeLayout);
+            TEST_FUNCTIONS.register("copy_and_paste_keeps_relative_layout", () -> StylusGameTests::copyAndPasteKeepsRelativeLayout);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> COPPER_STYLUS_RETURNED_AS_CRAFT_REMAINDER =
+            TEST_FUNCTIONS.register("copper_stylus_returned_as_craft_remainder", () -> StylusGameTests::copperStylusReturnedAsCraftRemainder);
 
     // --- Golem menu ---
 
@@ -222,6 +225,12 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PRINCIPIA_BOOK_AND_FIRST_ENTRY_LOAD =
             TEST_FUNCTIONS.register("principia_book_and_first_entry_load", () -> ProgressionGameTests::principiaBookAndFirstEntryLoad);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WEDGE_OF_COPPER_ADVANCEMENT_AND_STYLUS_RECIPE_EXIST =
+            TEST_FUNCTIONS.register("wedge_of_copper_advancement_and_stylus_recipe_exist", () -> ProgressionGameTests::wedgeOfCopperAdvancementAndStylusRecipeExist);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STYLUS_ENTRY_LOADS =
+            TEST_FUNCTIONS.register("stylus_entry_loads", () -> ProgressionGameTests::stylusEntryLoads);
+
     public static void onRegisterGameTests(RegisterGameTestsEvent event) {
         registerGolemTests(event);
         registerProgressionTests(event);
@@ -233,6 +242,8 @@ public class GameTestRegistry {
 
         registerTest(event, CLAY_ADVANCEMENT_AND_PRINCIPIA_RECIPE_EXIST, environment, structure, 40, 0);
         registerTest(event, PRINCIPIA_BOOK_AND_FIRST_ENTRY_LOAD, environment, structure, 40, 0);
+        registerTest(event, WEDGE_OF_COPPER_ADVANCEMENT_AND_STYLUS_RECIPE_EXIST, environment, structure, 40, 0);
+        registerTest(event, STYLUS_ENTRY_LOADS, environment, structure, 40, 0);
     }
 
     private static void registerGolemTests(RegisterGameTestsEvent event) {
@@ -248,6 +259,7 @@ public class GameTestRegistry {
         registerTest(event, CONTAINER_LINK_CYCLES, environment, structure, 40, 0);
         registerTest(event, ZONE_ADD_AND_REMOVE, environment, structure, 40, 0);
         registerTest(event, COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT, environment, structure, 40, 0);
+        registerTest(event, COPPER_STYLUS_RETURNED_AS_CRAFT_REMAINDER, environment, structure, 40, 0);
         registerTest(event, JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS, environment, structure, 40, 0);
         registerTest(event, ZONE_AND_LINK_INDICES_ARE_VALIDATED, environment, structure, 40, 0);
 

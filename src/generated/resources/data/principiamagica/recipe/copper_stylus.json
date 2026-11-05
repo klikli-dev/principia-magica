@@ -2,16 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": "minecraft:amethyst_shard",
-    "G": "minecraft:gold_ingot",
+    "C": "minecraft:copper_ingot",
     "S": "minecraft:stick"
   },
   "pattern": [
-    " AG",
+    "  C",
     " S ",
     "S  "
   ],
   "result": {
-    "id": "principiamagica:golem_baton"
+    "id": "principiamagica:copper_stylus"
   }
 }

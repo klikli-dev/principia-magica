@@ -1,0 +1,39 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:the_wet_clay",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_the_stylus",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.the_wet_clay.the_stylus.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.the_wet_clay.the_stylus.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:copper_stylus"
+  },
+  "id": "principiamagica:the_wet_clay/the_stylus",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.the_wet_clay.the_stylus.name",
+  "parents": [
+    {
+      "entry": "principiamagica:the_wet_clay/principia"
+    }
+  ],
+  "sort_number": 1,
+  "x": 1,
+  "y": 0
+}

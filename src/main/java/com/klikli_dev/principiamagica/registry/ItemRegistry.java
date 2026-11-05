@@ -5,7 +5,7 @@
 package com.klikli_dev.principiamagica.registry;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
-import com.klikli_dev.principiamagica.content.golem.item.GolemBatonItem;
+import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemCoreItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemUpgradeItem;
@@ -22,7 +22,7 @@ public class ItemRegistry {
 
     public static final DeferredItem<GolemItem> GOLEM = ITEMS.registerItem("golem", p -> new GolemItem(p.stacksTo(16)));
 
-    public static final DeferredItem<GolemBatonItem> GOLEM_BATON = ITEMS.registerItem("golem_baton", p -> new GolemBatonItem(p.stacksTo(1)));
+    public static final DeferredItem<StylusItem> COPPER_STYLUS = ITEMS.registerItem("copper_stylus", p -> new StylusItem(p.stacksTo(1)));
 
     public static final DeferredItem<GolemCoreItem> FARMING_CORE = ITEMS.registerItem("farming_core", p -> new GolemCoreItem(p.stacksTo(1), FarmingJob.KEY));
 

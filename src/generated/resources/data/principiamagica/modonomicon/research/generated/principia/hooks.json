@@ -1,0 +1,8 @@
+[
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia_hook",
+    "trigger_target": "principiamagica:the_wet_clay/principia",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  }
+]
