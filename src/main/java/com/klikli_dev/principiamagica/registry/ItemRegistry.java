@@ -13,7 +13,12 @@ import com.klikli_dev.principiamagica.content.golem.item.GolemUpgradeItem;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.job.lumberjack.LumberjackJob;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -26,7 +31,8 @@ public class ItemRegistry {
 
     public static final DeferredItem<CrackedGolemItem> CRACKED_GOLEM = ITEMS.registerItem("cracked_golem", p -> new CrackedGolemItem(p.stacksTo(1)));
 
-    public static final DeferredItem<StylusItem> COPPER_STYLUS = ITEMS.registerItem("copper_stylus", p -> new StylusItem(p.stacksTo(1)));
+    public static final DeferredItem<StylusItem> COPPER_STYLUS = ITEMS.registerItem("copper_stylus",
+            p -> new StylusItem(p.stacksTo(1).craftRemainder(selfTemplate("copper_stylus"))));
 
     public static final DeferredItem<Item> WET_TABLET = ITEMS.registerItem("wet_tablet", p -> new Item(p.stacksTo(64)));
 
@@ -45,4 +51,12 @@ public class ItemRegistry {
 
     public static final DeferredItem<GolemUpgradeItem> CAPACITY_UPGRADE = ITEMS.registerItem("capacity_upgrade",
             p -> new GolemUpgradeItem(p.stacksTo(16), GolemUpgradeRegistry.CAPACITY.getKey()));
+
+    /**
+     * Crafting remainder that returns the item itself. The item is not bound yet while its properties are built, so the holder is resolved lazily.
+     */
+    private static ItemStackTemplate selfTemplate(String name) {
+        ResourceKey<Item> key = ResourceKey.create(Registries.ITEM, PrincipiaMagica.loc(name));
+        return new ItemStackTemplate(DeferredHolder.create(key), 1, DataComponentPatch.EMPTY);
+    }
 }

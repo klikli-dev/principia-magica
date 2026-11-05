@@ -110,8 +110,8 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT =
             TEST_FUNCTIONS.register("copy_and_paste_keeps_relative_layout", () -> StylusGameTests::copyAndPasteKeepsRelativeLayout);
 
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> COPPER_STYLUS_RETURNED_AS_CRAFT_REMAINDER =
-            TEST_FUNCTIONS.register("copper_stylus_returned_as_craft_remainder", () -> StylusGameTests::copperStylusReturnedAsCraftRemainder);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES =
+            TEST_FUNCTIONS.register("copper_stylus_returned_by_crafting_recipes", () -> StylusGameTests::copperStylusReturnedByCraftingRecipes);
 
     // --- Golem menu ---
 
@@ -351,7 +351,7 @@ public class GameTestRegistry {
         registerTest(event, OVERSIZED_FOOTPRINT_IS_REJECTED, environment, structure, 40, 0);
         registerTest(event, SHIFT_CARVE_ERASES_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT, environment, structure, 40, 0);
-        registerTest(event, COPPER_STYLUS_RETURNED_AS_CRAFT_REMAINDER, environment, structure, 40, 0);
+        registerTest(event, COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES, environment, structure, 40, 0);
         registerTest(event, JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS, environment, structure, 40, 0);
         registerTest(event, ZONE_AND_LINK_INDICES_ARE_VALIDATED, environment, structure, 40, 0);
         registerTest(event, PURPOSELESS_GOLEM_STAYS_AND_CANNOT_WORK, environment, structure, 80, 0);

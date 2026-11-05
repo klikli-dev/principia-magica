@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.gametest;
 
+import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
 import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
@@ -13,26 +14,71 @@ import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 public class StylusGameTests {
 
-    public static void copperStylusReturnedAsCraftRemainder(GameTestHelper helper) {
-        var stylus = ItemRegistry.COPPER_STYLUS.get();
-        var stack = new ItemStack(stylus);
+    /**
+     * The stylus is a tool in crafting recipes and must come back from the recipe, not be consumed.
+     * Checks the real recipes from the recipe manager, which is also what the crafting result slot uses.
+     */
+    public static void copperStylusReturnedByCraftingRecipes(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        var clay = new ItemStack(Items.CLAY_BALL);
 
-        helper.assertTrue(!stack.isDamageableItem(), "Copper stylus must not have durability");
-        helper.assertTrue(stack.getMaxStackSize() == 1, "Copper stylus should not stack");
+        CraftingRecipe wetTablet = craftingRecipe(helper, "wet_tablet");
+        CraftingInput wetTabletInput = grid(stylus, clay, clay);
+        helper.assertTrue(wetTablet.matches(wetTabletInput, level), "Wet tablet should match stylus and two clay balls");
+        assertOnlyStylusReturned(helper, wetTablet.getRemainingItems(wetTabletInput), "wet tablet");
 
-        var remainder = stylus.getCraftingRemainder(stack);
-        helper.assertTrue(remainder != null, "Copper stylus must leave a crafting remainder");
-        helper.assertTrue(remainder.item().value() == stylus, "Crafting remainder of the copper stylus must be the stylus itself");
+        CraftingRecipe golemWood = craftingRecipe(helper, "golem/wood");
+        var log = new ItemStack(Items.OAK_LOG);
+        var plank = new ItemStack(Items.OAK_PLANKS);
+        var quickenedClay = new ItemStack(ItemRegistry.QUICKENED_CLAY.get());
+        CraftingInput golemInput = grid(
+                ItemStack.EMPTY, log, ItemStack.EMPTY,
+                quickenedClay, log, quickenedClay,
+                plank, stylus, plank);
+        helper.assertTrue(golemWood.matches(golemInput, level), "Wood golem recipe should match its pattern");
+        assertOnlyStylusReturned(helper, golemWood.getRemainingItems(golemInput), "wood golem");
+
         helper.succeed();
     }
+
+    private static CraftingRecipe craftingRecipe(GameTestHelper helper, String path) {
+        var key = ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc(path));
+        return (CraftingRecipe) helper.getLevel().getServer().getRecipeManager().byKey(key).orElseThrow().value();
+    }
+
+    private static void assertOnlyStylusReturned(GameTestHelper helper, NonNullList<ItemStack> remainders, String recipe) {
+        helper.assertTrue(remainders.stream().filter(stack -> stack.is(ItemRegistry.COPPER_STYLUS.get())).count() == 1,
+                "The copper stylus must be returned by the " + recipe + " recipe");
+        helper.assertTrue(remainders.stream().filter(stack -> !stack.isEmpty()).count() == 1,
+                "Only the copper stylus may be returned by the " + recipe + " recipe");
+    }
+
+    private static CraftingInput grid(ItemStack... stacks) {
+        List<ItemStack> items = new ArrayList<>(Collections.nCopies(9, ItemStack.EMPTY));
+        for (int i = 0; i < stacks.length; i++) {
+            items.set(i, stacks[i]);
+        }
+
+        return CraftingInput.of(3, 3, items);
+    }
+
 
     public static void containerLinkCycles(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 2, 1);

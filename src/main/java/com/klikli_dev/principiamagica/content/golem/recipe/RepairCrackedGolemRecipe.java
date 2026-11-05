@@ -9,7 +9,6 @@ import com.klikli_dev.principiamagica.content.golem.item.CrackedGolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import com.klikli_dev.principiamagica.registry.RecipeSerializerRegistry;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
@@ -66,19 +65,6 @@ public class RepairCrackedGolemRecipe extends CustomRecipe {
         ItemStack golem = new ItemStack(ItemRegistry.GOLEM.get());
         golem.applyComponents(cracked.getComponentsPatch());
         return golem;
-    }
-
-    @Override
-    public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
-        NonNullList<ItemStack> remainders = NonNullList.withSize(input.size(), ItemStack.EMPTY);
-        for (int slot = 0; slot < input.size(); slot++) {
-            ItemStack stack = input.getItem(slot);
-            if (stack.getItem() instanceof StylusItem) {
-                remainders.set(slot, stack.copyWithCount(1));
-            }
-        }
-
-        return remainders;
     }
 
     private static ItemStack findCracked(CraftingInput input) {

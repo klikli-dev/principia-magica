@@ -33,9 +33,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
@@ -55,11 +53,6 @@ public class StylusItem extends Item {
 
     public StylusItem(Properties properties) {
         super(properties);
-    }
-
-    @Override
-    public ItemStackTemplate getCraftingRemainder(ItemInstance instance) {
-        return new ItemStackTemplate(this);
     }
 
     @Override
