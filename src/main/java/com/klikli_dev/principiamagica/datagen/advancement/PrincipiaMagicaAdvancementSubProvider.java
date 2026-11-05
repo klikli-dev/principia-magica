@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.datagen.advancement;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.golem.advancement.GolemPlacedTrigger;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.advancements.Advancement;
@@ -33,6 +34,7 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
     public static final Identifier A_LAW_MADE_FAST = PrincipiaMagica.loc("a_law_made_fast");
     public static final Identifier ROTTEN_FLESH = PrincipiaMagica.loc("rotten_flesh");
     public static final Identifier QUICKENED = PrincipiaMagica.loc("quickened");
+    public static final Identifier CLAY_THAT_STANDS = PrincipiaMagica.loc("clay_that_stands");
 
     public static final ResourceKey<Recipe<?>> PRINCIPIA_RECIPE = ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("principia"));
 
@@ -134,5 +136,21 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
                 .build(QUICKENED);
 
         writer.accept(quickened);
+
+        var clayThatStands = Advancement.Builder.advancement()
+                .parent(quickened)
+                .display(
+                        ItemRegistry.GOLEM.get(),
+                        Component.translatable("advancements.principiamagica.clay_that_stands.title"),
+                        Component.translatable("advancements.principiamagica.clay_that_stands.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        false,
+                        false)
+                .addCriterion("golem_placed", GolemPlacedTrigger.placed())
+                .build(CLAY_THAT_STANDS);
+
+        writer.accept(clayThatStands);
     }
 }

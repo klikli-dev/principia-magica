@@ -43,6 +43,15 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST =
             TEST_FUNCTIONS.register("workplace_defaults_link_adjacent_chest", () -> GolemGameTests::workplaceDefaultsLinkAdjacentChest);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PURPOSELESS_GOLEM_STAYS_AND_CANNOT_WORK =
+            TEST_FUNCTIONS.register("purposeless_golem_stays_and_cannot_work", () -> GolemGameTests::purposelessGolemStaysAndCannotWork);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_ENABLES_WORK_AND_REMOVAL_RETURNS_TO_STAY =
+            TEST_FUNCTIONS.register("axiom_enables_work_and_removal_returns_to_stay", () -> GolemGameTests::axiomEnablesWorkAndRemovalReturnsToStay);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PLACED_GOLEM_WITHOUT_AXIOM_IS_PURPOSELESS =
+            TEST_FUNCTIONS.register("placed_golem_without_axiom_is_purposeless", () -> GolemGameTests::placedGolemWithoutAxiomIsPurposeless);
+
     // --- Golem stylus ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CONTAINER_LINK_CYCLES =
@@ -240,6 +249,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> QUICKENED_ADVANCEMENTS_RECIPE_AND_ENTRY_EXIST =
             TEST_FUNCTIONS.register("quickened_advancements_recipe_and_entry_exist", () -> ProgressionGameTests::quickenedAdvancementsRecipeAndEntryExist);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GOLEM_BODY_RECIPE_ADVANCEMENT_AND_ENTRY_EXIST =
+            TEST_FUNCTIONS.register("golem_body_recipe_advancement_and_entry_exist", () -> ProgressionGameTests::golemBodyRecipeAdvancementAndEntryExist);
+
     public static void onRegisterGameTests(RegisterGameTestsEvent event) {
         registerGolemTests(event);
         registerProgressionTests(event);
@@ -256,6 +268,7 @@ public class GameTestRegistry {
         registerTest(event, WET_TABLET_ADVANCEMENT_RECIPE_AND_ENTRY_EXIST, environment, structure, 40, 0);
         registerTest(event, AXIOM_ADVANCEMENT_RECIPES_AND_ENTRY_EXIST, environment, structure, 40, 0);
         registerTest(event, QUICKENED_ADVANCEMENTS_RECIPE_AND_ENTRY_EXIST, environment, structure, 40, 0);
+        registerTest(event, GOLEM_BODY_RECIPE_ADVANCEMENT_AND_ENTRY_EXIST, environment, structure, 40, 0);
     }
 
     private static void registerGolemTests(RegisterGameTestsEvent event) {
@@ -274,6 +287,9 @@ public class GameTestRegistry {
         registerTest(event, COPPER_STYLUS_RETURNED_AS_CRAFT_REMAINDER, environment, structure, 40, 0);
         registerTest(event, JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS, environment, structure, 40, 0);
         registerTest(event, ZONE_AND_LINK_INDICES_ARE_VALIDATED, environment, structure, 40, 0);
+        registerTest(event, PURPOSELESS_GOLEM_STAYS_AND_CANNOT_WORK, environment, structure, 80, 0);
+        registerTest(event, AXIOM_ENABLES_WORK_AND_REMOVAL_RETURNS_TO_STAY, environment, structure, 40, 0);
+        registerTest(event, PLACED_GOLEM_WITHOUT_AXIOM_IS_PURPOSELESS, environment, structure, 40, 0);
 
         registerTest(event, FARMING_HARVEST_AND_REPLANT, environment, structure, 800, 0);
         registerTest(event, FARMING_DEPOSIT_FULL_INVENTORY, environment, structure, 800, 0);

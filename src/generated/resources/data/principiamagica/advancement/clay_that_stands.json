@@ -1,0 +1,26 @@
+{
+  "parent": "principiamagica:quickened",
+  "criteria": {
+    "golem_placed": {
+      "trigger": "principiamagica:golem_placed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.principiamagica.clay_that_stands.description"
+    },
+    "icon": {
+      "id": "principiamagica:golem"
+    },
+    "title": {
+      "translate": "advancements.principiamagica.clay_that_stands.title"
+    }
+  },
+  "requirements": [
+    [
+      "golem_placed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

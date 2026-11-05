@@ -6,8 +6,11 @@ package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
+import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.job.CommonJobOptions;
 import com.klikli_dev.principiamagica.content.golem.job.JobOptionValues;
+import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
@@ -15,9 +18,12 @@ import com.klikli_dev.principiamagica.content.golem.workplace.WorkReservations;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceDefaults;
+import com.klikli_dev.principiamagica.datagen.advancement.PrincipiaMagicaAdvancementSubProvider;
 import com.klikli_dev.principiamagica.registry.ActivityRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
+import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -26,8 +32,17 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Map;
@@ -148,6 +163,67 @@ public class GolemGameTests {
                         && link.role() == ContainerRole.BOTH
                         && link.side() == Direction.WEST),
                 "Adjacent chest should be auto-linked as BOTH on the face towards the anchor");
+
+        helper.succeed();
+    }
+
+    public static void purposelessGolemStaysAndCannotWork(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos anchorPos = new BlockPos(2, 2, 2);
+        helper.setBlock(new BlockPos(3, 2, 2), Blocks.CHEST);
+
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        golem.setAnchor(GlobalPos.of(level.dimension(), helper.absolutePos(anchorPos)));
+
+        helper.assertTrue(golem.getMode() == GolemMode.STAY, "Purposeless golem should default to Stay, got " + golem.getMode());
+
+        golem.setMode(GolemMode.WORK);
+        helper.assertTrue(golem.getMode() == GolemMode.STAY, "Work should be rejected while purposeless, got " + golem.getMode());
+
+        golem.setMode(GolemMode.FOLLOW);
+        helper.assertTrue(golem.getMode() == GolemMode.FOLLOW, "Follow should be accepted while purposeless, got " + golem.getMode());
+        helper.assertTrue(golem.getBrain().isActive(ActivityRegistry.FOLLOW.value()), "Follow mode should activate the follow activity");
+
+        golem.setMode(GolemMode.STAY);
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(golem.getStatus() == GolemStatus.NO_PURPOSE, "Purposeless golem should report no purpose, got " + golem.getStatus());
+            helper.assertTrue(!golem.getBrain().isActive(Activity.WORK), "Purposeless golem should never activate its work");
+            helper.succeed();
+        });
+    }
+
+    public static void axiomEnablesWorkAndRemovalReturnsToStay(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(PrincipiaMagicaRegistries.GOLEM_JOB.get(FarmingJob.KEY).orElseThrow()));
+        golem.setMode(GolemMode.WORK);
+        helper.assertTrue(golem.getMode() == GolemMode.WORK, "Work should be accepted with an axiom, got " + golem.getMode());
+
+        golem.takeJob();
+        helper.assertTrue(golem.getMode() == GolemMode.STAY, "Removing the axiom should return the golem to Stay, got " + golem.getMode());
+
+        helper.succeed();
+    }
+
+    public static void placedGolemWithoutAxiomIsPurposeless(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player player = helper.makeMockPlayer(GameType.CREATIVE);
+        BlockPos clicked = helper.absolutePos(new BlockPos(1, 1, 1));
+        ItemStack stack = GolemItem.createStack(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+        stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(clicked), Direction.UP, clicked, false)));
+
+        List<GolemEntity> golems = level.getEntitiesOfClass(GolemEntity.class, new AABB(clicked.above()).inflate(1));
+        helper.assertTrue(golems.size() == 1, "Placing the golem should spawn exactly one golem, found " + golems.size());
+        GolemEntity golem = golems.getFirst();
+        helper.assertTrue(golem.getSpec().job().isEmpty(), "A placed golem should have no axiom");
+        helper.assertTrue(golem.getMode() == GolemMode.STAY, "A placed golem without axiom should be in Stay, got " + golem.getMode());
+        helper.assertTrue(!golem.removeWhenFarAway(128.0), "A placed golem should never despawn");
+
+        AdvancementHolder advancement = level.getServer().getAdvancements().get(PrincipiaMagicaAdvancementSubProvider.CLAY_THAT_STANDS);
+        helper.assertTrue(advancement != null, "Advancement clay_that_stands is missing");
+        helper.assertTrue(advancement.value().criteria().containsKey("golem_placed"), "Clay That Stands should be triggered by golem_placed");
 
         helper.succeed();
     }

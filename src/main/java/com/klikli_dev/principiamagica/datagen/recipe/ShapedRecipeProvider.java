@@ -44,13 +44,14 @@ import java.util.function.BiConsumer;
  * Crafting table recipes. Golems are a single item carrying a {@link GolemSpec} component, so each material gets its
  * own recipe whose result carries the component.
  * <p>
- * The golem shape is the same for every material, only the material ingredient changes:
+ * The stone and metal golem shape is the same, only the material ingredient changes:
  * <pre>
  * M _ M
  * _ R _
  * M _ M
  * </pre>
- * where M is the material, R is redstone dust and _ is empty.
+ * where M is the material, R is redstone dust and _ is empty. The wood golem has its own shape, see
+ * {@link #woodGolemRecipe}.
  */
 public class ShapedRecipeProvider implements DataProvider {
     private static final String RECIPE_TYPE = "minecraft:crafting_shaped";
@@ -92,7 +93,7 @@ public class ShapedRecipeProvider implements DataProvider {
     }
 
     private void buildRecipes(BiConsumer<Identifier, JsonObject> consumer) {
-        this.golemRecipe(consumer, "wood", GolemMaterialRegistry.WOOD, ItemTags.LOGS);
+        this.woodGolemRecipe(consumer);
         this.golemRecipe(consumer, "stone", GolemMaterialRegistry.STONE, Tags.Items.COBBLESTONES);
         this.golemRecipe(consumer, "metal", GolemMaterialRegistry.METAL, Tags.Items.INGOTS_IRON);
 
@@ -107,6 +108,20 @@ public class ShapedRecipeProvider implements DataProvider {
         this.shaped(consumer, ItemRegistry.CAPACITY_UPGRADE.get(),
                 List.of("LCL", " A "),
                 Map.of('L', Items.LEATHER, 'C', Items.CHEST, 'A', Items.AMETHYST_SHARD));
+    }
+
+    private void woodGolemRecipe(BiConsumer<Identifier, JsonObject> consumer) {
+        DataComponentPatch patch = DataComponentPatch.builder()
+                .set(DataComponentRegistry.GOLEM_SPEC.get(), GolemSpec.of(GolemMaterialRegistry.WOOD))
+                .build();
+
+        this.recipe(consumer, PrincipiaMagica.loc("golem/wood"), ItemRegistry.GOLEM.get(), 1, patch,
+                List.of(" L ", "QLQ", "PSP"),
+                Map.of(
+                        'L', Ingredient.of(this.items.getOrThrow(ItemTags.LOGS)),
+                        'Q', Ingredient.of(ItemRegistry.QUICKENED_CLAY.get()),
+                        'P', Ingredient.of(this.items.getOrThrow(ItemTags.PLANKS)),
+                        'S', Ingredient.of(ItemRegistry.COPPER_STYLUS.get())));
     }
 
     private void golemRecipe(BiConsumer<Identifier, JsonObject> consumer, String name, Holder<GolemMaterial> material, TagKey<Item> materialTag) {

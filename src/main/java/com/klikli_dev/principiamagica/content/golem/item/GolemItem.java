@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.golem.spec.GolemMaterial;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.golem.upgrade.GolemUpgrade;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import com.klikli_dev.principiamagica.registry.CriterionTriggerRegistry;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
@@ -18,6 +19,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
@@ -83,7 +85,21 @@ public class GolemItem extends Item {
         }
 
         serverLevel.addFreshEntity(golem);
+        if (player instanceof ServerPlayer serverPlayer) {
+            CriterionTriggerRegistry.GOLEM_PLACED.get().trigger(serverPlayer);
+        }
+
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public Component getName(ItemStack stack) {
+        GolemSpec spec = stack.get(DataComponentRegistry.GOLEM_SPEC.get());
+        if (spec == null) {
+            return super.getName(stack);
+        }
+
+        return Component.translatable("item.principiamagica.golem.named", Component.translatable(spec.material().value().getDescriptionId()));
     }
 
     @Override

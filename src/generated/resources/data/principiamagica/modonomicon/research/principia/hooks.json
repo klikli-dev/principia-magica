@@ -16,5 +16,11 @@
     "id": "principiamagica:research/advancement/rotten_flesh_hook",
     "trigger_target": "principiamagica:rotten_flesh",
     "trigger_type": "modonomicon:advancement"
+  },
+  {
+    "fact_id": "principiamagica:research/advancement/quickened",
+    "id": "principiamagica:research/advancement/quickened_hook",
+    "trigger_target": "principiamagica:quickened",
+    "trigger_type": "modonomicon:advancement"
   }
 ]

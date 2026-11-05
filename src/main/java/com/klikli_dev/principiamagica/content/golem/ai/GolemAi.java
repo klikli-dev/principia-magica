@@ -90,7 +90,7 @@ public class GolemAi {
         Optional<GolemJob> job = golem.getSpec().job().map(Holder::value);
         GolemStatus setupProblem = GolemStatus.OK;
         if (job.isEmpty()) {
-            setupProblem = GolemStatus.NO_JOB;
+            setupProblem = GolemStatus.NO_PURPOSE;
         } else if (golem.getWorkplace(level).map(workplace -> workplace.zones().isEmpty()).orElse(true)) {
             setupProblem = GolemStatus.NO_ZONE;
         } else if (job.get().requiredTool().isPresent() && !golem.getMainHandItem().is(job.get().requiredTool().get())) {

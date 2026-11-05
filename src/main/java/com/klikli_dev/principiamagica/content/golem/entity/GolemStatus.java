@@ -11,7 +11,7 @@ import java.util.Locale;
  */
 public enum GolemStatus {
     OK,
-    NO_JOB,
+    NO_PURPOSE,
     NO_ZONE,
     MISSING_TOOL,
     NO_DEPOSIT,

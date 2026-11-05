@@ -1,0 +1,31 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:the_wet_clay",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:research/advancement/quickened"
+  },
+  "description": "book.principiamagica.principia.the_wet_clay.the_body.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:golem"
+  },
+  "id": "principiamagica:the_wet_clay/the_body",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.the_wet_clay.the_body.name",
+  "parents": [
+    {
+      "entry": "principiamagica:the_wet_clay/flesh_and_clay"
+    }
+  ],
+  "sort_number": 5,
+  "x": 3,
+  "y": 1
+}

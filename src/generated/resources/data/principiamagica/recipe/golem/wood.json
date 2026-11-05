@@ -2,13 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "M": "#minecraft:logs",
-    "R": "minecraft:redstone"
+    "L": "#minecraft:logs",
+    "P": "#minecraft:planks",
+    "Q": "principiamagica:quickened_clay",
+    "S": "principiamagica:copper_stylus"
   },
   "pattern": [
-    "M M",
-    " R ",
-    "M M"
+    " L ",
+    "QLQ",
+    "PSP"
   ],
   "result": {
     "components": {

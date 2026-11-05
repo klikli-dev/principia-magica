@@ -59,7 +59,8 @@ final class OverviewTab extends GolemTab {
         this.add(new LabelWidget(x, y + 58, width, () -> Component.translatable("gui.principiamagica.golem.mode")));
         this.add(new SegmentedControl<GolemMode>(x, y + 70, width, 18, List.of(GolemMode.values()), GolemGuiText::modeName,
                 () -> this.view().mode(),
-                mode -> Networking.sendToServer(new MessageSetGolemMode(this.golemId(), mode))));
+                mode -> Networking.sendToServer(new MessageSetGolemMode(this.golemId(), mode)))
+                .withEnabled(mode -> mode != GolemMode.WORK || this.view().job().isPresent()));
 
         this.removeAxiom = this.add(new TextButton(x, y + 100, 110, 18, Component.translatable("gui.principiamagica.golem.remove_axiom"),
                 () -> Networking.sendToServer(new MessageRemoveGolemAxiom(this.golemId())))

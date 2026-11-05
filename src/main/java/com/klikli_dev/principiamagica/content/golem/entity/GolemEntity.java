@@ -327,11 +327,22 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         return 3.0;
     }
 
+    /**
+     * @return the mode of the golem. A purposeless golem (without an axiom) can never work, so it reports Stay instead of Work.
+     */
     public GolemMode getMode() {
-        return GolemMode.values()[this.entityData.get(DATA_MODE)];
+        GolemMode mode = GolemMode.values()[this.entityData.get(DATA_MODE)];
+        return mode == GolemMode.WORK && this.getSpec().job().isEmpty() ? GolemMode.STAY : mode;
     }
 
+    /**
+     * Sets the mode. Work is ignored while the golem has no axiom, as it has nothing to work on.
+     */
     public void setMode(GolemMode mode) {
+        if (mode == GolemMode.WORK && this.getSpec().job().isEmpty()) {
+            return;
+        }
+
         this.entityData.set(DATA_MODE, mode.ordinal());
 
         if (this.level() instanceof ServerLevel) {

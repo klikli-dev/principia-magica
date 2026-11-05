@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -30,12 +31,15 @@ import java.util.function.Supplier;
  */
 public class SegmentedControl<E> extends AbstractWidget {
 
+    private static final int DISABLED_TEXT_COLOR = 0xFF808080;
+
     private final List<E> options;
     private final Function<E, Component> labels;
     private final Supplier<E> selected;
     private final Consumer<E> onSelect;
     private StyleContext style = WidgetParts.defaultStyle();
     private @Nullable Function<E, Component> tooltips;
+    private @Nullable Predicate<E> enabled = null;
     private int tooltipSegment = -2;
 
     /**
@@ -69,6 +73,14 @@ public class SegmentedControl<E> extends AbstractWidget {
         return this;
     }
 
+    /**
+     * @param enabled whether an option can be clicked. Disabled options have dimmed text and ignore clicks.
+     */
+    public SegmentedControl<E> withEnabled(Predicate<E> enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+
     @Override
     protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         E current = this.selected.get();
@@ -94,14 +106,15 @@ public class SegmentedControl<E> extends AbstractWidget {
             }
 
             sprite.extractRenderState(graphics, left, this.getY(), right - left, this.getHeight());
-            graphics.centeredText(Minecraft.getInstance().font, this.labels.apply(option), (left + right) / 2, this.getY() + (this.getHeight() - 8) / 2, textColor);
+            int color = this.isEnabled(option) ? textColor : DISABLED_TEXT_COLOR;
+            graphics.centeredText(Minecraft.getInstance().font, this.labels.apply(option), (left + right) / 2, this.getY() + (this.getHeight() - 8) / 2, color);
         }
     }
 
     @Override
     public void onClick(MouseButtonEvent event, boolean doubleClick) {
         E option = this.options.get(this.segmentAt(event.x()));
-        if (!option.equals(this.selected.get())) {
+        if (this.isEnabled(option) && !option.equals(this.selected.get())) {
             this.onSelect.accept(option);
         }
     }
@@ -114,6 +127,10 @@ public class SegmentedControl<E> extends AbstractWidget {
     private int segmentAt(double mouseX) {
         int index = (int) ((mouseX - this.getX()) * this.options.size() / this.getWidth());
         return Math.max(0, Math.min(index, this.options.size() - 1));
+    }
+
+    private boolean isEnabled(E option) {
+        return this.enabled == null || this.enabled.test(option);
     }
 
     private int segmentLeft(int index) {

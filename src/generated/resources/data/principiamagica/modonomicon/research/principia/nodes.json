@@ -17,5 +17,11 @@
       "principiamagica:research/advancement/a_wedge_of_copper",
       "principiamagica:research/advancement/rotten_flesh"
     ]
+  },
+  {
+    "id": "principiamagica:research/advancement/quickened",
+    "required_facts": [
+      "principiamagica:research/advancement/quickened"
+    ]
   }
 ]

@@ -12,6 +12,7 @@ import com.klikli_dev.principiamagica.gametest.GameTestRegistry;
 import com.klikli_dev.principiamagica.registry.ActivityRegistry;
 import com.klikli_dev.principiamagica.registry.AttributeRegistry;
 import com.klikli_dev.principiamagica.registry.CreativeModeTabRegistry;
+import com.klikli_dev.principiamagica.registry.CriterionTriggerRegistry;
 import com.klikli_dev.principiamagica.registry.CropHandlerRegistry;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.DataMapTypeRegistry;
@@ -57,6 +58,7 @@ public class PrincipiaMagica {
         GolemJobRegistry.GOLEM_JOBS.register(modEventBus);
         GolemUpgradeRegistry.GOLEM_UPGRADES.register(modEventBus);
         CropHandlerRegistry.CROP_HANDLERS.register(modEventBus);
+        CriterionTriggerRegistry.CRITERION_TRIGGERS.register(modEventBus);
 
         modEventBus.addListener(PrincipiaMagicaRegistries::onRegisterRegistries);
         modEventBus.addListener(DataMapTypeRegistry::onRegisterDataMapTypes);
