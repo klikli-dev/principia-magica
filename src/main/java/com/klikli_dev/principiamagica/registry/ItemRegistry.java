@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.registry;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
+import com.klikli_dev.principiamagica.content.golem.item.CrackedGolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemUpgradeItem;
@@ -22,6 +23,8 @@ public class ItemRegistry {
     public static final DeferredItem<PrincipiaItem> PRINCIPIA = ITEMS.registerItem("principia", p -> new PrincipiaItem(p.stacksTo(1)));
 
     public static final DeferredItem<GolemItem> GOLEM = ITEMS.registerItem("golem", p -> new GolemItem(p.stacksTo(16)));
+
+    public static final DeferredItem<CrackedGolemItem> CRACKED_GOLEM = ITEMS.registerItem("cracked_golem", p -> new CrackedGolemItem(p.stacksTo(1)));
 
     public static final DeferredItem<StylusItem> COPPER_STYLUS = ITEMS.registerItem("copper_stylus", p -> new StylusItem(p.stacksTo(1)));
 

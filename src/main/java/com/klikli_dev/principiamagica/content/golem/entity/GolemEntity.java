@@ -14,6 +14,8 @@ import com.geckolib.animation.state.AnimationTest;
 import com.geckolib.util.GeckoLibUtil;
 import com.klikli_dev.principiamagica.content.golem.ai.GolemAi;
 import com.klikli_dev.principiamagica.content.golem.ai.GolemPathNavigation;
+import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
+import com.klikli_dev.principiamagica.content.golem.item.CrackedGolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
@@ -34,6 +36,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -42,11 +45,15 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -59,9 +66,11 @@ import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import org.jspecify.annotations.Nullable;
 
@@ -392,6 +401,51 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
 
     public ItemStack toItemStack() {
         return GolemItem.createStack(this.getSpec());
+    }
+
+    /**
+     * On death the golem collapses into a cracked golem that keeps its spec and workplace. Inventory and equipment are
+     * dropped separately, the vanilla loot table is replaced. Discarding the golem (e.g. stylus pickup) does not get here.
+     */
+    @Override
+    protected void dropAllDeathLoot(ServerLevel level, DamageSource source) {
+        this.dropCrackedGolem(level);
+
+        for (int i = 0; i < this.inventory.getContainerSize(); i++) {
+            this.dropIfPresent(level, this.inventory.removeItemNoUpdate(i));
+        }
+
+        for (EquipmentSlot slot : EquipmentSlot.VALUES) {
+            ItemStack stack = this.getItemBySlot(slot);
+            this.setItemSlot(slot, ItemStack.EMPTY);
+            this.dropIfPresent(level, stack);
+        }
+
+        this.dropExperience(level, source.getEntity());
+    }
+
+    private void dropCrackedGolem(ServerLevel level) {
+        this.spawnAtLocation(level, CrackedGolemItem.createStack(this.getSpec(), this.relativeWorkplace(level)));
+
+        Vec3 center = this.position().add(0.0, this.getBbHeight() / 2.0, 0.0);
+        level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.CLAY.defaultBlockState()),
+                center.x, center.y, center.z, 40, this.getBbWidth() / 2.0, this.getBbHeight() / 2.0, this.getBbWidth() / 2.0, 0.0);
+        level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.DECORATED_POT_SHATTER, SoundSource.NEUTRAL, 1.0F, 1.0F);
+
+        Component golemName = GolemItem.createStack(this.getSpec()).getHoverName();
+        this.getOwner(level).ifPresent(owner -> owner.sendSystemMessage(Component.translatable("message.principiamagica.golem.cracked",
+                golemName, this.getBlockX(), this.getBlockY(), this.getBlockZ())));
+    }
+
+    private void dropIfPresent(ServerLevel level, ItemStack stack) {
+        if (!stack.isEmpty()) {
+            this.spawnAtLocation(level, stack);
+        }
+    }
+
+    private Workplace relativeWorkplace(ServerLevel level) {
+        BlockPos anchor = this.getAnchor().map(GlobalPos::pos).orElse(this.blockPosition());
+        return StylusActions.toRelative(this.getWorkplace(level).orElse(Workplace.EMPTY), anchor);
     }
 
     @Override

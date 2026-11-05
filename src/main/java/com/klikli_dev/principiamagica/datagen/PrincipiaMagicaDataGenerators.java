@@ -18,6 +18,7 @@ import com.klikli_dev.principiamagica.datagen.research.PrincipiaResearch;
 import com.klikli_dev.principiamagica.datagen.recipe.ShapedRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.recipe.ShapelessRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.recipe.SmeltingRecipeProvider;
+import com.klikli_dev.principiamagica.datagen.recipe.SpecialRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.tag.PrincipiaMagicaBlockTagsProvider;
 import com.klikli_dev.principiamagica.datagen.tag.PrincipiaMagicaItemTagsProvider;
 import net.minecraft.data.DataGenerator;
@@ -48,6 +49,7 @@ public class PrincipiaMagicaDataGenerators {
         generator.addProvider(true, new PrincipiaMagicaModelProvider(generator.getPackOutput()));
         generator.addProvider(true, new ShapedRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new ShapelessRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
+        generator.addProvider(true, new SpecialRecipeProvider(generator.getPackOutput()));
         generator.addProvider(true, new SmeltingRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new PrincipiaMagicaDataMapProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new AdvancementProvider(generator.getPackOutput(), event.getLookupProvider(), List.of(

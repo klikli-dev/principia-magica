@@ -109,6 +109,10 @@ public class GolemItem extends Item {
             return;
         }
 
+        appendSpecTooltip(spec, adder);
+    }
+
+    public static void appendSpecTooltip(GolemSpec spec, Consumer<Component> adder) {
         GolemMaterial material = spec.material().value();
         adder.accept(Component.translatable("tooltip.principiamagica.golem.material",
                 Component.translatable(material.getDescriptionId())).withStyle(ChatFormatting.GRAY));

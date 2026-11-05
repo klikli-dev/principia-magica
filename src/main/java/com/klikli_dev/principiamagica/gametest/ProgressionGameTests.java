@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
 import com.klikli_dev.principiamagica.datagen.advancement.PrincipiaMagicaAdvancementSubProvider;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.AxiomEntry;
+import com.klikli_dev.principiamagica.datagen.book.wetclay.CrackedClayEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.FleshAndClayEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.PrincipiaEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.KudurruEntry;
@@ -155,6 +156,20 @@ public class ProgressionGameTests {
         helper.assertTrue(category != null, "Category the_wet_clay is missing");
         helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + KudurruEntry.ENTRY_ID)) != null,
                 "Entry kudurru is missing from category the_wet_clay");
+        helper.succeed();
+    }
+
+    public static void crackedClayEntryAndRepairRecipeExist(GameTestHelper helper) {
+        var server = helper.getLevel().getServer();
+
+        helper.assertTrue(server.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("repair_cracked_golem"))).isPresent(),
+                "Recipe repair_cracked_golem is missing");
+        var book = BookDataManager.get().getBook(PrincipiaItem.PRINCIPIA);
+        helper.assertTrue(book != null, "Modonomicon book principia is missing");
+        var category = book.getCategory(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID));
+        helper.assertTrue(category != null, "Category the_wet_clay is missing");
+        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + CrackedClayEntry.ENTRY_ID)) != null,
+                "Entry cracked_clay is missing from category the_wet_clay");
         helper.succeed();
     }
 }

@@ -26,6 +26,7 @@ import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import com.klikli_dev.principiamagica.registry.MenuRegistry;
 import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
+import com.klikli_dev.principiamagica.registry.RecipeSerializerRegistry;
 import com.klikli_dev.principiamagica.registry.SensorTypeRegistry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -60,6 +61,7 @@ public class PrincipiaMagica {
         GolemUpgradeRegistry.GOLEM_UPGRADES.register(modEventBus);
         CropHandlerRegistry.CROP_HANDLERS.register(modEventBus);
         CriterionTriggerRegistry.CRITERION_TRIGGERS.register(modEventBus);
+        RecipeSerializerRegistry.RECIPE_SERIALIZERS.register(modEventBus);
 
         modEventBus.addListener(PrincipiaMagicaRegistries::onRegisterRegistries);
         modEventBus.addListener(DataMapTypeRegistry::onRegisterDataMapTypes);

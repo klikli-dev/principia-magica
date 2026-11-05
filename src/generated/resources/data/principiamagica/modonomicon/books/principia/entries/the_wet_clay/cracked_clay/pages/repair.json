@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:spotlight",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "repair",
+  "item": {
+    "id": "principiamagica:cracked_golem"
+  },
+  "sort_number": 3,
+  "text": "book.principiamagica.principia.the_wet_clay.cracked_clay.repair.text",
+  "title": "book.principiamagica.principia.the_wet_clay.cracked_clay.repair.title"
+}

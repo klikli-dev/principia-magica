@@ -49,6 +49,10 @@ public class WetClayCategoryProvider extends CategoryProvider {
         var kudurruEntry = this.add(new KudurruEntry(this).generate());
         this.layout().entry(kudurruEntry).at(4, 2);
         kudurruEntry.withParent(purposeEntry).hideWhileLocked(true);
+
+        var crackedClayEntry = this.add(new CrackedClayEntry(this).generate());
+        this.layout().entry(crackedClayEntry).at(5, 2);
+        crackedClayEntry.withParent(purposeEntry).hideWhileLocked(true);
     }
 
     @Override

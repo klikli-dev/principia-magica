@@ -79,6 +79,17 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL =
             TEST_FUNCTIONS.register("axiom_given_lumberjack_without_axe_reports_missing_tool", () -> GolemGameTests::axiomGivenLumberjackWithoutAxeReportsMissingTool);
 
+    // --- Cracked golem ---
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> DEATH_DROPS_CRACKED_GOLEM_AND_INVENTORY =
+            TEST_FUNCTIONS.register("death_drops_cracked_golem_and_inventory", () -> CrackedGolemGameTests::deathDropsCrackedGolemAndInventory);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> DISCARDED_GOLEM_DROPS_NOTHING =
+            TEST_FUNCTIONS.register("discarded_golem_drops_nothing", () -> CrackedGolemGameTests::discardedGolemDropsNothing);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> REPAIR_RECIPE_MATCHES_ANY_ORDER_AND_KEEPS_COMPONENTS =
+            TEST_FUNCTIONS.register("repair_recipe_matches_any_order_and_keeps_components", () -> CrackedGolemGameTests::repairRecipeMatchesAnyOrderAndKeepsComponents);
+
     // --- Golem stylus ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CONTAINER_LINK_CYCLES =
@@ -297,6 +308,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> KUDURRU_ENTRY_EXISTS =
             TEST_FUNCTIONS.register("kudurru_entry_exists", () -> ProgressionGameTests::kudurruEntryExists);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CRACKED_CLAY_ENTRY_AND_REPAIR_RECIPE_EXIST =
+            TEST_FUNCTIONS.register("cracked_clay_entry_and_repair_recipe_exist", () -> ProgressionGameTests::crackedClayEntryAndRepairRecipeExist);
+
     public static void onRegisterGameTests(RegisterGameTestsEvent event) {
         registerGolemTests(event);
         registerProgressionTests(event);
@@ -316,6 +330,7 @@ public class GameTestRegistry {
         registerTest(event, GOLEM_BODY_RECIPE_ADVANCEMENT_AND_ENTRY_EXIST, environment, structure, 40, 0);
         registerTest(event, PURPOSE_ADVANCEMENT_AND_ENTRY_EXIST, environment, structure, 40, 0);
         registerTest(event, KUDURRU_ENTRY_EXISTS, environment, structure, 40, 0);
+        registerTest(event, CRACKED_CLAY_ENTRY_AND_REPAIR_RECIPE_EXIST, environment, structure, 40, 0);
     }
 
     private static void registerGolemTests(RegisterGameTestsEvent event) {
@@ -349,6 +364,10 @@ public class GameTestRegistry {
         registerTest(event, NON_OWNER_CANNOT_GIVE_AXIOM, environment, structure, 40, 0);
         registerTest(event, AXIOM_GIVEN_HARVESTS_FIELD, environment, structure, 800, 0);
         registerTest(event, AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL, environment, structure, 80, 0);
+
+        registerTest(event, DEATH_DROPS_CRACKED_GOLEM_AND_INVENTORY, environment, structure, 40, 0);
+        registerTest(event, DISCARDED_GOLEM_DROPS_NOTHING, environment, structure, 40, 0);
+        registerTest(event, REPAIR_RECIPE_MATCHES_ANY_ORDER_AND_KEEPS_COMPONENTS, environment, structure, 40, 0);
 
         registerTest(event, FARMING_HARVEST_AND_REPLANT, environment, structure, 800, 0);
         registerTest(event, FARMING_DEPOSIT_FULL_INVENTORY, environment, structure, 800, 0);
