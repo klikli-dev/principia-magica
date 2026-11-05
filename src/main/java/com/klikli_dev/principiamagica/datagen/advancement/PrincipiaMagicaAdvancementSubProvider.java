@@ -31,6 +31,8 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
     public static final Identifier A_WEDGE_OF_COPPER = PrincipiaMagica.loc("a_wedge_of_copper");
     public static final Identifier WET_CLAY = PrincipiaMagica.loc("wet_clay");
     public static final Identifier A_LAW_MADE_FAST = PrincipiaMagica.loc("a_law_made_fast");
+    public static final Identifier ROTTEN_FLESH = PrincipiaMagica.loc("rotten_flesh");
+    public static final Identifier QUICKENED = PrincipiaMagica.loc("quickened");
 
     public static final ResourceKey<Recipe<?>> PRINCIPIA_RECIPE = ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("principia"));
 
@@ -100,5 +102,37 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
                 .build(A_LAW_MADE_FAST);
 
         writer.accept(aLawMadeFast);
+
+        var rottenFlesh = Advancement.Builder.advancement()
+                .parent(theClayRemembers)
+                .display(
+                        Items.ROTTEN_FLESH,
+                        Component.translatable("advancements.principiamagica.rotten_flesh.title"),
+                        Component.translatable("advancements.principiamagica.rotten_flesh.description"),
+                        null,
+                        AdvancementType.TASK,
+                        false,
+                        false,
+                        true)
+                .addCriterion("has_rotten_flesh", InventoryChangeTrigger.TriggerInstance.hasItems(Items.ROTTEN_FLESH))
+                .build(ROTTEN_FLESH);
+
+        writer.accept(rottenFlesh);
+
+        var quickened = Advancement.Builder.advancement()
+                .parent(aWedgeOfCopper)
+                .display(
+                        ItemRegistry.QUICKENED_CLAY.get(),
+                        Component.translatable("advancements.principiamagica.quickened.title"),
+                        Component.translatable("advancements.principiamagica.quickened.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        false,
+                        false)
+                .addCriterion("has_quickened_clay", InventoryChangeTrigger.TriggerInstance.hasItems(ItemRegistry.QUICKENED_CLAY.get()))
+                .build(QUICKENED);
+
+        writer.accept(quickened);
     }
 }

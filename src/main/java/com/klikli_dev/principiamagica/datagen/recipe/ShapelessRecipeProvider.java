@@ -80,6 +80,9 @@ public class ShapelessRecipeProvider implements DataProvider {
 
         this.shapeless(consumer, ItemRegistry.WET_TABLET.get(), 1, List.of(ItemRegistry.COPPER_STYLUS.get(), Items.CLAY_BALL, Items.CLAY_BALL));
 
+        this.shapeless(consumer, ItemRegistry.QUICKENED_CLAY.get(), 4, List.of(ItemRegistry.COPPER_STYLUS.get(),
+                Items.CLAY_BALL, Items.CLAY_BALL, Items.CLAY_BALL, Items.CLAY_BALL, Items.ROTTEN_FLESH));
+
         this.shapelessIngredients(consumer, ItemRegistry.UNFIRED_AXIOM_OF_HARVEST.get(), 1, List.of(
                 Ingredient.of(ItemRegistry.COPPER_STYLUS.get()),
                 Ingredient.of(ItemRegistry.WET_TABLET.get()),

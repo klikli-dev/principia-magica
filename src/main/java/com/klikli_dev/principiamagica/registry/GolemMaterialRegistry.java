@@ -21,7 +21,7 @@ public class GolemMaterialRegistry {
     public static final DeferredHolder<GolemMaterial, GolemMaterial> WOOD = GOLEM_MATERIALS.register("wood", () -> new GolemMaterial(
             PrincipiaMagica.loc("textures/entity/golem/wooden_golem.png"),
             1,
-            Ingredient.of(Items.OAK_PLANKS),
+            Ingredient.of(ItemRegistry.QUICKENED_CLAY.get()),
             false,
             List.of(
                     GolemMaterial.modifier(Attributes.MAX_HEALTH, -2.0, AttributeModifier.Operation.ADD_VALUE),

@@ -30,8 +30,13 @@ public class ENUSProvider extends LanguageProvider {
         this.add("advancements.principiamagica.wet_clay.description", "Shape a blank tablet, ready to receive a word.");
         this.add("advancements.principiamagica.a_law_made_fast.title", "A Law Made Fast");
         this.add("advancements.principiamagica.a_law_made_fast.description", "Fire a law into clay.");
+        this.add("advancements.principiamagica.rotten_flesh.title", "Flesh of the Dead");
+        this.add("advancements.principiamagica.rotten_flesh.description", "Something of the dead still clings to this.");
+        this.add("advancements.principiamagica.quickened.title", "Quickened");
+        this.add("advancements.principiamagica.quickened.description", "Knead flesh into clay.");
         this.add("item.principiamagica.principia", "Principia");
         this.add("item.principiamagica.wet_tablet", "Wet Tablet");
+        this.add("item.principiamagica.quickened_clay", "Quickened Clay");
         this.add("item.principiamagica.unfired_axiom_of_harvest", "Unfired Axiom of Harvest");
         this.add("item.principiamagica.unfired_axiom_of_felling", "Unfired Axiom of Felling");
         this.add("item.principiamagica.axiom_of_harvest", "Axiom of Harvest");

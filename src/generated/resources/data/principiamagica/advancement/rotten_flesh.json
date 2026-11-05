@@ -1,0 +1,35 @@
+{
+  "parent": "principiamagica:the_clay_remembers",
+  "criteria": {
+    "has_rotten_flesh": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:rotten_flesh"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.principiamagica.rotten_flesh.description"
+    },
+    "hidden": true,
+    "icon": {
+      "id": "minecraft:rotten_flesh"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "advancements.principiamagica.rotten_flesh.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_rotten_flesh"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
 import com.klikli_dev.principiamagica.datagen.advancement.PrincipiaMagicaAdvancementSubProvider;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.AxiomEntry;
+import com.klikli_dev.principiamagica.datagen.book.wetclay.FleshAndClayEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.PrincipiaEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.StylusEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.WetClayCategoryProvider;
@@ -92,6 +93,24 @@ public class ProgressionGameTests {
         helper.assertTrue(category != null, "Category the_wet_clay is missing");
         helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + AxiomEntry.ENTRY_ID)) != null,
                 "Entry axioms is missing from category the_wet_clay");
+        helper.succeed();
+    }
+
+    public static void quickenedAdvancementsRecipeAndEntryExist(GameTestHelper helper) {
+        var server = helper.getLevel().getServer();
+
+        helper.assertTrue(server.getAdvancements().get(PrincipiaMagicaAdvancementSubProvider.ROTTEN_FLESH) != null,
+                "Advancement rotten_flesh is missing");
+        helper.assertTrue(server.getAdvancements().get(PrincipiaMagicaAdvancementSubProvider.QUICKENED) != null,
+                "Advancement quickened is missing");
+        helper.assertTrue(server.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("quickened_clay"))).isPresent(),
+                "Recipe quickened_clay is missing");
+        var book = BookDataManager.get().getBook(PrincipiaItem.PRINCIPIA);
+        helper.assertTrue(book != null, "Modonomicon book principia is missing");
+        var category = book.getCategory(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID));
+        helper.assertTrue(category != null, "Category the_wet_clay is missing");
+        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + FleshAndClayEntry.ENTRY_ID)) != null,
+                "Entry flesh_and_clay is missing from category the_wet_clay");
         helper.succeed();
     }
 }

@@ -10,5 +10,12 @@
     "required_facts": [
       "principiamagica:research/advancement/wet_clay"
     ]
+  },
+  {
+    "id": "principiamagica:research/flesh_and_clay",
+    "required_facts": [
+      "principiamagica:research/advancement/a_wedge_of_copper",
+      "principiamagica:research/advancement/rotten_flesh"
+    ]
   }
 ]

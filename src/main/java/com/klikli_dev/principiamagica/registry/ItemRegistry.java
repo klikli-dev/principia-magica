@@ -27,6 +27,8 @@ public class ItemRegistry {
 
     public static final DeferredItem<Item> WET_TABLET = ITEMS.registerItem("wet_tablet", p -> new Item(p.stacksTo(64)));
 
+    public static final DeferredItem<Item> QUICKENED_CLAY = ITEMS.registerItem("quickened_clay", p -> new Item(p.stacksTo(64)));
+
     public static final DeferredItem<Item> UNFIRED_AXIOM_OF_HARVEST = ITEMS.registerItem("unfired_axiom_of_harvest", p -> new Item(p.stacksTo(16)));
 
     public static final DeferredItem<Item> UNFIRED_AXIOM_OF_FELLING = ITEMS.registerItem("unfired_axiom_of_felling", p -> new Item(p.stacksTo(16)));

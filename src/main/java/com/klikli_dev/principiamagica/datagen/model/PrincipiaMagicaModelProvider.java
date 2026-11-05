@@ -30,6 +30,7 @@ public class PrincipiaMagicaModelProvider extends ModelProvider {
         itemModels.generateFlatItem(ItemRegistry.COPPER_STYLUS.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModels.generateFlatItem(ItemRegistry.PRINCIPIA.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.WET_TABLET.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ItemRegistry.QUICKENED_CLAY.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.UNFIRED_AXIOM_OF_HARVEST.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.UNFIRED_AXIOM_OF_FELLING.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.AXIOM_OF_HARVEST.get(), ModelTemplates.FLAT_ITEM);

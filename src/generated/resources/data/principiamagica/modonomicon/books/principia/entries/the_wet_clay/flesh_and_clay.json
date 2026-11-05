@@ -1,0 +1,31 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:the_wet_clay",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:research/flesh_and_clay"
+  },
+  "description": "book.principiamagica.principia.the_wet_clay.flesh_and_clay.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:quickened_clay"
+  },
+  "id": "principiamagica:the_wet_clay/flesh_and_clay",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.the_wet_clay.flesh_and_clay.name",
+  "parents": [
+    {
+      "entry": "principiamagica:the_wet_clay/the_stylus"
+    }
+  ],
+  "sort_number": 4,
+  "x": 2,
+  "y": 1
+}

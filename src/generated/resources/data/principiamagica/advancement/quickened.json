@@ -1,0 +1,33 @@
+{
+  "parent": "principiamagica:a_wedge_of_copper",
+  "criteria": {
+    "has_quickened_clay": {
+      "conditions": {
+        "items": [
+          {
+            "items": "principiamagica:quickened_clay"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.principiamagica.quickened.description"
+    },
+    "icon": {
+      "id": "principiamagica:quickened_clay"
+    },
+    "title": {
+      "translate": "advancements.principiamagica.quickened.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_quickened_clay"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
