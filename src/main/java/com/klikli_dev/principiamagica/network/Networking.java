@@ -5,13 +5,13 @@
 package com.klikli_dev.principiamagica.network;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
-import com.klikli_dev.principiamagica.network.messages.MessageCycleLinkRole;
 import com.klikli_dev.principiamagica.network.messages.MessageRemoveGolemCore;
 import com.klikli_dev.principiamagica.network.messages.MessageRemoveGolemUpgrade;
 import com.klikli_dev.principiamagica.network.messages.MessageRemoveLink;
 import com.klikli_dev.principiamagica.network.messages.MessageRemoveZone;
 import com.klikli_dev.principiamagica.network.messages.MessageSetGolemMode;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
+import com.klikli_dev.principiamagica.network.messages.MessageSetLinkRole;
 import com.klikli_dev.principiamagica.network.messages.MessageSyncGolemWorkplace;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -30,7 +30,7 @@ public class Networking {
         registrar.playToServer(MessageSetGolemMode.TYPE, MessageSetGolemMode.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageSetJobOption.TYPE, MessageSetJobOption.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageRemoveZone.TYPE, MessageRemoveZone.STREAM_CODEC, MessageHandler::handle);
-        registrar.playToServer(MessageCycleLinkRole.TYPE, MessageCycleLinkRole.STREAM_CODEC, MessageHandler::handle);
+        registrar.playToServer(MessageSetLinkRole.TYPE, MessageSetLinkRole.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageRemoveLink.TYPE, MessageRemoveLink.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageRemoveGolemCore.TYPE, MessageRemoveGolemCore.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageRemoveGolemUpgrade.TYPE, MessageRemoveGolemUpgrade.STREAM_CODEC, MessageHandler::handle);

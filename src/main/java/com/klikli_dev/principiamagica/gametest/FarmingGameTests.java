@@ -288,6 +288,36 @@ public class FarmingGameTests {
         });
     }
 
+    public static void clearsObstructionsForPlanting(GameTestHelper helper) {
+        buildFarmland(helper);
+        for (BlockPos spot : farmSpots()) {
+            helper.setBlock(spot, Blocks.SHORT_GRASS);
+        }
+        GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(), JobOptionValues.EMPTY);
+        golem.getInventory().insert(new ItemStack(Items.WHEAT_SEEDS, 9));
+
+        helper.succeedWhen(() -> {
+            long planted = farmSpots().stream().filter(spot -> helper.getBlockState(spot).is(Blocks.WHEAT)).count();
+            helper.assertTrue(planted >= 9, "Grass above the farmland should be cleared and planted, planted " + planted);
+        });
+    }
+
+    public static void obstructionsStayWhenOptionOff(GameTestHelper helper) {
+        buildFarmland(helper);
+        for (BlockPos spot : farmSpots()) {
+            helper.setBlock(spot, Blocks.SHORT_GRASS);
+        }
+        spawnFarmer(helper, GOLEM_POS, List.of(), JobOptionValues.EMPTY.with(FarmingTargets.CLEAR_OBSTRUCTIONS, false));
+
+        helper.runAfterDelay(200, () -> {
+            for (BlockPos spot : farmSpots()) {
+                helper.assertTrue(helper.getBlockState(spot).is(Blocks.SHORT_GRASS), "Grass at " + spot + " should stay with the option off");
+            }
+
+            helper.succeed();
+        });
+    }
+
     public static void farmingCoreRoundTrips(GameTestHelper helper) {
         Holder<GolemJob> job = PrincipiaMagicaRegistries.GOLEM_JOB.get(FarmingJob.KEY).orElseThrow();
         ItemStack core = GolemCoreItem.createStack(job);

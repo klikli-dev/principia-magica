@@ -10,11 +10,15 @@ import com.klikli_dev.principiamagica.registry.AttributeRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
@@ -38,13 +42,23 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
     private static final double HORIZONTAL_REACH_SQR = 2.25;
     private static final double VERTICAL_REACH = 2.5;
     private static final int BASE_WORK_TICKS = 20;
+    private static final int HIT_SOUND_INTERVAL_TICKS = 5;
+    private static final int SWING_INTERVAL_TICKS = 10;
+    private static final int STUCK_TICKS = 40;
+    private static final double STUCK_DISTANCE_SQR = 0.04;
 
     protected final float speed;
     private @Nullable BlockPos target;
+    private @Nullable BlockPos approach;
     private @Nullable BlockPos reservedPos;
     private @Nullable BlockPos interactionPos;
+    private @Nullable BlockPos breakPos;
+    private int breakStage = -1;
     private int travelTicks;
+    private int stillTicks;
+    private Vec3 progressPos = Vec3.ZERO;
     private int workTicks;
+    private int workDelay;
 
     protected MoveToAndInteract(Map<MemoryModuleType<?>, MemoryStatus> conditions, float speed) {
         super(conditions, 60);
@@ -83,9 +97,32 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
         return BASE_WORK_TICKS;
     }
 
-    protected int workDelayTicks(GolemEntity golem) {
+    /**
+     * @return the block that is being broken by the interaction at target, which shows the crack overlay and plays the
+     * hit sounds while the golem works on it. null if the interaction does not break a block.
+     */
+    protected @Nullable BlockPos breakingPos(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return null;
+    }
+
+    /**
+     * @return the ticks needed at full work speed to complete the interaction at target.
+     */
+    protected int breakTicks(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return this.baseWorkTicks();
+    }
+
+    /**
+     * @return the block the golem walks to while it is not yet in reach of target. Defaults to target itself, a behaviour
+     * can return a cell next to it if the golem has to stand elsewhere to reach it.
+     */
+    protected BlockPos approachPos(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return target;
+    }
+
+    protected int workDelayTicks(ServerLevel level, GolemEntity golem, BlockPos target) {
         double workSpeed = Math.max(0.1, golem.getAttributeValue(AttributeRegistry.GOLEM_WORK_SPEED));
-        return Math.max(1, (int) Math.ceil(this.baseWorkTicks() / workSpeed));
+        return Math.max(1, (int) Math.ceil(this.breakTicks(level, golem, target) / workSpeed));
     }
 
     /**
@@ -136,8 +173,11 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
     @Override
     protected void start(ServerLevel level, GolemEntity golem, long timestamp) {
         this.travelTicks = 0;
+        this.stillTicks = 0;
+        this.progressPos = golem.position();
         this.workTicks = 0;
         this.interactionPos = null;
+        this.approach = this.target == null ? null : this.approachPos(level, golem, this.target);
         if (this.target != null && this.reserveTarget() && WorkReservations.tryReserve(level, this.target, golem.getUUID(), RESERVATION_TICKS)) {
             this.reservedPos = this.target;
         }
@@ -170,30 +210,81 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
                 golem.getNavigation().stop();
                 golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
                 this.startInteraction(level, golem, pos);
+                this.breakPos = this.breakingPos(level, golem, pos);
+                this.workDelay = this.workDelayTicks(level, golem, pos);
             }
 
             golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pos));
             this.workTicks++;
-            if (this.workTicks >= this.workDelayTicks(golem)) {
+            if (this.workTicks >= this.workDelay) {
+                this.clearBreakProgress(level, golem);
                 golem.swingWorkArm();
                 this.interact(level, golem, pos);
                 this.target = null;
+            } else {
+                this.updateBreakProgress(level, golem);
             }
             return;
         }
 
         this.travelTicks++;
+        BlockPos stand = this.approach != null ? this.approach : pos;
         if (this.travelTicks > MAX_TRAVEL_TICKS || (this.travelTicks > PATH_GRACE_TICKS && golem.getNavigation().isDone())) {
-            markUnreachable(golem, pos);
+            markUnreachable(golem, stand);
             this.target = null;
             return;
         }
 
-        BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, this.speed, 1);
+        if (golem.position().distanceToSqr(this.progressPos) > STUCK_DISTANCE_SQR) {
+            this.progressPos = golem.position();
+            this.stillTicks = 0;
+        } else if (++this.stillTicks > STUCK_TICKS) {
+            markUnreachable(golem, stand);
+            this.target = null;
+            return;
+        }
+
+        if (stand.equals(pos)) {
+            BehaviorUtils.setWalkAndLookTargetMemories(golem, pos, this.speed, 1);
+        } else {
+            BehaviorUtils.setWalkAndLookTargetMemories(golem, stand, this.speed, 0);
+        }
+    }
+
+    private void updateBreakProgress(ServerLevel level, GolemEntity golem) {
+        if (this.breakPos == null) {
+            return;
+        }
+
+        int stage = Math.min(9, this.workTicks * 10 / this.workDelay);
+        if (stage != this.breakStage) {
+            this.breakStage = stage;
+            level.destroyBlockProgress(golem.getId(), this.breakPos, stage);
+        }
+
+        if (this.workTicks % HIT_SOUND_INTERVAL_TICKS == 0) {
+            BlockState state = level.getBlockState(this.breakPos);
+            SoundType sound = state.getSoundType();
+            level.playSound(null, this.breakPos, sound.getHitSound(), SoundSource.BLOCKS, (sound.getVolume() + 1.0F) / 8.0F, sound.getPitch() * 0.5F);
+        }
+
+        if (this.workTicks % SWING_INTERVAL_TICKS == 0) {
+            golem.swingWorkArm();
+        }
+    }
+
+    private void clearBreakProgress(ServerLevel level, GolemEntity golem) {
+        if (this.breakPos != null) {
+            level.destroyBlockProgress(golem.getId(), this.breakPos, -1);
+        }
+
+        this.breakPos = null;
+        this.breakStage = -1;
     }
 
     @Override
     protected void stop(ServerLevel level, GolemEntity golem, long timestamp) {
+        this.clearBreakProgress(level, golem);
         if (this.interactionPos != null) {
             this.stopInteraction(level, golem, this.interactionPos);
         }
@@ -205,9 +296,11 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
         golem.getNavigation().stop();
         golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
         this.target = null;
+        this.approach = null;
         this.reservedPos = null;
         this.interactionPos = null;
         this.travelTicks = 0;
         this.workTicks = 0;
+        this.workDelay = 0;
     }
 }

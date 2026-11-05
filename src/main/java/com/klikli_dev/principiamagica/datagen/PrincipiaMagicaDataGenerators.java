@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.datagen;
 
+import com.klikli_dev.principiamagica.datagen.PrincipiaMagicaDataGenerators;
+import com.klikli_dev.principiamagica.datagen.datamap.PrincipiaMagicaDataMapProvider;
 import com.klikli_dev.principiamagica.datagen.lang.ENUSProvider;
 import com.klikli_dev.principiamagica.datagen.model.PrincipiaMagicaModelProvider;
 import com.klikli_dev.principiamagica.datagen.recipe.ShapedRecipeProvider;
@@ -20,5 +22,6 @@ public class PrincipiaMagicaDataGenerators {
         generator.addProvider(true, new ENUSProvider(generator.getPackOutput()));
         generator.addProvider(true, new PrincipiaMagicaModelProvider(generator.getPackOutput()));
         generator.addProvider(true, new ShapedRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
+        generator.addProvider(true, new PrincipiaMagicaDataMapProvider(generator.getPackOutput(), event.getLookupProvider()));
     }
 }

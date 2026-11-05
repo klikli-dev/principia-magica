@@ -14,6 +14,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -30,4 +31,5 @@ public class MemoryModuleTypeRegistry {
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> RESTOCK_COOLDOWN = MEMORY_MODULE_TYPES.register("restock_cooldown", () -> new MemoryModuleType<>(Optional.empty()));
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> DEPOSIT_COOLDOWN = MEMORY_MODULE_TYPES.register("deposit_cooldown", () -> new MemoryModuleType<>(Optional.empty()));
     public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Integer>> PICKUP_COOLDOWN = MEMORY_MODULE_TYPES.register("pickup_cooldown", () -> new MemoryModuleType<>(Optional.empty()));
+    public static final DeferredHolder<MemoryModuleType<?>, MemoryModuleType<Map<BlockPos, Integer>>> SAPLING_BONEMEAL_ATTEMPTS = MEMORY_MODULE_TYPES.register("sapling_bonemeal_attempts", () -> new MemoryModuleType<>(Optional.empty()));
 }

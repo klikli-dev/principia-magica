@@ -29,6 +29,12 @@ type = "required"
 versionRange = "[${code_defined_gui_version},)"
 side = "BOTH"
 
+[[dependencies.${mod_id}]]
+modId = "magicparticleslib"
+type = "required"
+versionRange = "[${magic_particles_lib_version},)"
+side = "BOTH"
+
 [[dependencies.${ mod_id }]]
 modId = "geckolib"
 type = "required"

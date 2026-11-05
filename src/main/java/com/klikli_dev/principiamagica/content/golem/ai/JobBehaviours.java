@@ -12,34 +12,43 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
+import net.minecraft.world.entity.ai.behavior.GateBehavior;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Composes the WORK activity: shared item logistics around the job's own behaviours.
- * Lower priority numbers run first.
+ * <p>
+ * All work behaviours walk somewhere, so they must never run at the same time: the brain starts every behaviour whose
+ * entry conditions pass, regardless of priority, and concurrent behaviours would fight over the walk target. They are
+ * therefore wrapped in a single ordered gate that runs one behaviour at a time, trying them in the order below.
  */
 public final class JobBehaviours {
-    public static final int PRIORITY_DEPOSIT_WHEN_FULL = 0;
-    public static final int PRIORITY_RESTOCK = 1;
-    public static final int PRIORITY_JOB = 2;
-    public static final int PRIORITY_PICKUP_STRAYS = 3;
-    public static final int PRIORITY_DEPOSIT_LEFTOVER = 4;
 
     private JobBehaviours() {
     }
 
     public static ImmutableList<Pair<Integer, BehaviorControl<? super GolemEntity>>> compose(GolemJob job) {
-        ImmutableList.Builder<Pair<Integer, BehaviorControl<? super GolemEntity>>> builder = ImmutableList.builder();
-        builder.add(priority(PRIORITY_DEPOSIT_WHEN_FULL, new DepositItems(job, DepositItems.Mode.WHEN_FULL)));
-        builder.add(priority(PRIORITY_RESTOCK, new RestockItems(job)));
+        List<Pair<? extends BehaviorControl<? super GolemEntity>, Integer>> ordered = new ArrayList<>();
+        ordered.add(Pair.of(new DepositItems(job, DepositItems.Mode.WHEN_FULL), 1));
+        ordered.add(Pair.of(new RestockItems(job), 1));
         for (BehaviorControl<? super GolemEntity> behaviour : job.createJobBehaviours()) {
-            builder.add(priority(PRIORITY_JOB, behaviour));
+            ordered.add(Pair.of(behaviour, 1));
         }
-        builder.add(priority(PRIORITY_PICKUP_STRAYS, new PickUpStrayItems(job)));
-        builder.add(priority(PRIORITY_DEPOSIT_LEFTOVER, new DepositItems(job, DepositItems.Mode.LEFTOVER)));
-        return builder.build();
-    }
+        ordered.add(Pair.of(new PickUpStrayItems(job), 1));
+        ordered.add(Pair.of(new DepositItems(job, DepositItems.Mode.LEFTOVER), 1));
 
-    private static Pair<Integer, BehaviorControl<? super GolemEntity>> priority(int priority, BehaviorControl<? super GolemEntity> behaviour) {
-        return Pair.of(priority, behaviour);
+        GateBehavior<GolemEntity> work = new GateBehavior<>(
+                Map.of(),
+                Set.of(),
+                GateBehavior.OrderPolicy.ORDERED,
+                GateBehavior.RunningPolicy.RUN_ONE,
+                ordered
+        );
+
+        return ImmutableList.of(Pair.of(0, work));
     }
 }

@@ -12,6 +12,7 @@ import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.job.WorkTargetFinder;
 import com.klikli_dev.principiamagica.content.golem.job.farming.behaviour.ApplyBonemeal;
+import com.klikli_dev.principiamagica.content.golem.job.farming.behaviour.ClearObstruction;
 import com.klikli_dev.principiamagica.content.golem.job.farming.behaviour.HarvestCrop;
 import com.klikli_dev.principiamagica.content.golem.job.farming.behaviour.PlantSeed;
 import com.klikli_dev.principiamagica.content.golem.job.farming.behaviour.TillSoil;
@@ -55,7 +56,7 @@ public class FarmingJob implements GolemJob {
 
     @Override
     public List<JobOption> options() {
-        return List.of(FarmingTargets.REPLANT, FarmingTargets.TILL, FarmingTargets.BONEMEAL, CommonJobOptions.PICKUP_ITEMS);
+        return List.of(FarmingTargets.REPLANT, FarmingTargets.CLEAR_OBSTRUCTIONS, FarmingTargets.TILL, FarmingTargets.BONEMEAL, CommonJobOptions.PICKUP_ITEMS);
     }
 
     @Override
@@ -84,6 +85,7 @@ public class FarmingJob implements GolemJob {
                 GateBehavior.RunningPolicy.RUN_ONE,
                 List.of(
                         Pair.of(new HarvestCrop(), 1),
+                        Pair.of(new ClearObstruction(), 1),
                         Pair.of(new PlantSeed(), 1),
                         Pair.of(new ApplyBonemeal(), 1),
                         Pair.of(new TillSoil(), 1)

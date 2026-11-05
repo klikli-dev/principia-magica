@@ -18,12 +18,14 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.TagKey;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -43,6 +45,7 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     private final Container toolContainer;
     private final Container golemInventory;
     private final MenuLayoutController layoutController = new MenuLayoutController(this);
+    private GolemMenuTab activeTab = GolemMenuTab.OVERVIEW;
 
     public GolemMenu(int containerId, Inventory playerInventory, int golemId) {
         super(MenuRegistry.GOLEM.get(), containerId);
@@ -61,6 +64,42 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
         return this.golemId;
     }
 
+    /**
+     * @return the tab the client has selected. Synced to the server with {@link #clickMenuButton}.
+     */
+    public GolemMenuTab activeTab() {
+        return this.activeTab;
+    }
+
+    /**
+     * The client sends the tab ordinal as button id whenever the player switches tabs. The server rejects unknown ids.
+     */
+    @Override
+    public boolean clickMenuButton(Player player, int buttonId) {
+        if (buttonId < 0 || buttonId >= GolemMenuTab.values().length) {
+            return false;
+        }
+
+        this.activeTab = GolemMenuTab.values()[buttonId];
+        return true;
+    }
+
+    /**
+     * Ignores clicks on slots that are not active, so inactive slots cannot be used from the server either.
+     */
+    @Override
+    public void clicked(int slotIndex, int buttonNum, ContainerInput containerInput, Player player) {
+        if (slotIndex >= 0 && slotIndex < this.slots.size() && !this.slots.get(slotIndex).isActive()) {
+            return;
+        }
+
+        super.clicked(slotIndex, buttonNum, containerInput, player);
+    }
+
+    private boolean isInventoryTabActive() {
+        return this.activeTab == GolemMenuTab.INVENTORY;
+    }
+
     @Override
     public LayoutSpec layoutSpec() {
         return GolemMenuLayout.LAYOUT;
@@ -77,13 +116,34 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
 
         for (int i = 0; i < GolemMenuLayout.PLAYER_MAIN_ROWS * GolemMenuLayout.PLAYER_COLUMNS; i++) {
             int slot = i + GolemMenuLayout.PLAYER_COLUMNS;
-            registry.bind("player.slot_" + slot, ctx -> this.addSlot(new Slot(this.playerInventory, slot, ctx.node().x(), ctx.node().y())));
+            registry.bind("player.slot_" + slot, ctx -> this.addSlot(new InventoryTabSlot(this.playerInventory, slot, ctx.node().x(), ctx.node().y())));
         }
 
         for (int column = 0; column < GolemMenuLayout.PLAYER_COLUMNS; column++) {
             int slot = column;
-            registry.bind("player.hotbar_" + column, ctx -> this.addSlot(new Slot(this.playerInventory, slot, ctx.node().x(), ctx.node().y())));
+            registry.bind("player.hotbar_" + column, ctx -> this.addSlot(new InventoryTabSlot(this.playerInventory, slot, ctx.node().x(), ctx.node().y())));
         }
+    }
+
+    /**
+     * @return the tool slot, which is only active on the inventory tab
+     */
+    public Slot toolSlot() {
+        return this.slots.get(TOOL_SLOT);
+    }
+
+    /**
+     * @return all golem inventory slots, only the usable ones are active
+     */
+    public List<Slot> golemSlots() {
+        return this.slots.subList(GOLEM_SLOT_START, PLAYER_SLOT_START);
+    }
+
+    /**
+     * @return all player inventory and hotbar slots
+     */
+    public List<Slot> playerSlots() {
+        return this.slots.subList(PLAYER_SLOT_START, PLAYER_SLOT_END);
     }
 
     /**
@@ -114,7 +174,7 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     public ItemStack quickMoveStack(Player player, int index) {
         ItemStack result = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
-        if (!slot.hasItem()) {
+        if (!slot.hasItem() || !slot.isActive()) {
             return result;
         }
 
@@ -150,7 +210,21 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
         return result;
     }
 
-    private class ToolSlot extends Slot {
+    /**
+     * A slot that is only shown and usable on the inventory tab. Used for the tool and the player inventory.
+     */
+    private class InventoryTabSlot extends Slot {
+        InventoryTabSlot(Container container, int slot, int x, int y) {
+            super(container, slot, x, y);
+        }
+
+        @Override
+        public boolean isActive() {
+            return GolemMenu.this.isInventoryTabActive();
+        }
+    }
+
+    private class ToolSlot extends InventoryTabSlot {
         ToolSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }
@@ -161,14 +235,14 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
         }
     }
 
-    private class GolemSlot extends Slot {
+    private class GolemSlot extends InventoryTabSlot {
         GolemSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }
 
         @Override
         public boolean isActive() {
-            return this.getContainerSlot() < GolemMenu.this.getUsableGolemSlots();
+            return super.isActive() && this.getContainerSlot() < GolemMenu.this.getUsableGolemSlots();
         }
 
         @Override

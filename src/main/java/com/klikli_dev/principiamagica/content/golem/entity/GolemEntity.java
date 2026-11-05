@@ -13,6 +13,7 @@ import com.geckolib.animation.object.PlayState;
 import com.geckolib.animation.state.AnimationTest;
 import com.geckolib.util.GeckoLibUtil;
 import com.klikli_dev.principiamagica.content.golem.ai.GolemAi;
+import com.klikli_dev.principiamagica.content.golem.ai.GolemPathNavigation;
 import com.klikli_dev.principiamagica.content.golem.item.GolemBatonItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemCoreItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
@@ -41,6 +42,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -51,6 +53,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.player.Player;
@@ -73,7 +76,6 @@ import java.util.function.UnaryOperator;
 
 public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUser {
     private static final EntityDataAccessor<GolemSpec> DATA_SPEC = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializerRegistry.GOLEM_SPEC.get());
-    private static final EntityDataAccessor<Boolean> DATA_CARRYING = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DATA_STATUS = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_MODE = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializers.INT);
     private static final GolemSpec DEFAULT_SPEC = GolemSpec.of(GolemMaterialRegistry.WOOD);
@@ -82,11 +84,9 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     public static final String WORK_CONTROLLER = "work";
     private static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("animation.golem.idle");
     private static final RawAnimation WALK_ANIM = RawAnimation.begin().thenLoop("animation.golem.walk");
-    private static final RawAnimation CARRY_ANIM = RawAnimation.begin().thenLoop("animation.golem.carry");
-    private static final RawAnimation CARRY_BOB_ANIM = RawAnimation.begin().thenLoop("animation.golem.carry_bob");
-    private static final RawAnimation ARM_SWING_ANIM = RawAnimation.begin().thenPlay("animation.golem.arm_swing");
-    private static final RawAnimation ARM_SWING_LEFT_ANIM = RawAnimation.begin().thenPlay("animation.golem.arm_swing_left");
     private static final RawAnimation ARM_SWING_RIGHT_ANIM = RawAnimation.begin().thenPlay("animation.golem.arm_swing_right");
+    private static final RawAnimation AXE_CHOP_ANIM = RawAnimation.begin().thenPlay("animation.golem.axe_chop");
+    private static final RawAnimation HOE_TILL_ANIM = RawAnimation.begin().thenPlay("animation.golem.hoe_till");
 
     private final AnimatableInstanceCache animatableInstanceCache = GeckoLibUtil.createInstanceCache(this);
     private final List<AppliedModifier> appliedModifiers = new ArrayList<>();
@@ -100,6 +100,12 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         this.setPersistenceRequired();
         this.getNavigation().setCanOpenDoors(true);
         this.getNavigation().setRequiredPathLength(48.0F);
+        this.setPathfindingMalus(GolemPathNavigation.ON_LEAVES, GolemPathNavigation.ON_LEAVES_MALUS);
+    }
+
+    @Override
+    protected PathNavigation createNavigation(Level level) {
+        return new GolemPathNavigation(this, level);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -119,33 +125,18 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         super.defineSynchedData(entityData);
         entityData.define(DATA_SPEC, DEFAULT_SPEC);
-        entityData.define(DATA_CARRYING, false);
         entityData.define(DATA_STATUS, GolemStatus.OK.ordinal());
         entityData.define(DATA_MODE, GolemMode.WORK.ordinal());
-    }
-
-    @Override
-    public void aiStep() {
-        super.aiStep();
-
-        if (!this.level().isClientSide()) {
-            this.entityData.set(DATA_CARRYING, !this.inventory.isEmpty());
-        }
-    }
-
-    public boolean isCarrying() {
-        return this.entityData.get(DATA_CARRYING);
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(
                 new AnimationController<GolemEntity>("base", 5, this::baseAnimationHandler),
-                new AnimationController<GolemEntity>("carry", 5, this::carryAnimationHandler),
                 new AnimationController<GolemEntity>(WORK_CONTROLLER, 0, test -> PlayState.STOP)
-                        .triggerableAnim("arm_swing", ARM_SWING_ANIM)
-                        .triggerableAnim("arm_swing_left", ARM_SWING_LEFT_ANIM)
                         .triggerableAnim("arm_swing_right", ARM_SWING_RIGHT_ANIM)
+                        .triggerableAnim("axe_chop", AXE_CHOP_ANIM)
+                        .triggerableAnim("hoe_till", HOE_TILL_ANIM)
         );
     }
 
@@ -158,24 +149,22 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         return test.setAndContinue(test.isMoving() ? WALK_ANIM : IDLE_ANIM);
     }
 
-    private PlayState carryAnimationHandler(AnimationTest<GolemEntity> test) {
-        if (!test.animatable().isCarrying()) {
-            return PlayState.STOP;
+    /**
+     * Plays the work swing matching the held tool. Work animations only move the job arm (right hand); the other arm
+     * keeps hanging down from the base idle/walk animation.
+     */
+    public void swingWorkArm() {
+        ItemStack tool = this.getMainHandItem();
+        String animation;
+        if (tool.is(ItemTags.AXES)) {
+            animation = "axe_chop";
+        } else if (tool.is(ItemTags.HOES)) {
+            animation = "hoe_till";
+        } else {
+            animation = "arm_swing_right";
         }
 
-        return test.setAndContinue(test.isMoving() ? CARRY_BOB_ANIM : CARRY_ANIM);
-    }
-
-    public void swingWorkArm() {
-        this.triggerAnim(WORK_CONTROLLER, "arm_swing");
-    }
-
-    public void swingLeftArm() {
-        this.triggerAnim(WORK_CONTROLLER, "arm_swing_left");
-    }
-
-    public void swingRightArm() {
-        this.triggerAnim(WORK_CONTROLLER, "arm_swing_right");
+        this.triggerAnim(WORK_CONTROLLER, animation);
     }
 
     public GolemSpec getSpec() {

@@ -103,6 +103,92 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_FIELD_MEMORY_PRUNES_STALE_SPOTS =
             TEST_FUNCTIONS.register("farming_field_memory_prunes_stale_spots", () -> FarmingGameTests::fieldMemoryPrunesStaleSpots);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_CLEARS_OBSTRUCTIONS_FOR_PLANTING =
+            TEST_FUNCTIONS.register("farming_clears_obstructions_for_planting", () -> FarmingGameTests::clearsObstructionsForPlanting);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_OBSTRUCTIONS_STAY_WHEN_OPTION_OFF =
+            TEST_FUNCTIONS.register("farming_obstructions_stay_when_option_off", () -> FarmingGameTests::obstructionsStayWhenOptionOff);
+
+    // --- Lumberjack ---
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_NATURAL_TREE =
+            TEST_FUNCTIONS.register("lumberjack_fells_natural_tree", () -> LumberjackGameTests::fellsNaturalTree);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_REPLANTS_SAPLING =
+            TEST_FUNCTIONS.register("lumberjack_replants_sapling", () -> LumberjackGameTests::replantsSapling);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_IGNORES_PLAYER_LEAVES =
+            TEST_FUNCTIONS.register("lumberjack_ignores_player_leaves", () -> LumberjackGameTests::ignoresPlayerLeaves);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_IGNORES_BARE_LOG_PILLAR =
+            TEST_FUNCTIONS.register("lumberjack_ignores_bare_log_pillar", () -> LumberjackGameTests::ignoresBareLogPillar);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_IGNORES_WALL_TOUCHING_NATURAL_LEAVES =
+            TEST_FUNCTIONS.register("lumberjack_ignores_wall_touching_natural_leaves", () -> LumberjackGameTests::ignoresWallTouchingNaturalLeaves);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_2X2_AND_REPLANTS_FOUR =
+            TEST_FUNCTIONS.register("lumberjack_fells_2x2_and_replants_four", () -> LumberjackGameTests::fells2x2AndReplantsFour);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_TREE_ENCLOSED_BY_LOW_LEAVES =
+            TEST_FUNCTIONS.register("lumberjack_fells_tree_enclosed_by_low_leaves", () -> LumberjackGameTests::fellsTreeEnclosedByLowLeaves);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_PERSISTENT_LEAVES_ARE_NOT_CLEARED =
+            TEST_FUNCTIONS.register("lumberjack_persistent_leaves_are_not_cleared", () -> LumberjackGameTests::persistentLeavesAreNotCleared);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_CLEAR_LEAVES_OFF_KEEPS_LEAVES =
+            TEST_FUNCTIONS.register("lumberjack_clear_leaves_off_keeps_leaves", () -> LumberjackGameTests::clearLeavesOffKeepsLeaves);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_BUSH_FROM_FAR_SIDE_THROUGH_GAP =
+            TEST_FUNCTIONS.register("lumberjack_fells_bush_from_far_side_through_gap", () -> LumberjackGameTests::fellsBushFromFarSideThroughGap);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_TREE_AROUND_UNREACHABLE_OPENING =
+            TEST_FUNCTIONS.register("lumberjack_fells_tree_around_unreachable_opening", () -> LumberjackGameTests::fellsTreeAroundUnreachableOpening);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_GOLEM_ON_LEAVES_COMES_DOWN =
+            TEST_FUNCTIONS.register("lumberjack_golem_on_leaves_comes_down", () -> LumberjackGameTests::golemOnLeavesComesDown);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_JUNGLE_BUSH =
+            TEST_FUNCTIONS.register("lumberjack_fells_jungle_bush", () -> LumberjackGameTests::fellsJungleBush);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_GROWN_OAK =
+            TEST_FUNCTIONS.register("lumberjack_fells_grown_oak", () -> LumberjackGameTests::fellsGrownOak);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_GROWN_FANCY_OAK =
+            TEST_FUNCTIONS.register("lumberjack_fells_grown_fancy_oak", () -> LumberjackGameTests::fellsGrownFancyOak);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_GROWN_SPRUCE =
+            TEST_FUNCTIONS.register("lumberjack_fells_grown_spruce", () -> LumberjackGameTests::fellsGrownSpruce);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_CARVES_ON_OWN_SIDE =
+            TEST_FUNCTIONS.register("lumberjack_carves_on_own_side_not_around_gap", () -> LumberjackGameTests::carvesOnOwnSideNotAroundGap);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_TALLER_THAN_ZONE =
+            TEST_FUNCTIONS.register("lumberjack_taller_than_zone", () -> LumberjackGameTests::tallerThanZone);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_MISSING_AXE_REPORTS_STATUS =
+            TEST_FUNCTIONS.register("lumberjack_missing_axe_reports_status", () -> LumberjackGameTests::missingAxeReportsStatus);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_RESTOCKS_SAPLINGS_FROM_SUPPLY =
+            TEST_FUNCTIONS.register("lumberjack_restocks_saplings_from_supply", () -> LumberjackGameTests::restocksSaplingsFromSupply);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_DETECTOR_FINDS_DIAGONAL_BRANCHES =
+            TEST_FUNCTIONS.register("lumberjack_detector_finds_diagonal_branches", () -> LumberjackGameTests::detectorFindsDiagonalBranches);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_CORE_ROUND_TRIPS =
+            TEST_FUNCTIONS.register("lumberjack_core_round_trips", () -> LumberjackGameTests::lumberjackCoreRoundTrips);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_BREAK_TICKS_FOLLOW_THE_TOOL =
+            TEST_FUNCTIONS.register("lumberjack_break_ticks_follow_the_tool", () -> LumberjackGameTests::breakTicksFollowTheTool);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_BONEMEAL_GROWS_SAPLING =
+            TEST_FUNCTIONS.register("lumberjack_bonemeal_grows_sapling", () -> LumberjackGameTests::bonemealGrowsSapling);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_BONEMEAL_OFF_LEAVES_SAPLING =
+            TEST_FUNCTIONS.register("lumberjack_bonemeal_off_leaves_sapling", () -> LumberjackGameTests::bonemealOffLeavesSapling);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_RESTOCKS_BONEMEAL_FROM_SUPPLY =
+            TEST_FUNCTIONS.register("lumberjack_restocks_bonemeal_from_supply", () -> LumberjackGameTests::restocksBonemealFromSupply);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL =
+            TEST_FUNCTIONS.register("lumberjack_stalled_sapling_stops_bonemeal", () -> LumberjackGameTests::stalledSaplingStopsTakingBonemeal);
+
     // --- Upgrades ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> UPGRADE_SWIFTNESS_INCREASES_MOVEMENT_SPEED =
@@ -161,6 +247,36 @@ public class GameTestRegistry {
         registerTest(event, FARMING_TWO_GOLEMS_SHARE_FIELD, environment, structure, 800, 0);
         registerTest(event, FARMING_CORE_ROUND_TRIPS, environment, structure, 40, 0);
         registerTest(event, FARMING_FIELD_MEMORY_PRUNES_STALE_SPOTS, environment, structure, 800, 0);
+        registerTest(event, FARMING_CLEARS_OBSTRUCTIONS_FOR_PLANTING, environment, structure, 800, 0);
+        registerTest(event, FARMING_OBSTRUCTIONS_STAY_WHEN_OPTION_OFF, environment, structure, 400, 0);
+
+        registerTest(event, LUMBERJACK_FELLS_NATURAL_TREE, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_REPLANTS_SAPLING, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_IGNORES_PLAYER_LEAVES, environment, structure, 400, 0);
+        registerTest(event, LUMBERJACK_IGNORES_BARE_LOG_PILLAR, environment, structure, 400, 0);
+        registerTest(event, LUMBERJACK_IGNORES_WALL_TOUCHING_NATURAL_LEAVES, environment, structure, 400, 0);
+        registerTest(event, LUMBERJACK_FELLS_2X2_AND_REPLANTS_FOUR, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_TALLER_THAN_ZONE, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_FELLS_TREE_ENCLOSED_BY_LOW_LEAVES, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_PERSISTENT_LEAVES_ARE_NOT_CLEARED, environment, structure, 400, 0);
+        registerTest(event, LUMBERJACK_CLEAR_LEAVES_OFF_KEEPS_LEAVES, environment, structure, 400, 0);
+        registerTest(event, LUMBERJACK_FELLS_BUSH_FROM_FAR_SIDE_THROUGH_GAP, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_FELLS_TREE_AROUND_UNREACHABLE_OPENING, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_GOLEM_ON_LEAVES_COMES_DOWN, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_FELLS_JUNGLE_BUSH, environment, structure, 1200, 0);
+        registerTest(event, LUMBERJACK_FELLS_GROWN_OAK, environment, structure, 1200, 0);
+        registerTest(event, LUMBERJACK_FELLS_GROWN_FANCY_OAK, environment, structure, 1200, 0);
+        registerTest(event, LUMBERJACK_FELLS_GROWN_SPRUCE, environment, structure, 1200, 0);
+        registerTest(event, LUMBERJACK_CARVES_ON_OWN_SIDE, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_MISSING_AXE_REPORTS_STATUS, environment, structure, 400, 0);
+        registerTest(event, LUMBERJACK_RESTOCKS_SAPLINGS_FROM_SUPPLY, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_DETECTOR_FINDS_DIAGONAL_BRANCHES, environment, structure, 40, 0);
+        registerTest(event, LUMBERJACK_CORE_ROUND_TRIPS, environment, structure, 40, 0);
+        registerTest(event, LUMBERJACK_BREAK_TICKS_FOLLOW_THE_TOOL, environment, structure, 40, 0);
+        registerTest(event, LUMBERJACK_BONEMEAL_GROWS_SAPLING, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_BONEMEAL_OFF_LEAVES_SAPLING, environment, structure, 400, 0);
+        registerTest(event, LUMBERJACK_RESTOCKS_BONEMEAL_FROM_SUPPLY, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL, environment, structure, 1000, 0);
 
         registerTest(event, UPGRADE_SWIFTNESS_INCREASES_MOVEMENT_SPEED, environment, structure, 40, 0);
         registerTest(event, UPGRADE_CAPACITY_ADDS_INVENTORY_SLOTS, environment, structure, 40, 0);

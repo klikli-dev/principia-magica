@@ -14,6 +14,7 @@ import com.klikli_dev.principiamagica.registry.AttributeRegistry;
 import com.klikli_dev.principiamagica.registry.CreativeModeTabRegistry;
 import com.klikli_dev.principiamagica.registry.CropHandlerRegistry;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.klikli_dev.principiamagica.registry.DataMapTypeRegistry;
 import com.klikli_dev.principiamagica.registry.EntityDataSerializerRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemJobRegistry;
@@ -58,6 +59,7 @@ public class PrincipiaMagica {
         CropHandlerRegistry.CROP_HANDLERS.register(modEventBus);
 
         modEventBus.addListener(PrincipiaMagicaRegistries::onRegisterRegistries);
+        modEventBus.addListener(DataMapTypeRegistry::onRegisterDataMapTypes);
         modEventBus.addListener(GolemEntity::onEntityAttributeCreation);
         modEventBus.addListener(Networking::register);
         NeoForge.EVENT_BUS.addListener(PrincipiaMagica::onPlayerTick);

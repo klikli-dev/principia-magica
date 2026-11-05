@@ -100,6 +100,12 @@ public class ShapedRecipeProvider implements DataProvider {
                 List.of("SWS", "WAW", "SWS"),
                 Map.of('S', Items.WHEAT_SEEDS, 'W', Items.WHEAT, 'A', Items.AMETHYST_SHARD));
 
+        Map<Character, Ingredient> lumberjackIngredients = new LinkedHashMap<>();
+        lumberjackIngredients.put('S', Ingredient.of(this.items.getOrThrow(ItemTags.SAPLINGS)));
+        lumberjackIngredients.put('L', Ingredient.of(this.items.getOrThrow(ItemTags.LOGS)));
+        lumberjackIngredients.put('A', Ingredient.of(Items.AMETHYST_SHARD));
+        this.shapedIngredients(consumer, ItemRegistry.LUMBERJACK_CORE.get(), List.of("SLS", "LAL", "SLS"), lumberjackIngredients);
+
         this.shaped(consumer, ItemRegistry.GOLEM_BATON.get(),
                 List.of(" AG", " S ", "S  "),
                 Map.of('A', Items.AMETHYST_SHARD, 'G', Items.GOLD_INGOT, 'S', Items.STICK));
@@ -126,6 +132,10 @@ public class ShapedRecipeProvider implements DataProvider {
     private void shaped(BiConsumer<Identifier, JsonObject> consumer, ItemLike result, List<String> pattern, Map<Character, ItemLike> keys) {
         Map<Character, Ingredient> ingredients = new LinkedHashMap<>();
         keys.forEach((key, item) -> ingredients.put(key, Ingredient.of(item)));
+        this.shapedIngredients(consumer, result, pattern, ingredients);
+    }
+
+    private void shapedIngredients(BiConsumer<Identifier, JsonObject> consumer, ItemLike result, List<String> pattern, Map<Character, Ingredient> ingredients) {
         this.recipe(consumer, PrincipiaMagica.loc(this.itemPath(result)), result, 1, DataComponentPatch.EMPTY, pattern, ingredients);
     }
 

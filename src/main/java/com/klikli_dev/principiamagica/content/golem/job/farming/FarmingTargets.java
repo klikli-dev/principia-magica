@@ -4,25 +4,28 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.farming;
 
+import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
-import com.klikli_dev.principiamagica.content.golem.ai.behaviour.MoveToAndInteract;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
+import com.klikli_dev.principiamagica.content.golem.job.GolemBonemeal;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.job.farming.crop.CropHandlers;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
-import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
@@ -33,10 +36,8 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +51,9 @@ public final class FarmingTargets {
     public static final JobOption REPLANT = new JobOption("replant", true);
     public static final JobOption TILL = new JobOption("till", false);
     public static final JobOption BONEMEAL = new JobOption("bonemeal", false);
+    public static final JobOption CLEAR_OBSTRUCTIONS = new JobOption("clear_obstructions", true);
+
+    public static final TagKey<Block> CLEARABLE = TagKey.create(Registries.BLOCK, PrincipiaMagica.loc("golem_clearable"));
 
     private FarmingTargets() {
     }
@@ -61,9 +65,14 @@ public final class FarmingTargets {
         }
 
         return isHarvestable(level, pos)
+                || canClear(level, workplace.get(), pos)
                 || canPlant(level, golem, pos)
                 || canBonemeal(level, golem, workplace.get(), pos)
                 || canTill(level, golem, workplace.get(), pos);
+    }
+
+    public static boolean canClear(ServerLevel level, Workplace workplace, BlockPos pos) {
+        return workplace.options().get(CLEAR_OBSTRUCTIONS) && level.getBlockState(pos).is(CLEARABLE);
     }
 
     /**
@@ -211,7 +220,7 @@ public final class FarmingTargets {
     }
 
     public static boolean canBonemeal(ServerLevel level, GolemEntity golem, Workplace workplace, BlockPos pos) {
-        if (!workplace.options().get(BONEMEAL) || golem.getInventory().countItem(Items.BONE_MEAL) <= 0) {
+        if (!workplace.options().get(BONEMEAL) || !GolemBonemeal.hasBoneMeal(golem)) {
             return false;
         }
 
@@ -219,13 +228,6 @@ public final class FarmingTargets {
         return state.getBlock() instanceof BonemealableBlock block
                 && block.isValidBonemealTarget(level, pos, state)
                 && CropHandlers.find(state).isPresent();
-    }
-
-    public static Optional<BlockPos> nearestCandidate(ServerLevel level, GolemEntity golem, Predicate<BlockPos> action) {
-        return golem.getBrain().getMemory(MemoryModuleTypeRegistry.WORK_CANDIDATES.value()).orElse(List.of()).stream()
-                .filter(pos -> MoveToAndInteract.isAvailable(level, golem, pos))
-                .filter(action)
-                .findFirst();
     }
 
     public static boolean keepsItem(Workplace workplace, ItemStack stack) {

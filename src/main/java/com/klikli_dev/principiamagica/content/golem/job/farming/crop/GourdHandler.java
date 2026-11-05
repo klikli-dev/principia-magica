@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.golem.job.farming.crop;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.job.GolemDrops;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
@@ -39,7 +40,7 @@ public class GourdHandler implements CropHandler {
 
     @Override
     public HarvestResult harvest(ServerLevel level, BlockPos pos, BlockState state, GolemEntity golem) {
-        List<ItemStack> drops = CropHandlers.breakBlock(level, golem, pos, state);
+        List<ItemStack> drops = GolemDrops.breakBlock(level, golem, pos, state);
         return new HarvestResult(drops, true);
     }
 }

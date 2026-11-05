@@ -255,6 +255,15 @@
           ]
         },
         {
+          "name": "RightHandItem",
+          "parent": "arm_right",
+          "pivot": [
+            -5.25,
+            4.5,
+            0
+          ]
+        },
+        {
           "name": "arm_left",
           "parent": "torso",
           "pivot": [

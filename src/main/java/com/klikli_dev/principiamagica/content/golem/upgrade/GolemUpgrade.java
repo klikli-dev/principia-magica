@@ -37,6 +37,10 @@ public class GolemUpgrade implements StatContributor {
         return this.id;
     }
 
+    public List<AttributeEntry> attributes() {
+        return this.attributes;
+    }
+
     public String getDescriptionId() {
         Identifier key = PrincipiaMagicaRegistries.GOLEM_UPGRADE.getKey(this);
         return "golem_upgrade." + key.getNamespace() + "." + key.getPath();

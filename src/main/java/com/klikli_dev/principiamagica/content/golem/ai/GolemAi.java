@@ -59,7 +59,8 @@ public class GolemAi {
                         MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value(),
                         MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value(),
                         MemoryModuleTypeRegistry.DEPOSIT_COOLDOWN.value(),
-                        MemoryModuleTypeRegistry.PICKUP_COOLDOWN.value()
+                        MemoryModuleTypeRegistry.PICKUP_COOLDOWN.value(),
+                        MemoryModuleTypeRegistry.SAPLING_BONEMEAL_ATTEMPTS.value()
                 ),
                 List.of(
                         SensorType.NEAREST_LIVING_ENTITIES,

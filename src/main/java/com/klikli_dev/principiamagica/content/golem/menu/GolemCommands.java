@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.GolemBatonItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
+import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import net.minecraft.server.level.ServerLevel;
@@ -81,18 +82,15 @@ public final class GolemCommands {
     }
 
     /**
-     * Advances the role of the link at the index (supply, deposit, both, supply ...).
-     *
-     * @return the updated workplace, or empty if the index is out of range
+     * @return the workplace with the link at the index set to the role, or empty if the index is out of range
      */
-    public static Optional<Workplace> cycleLinkRole(Workplace workplace, int index) {
+    public static Optional<Workplace> setLinkRole(Workplace workplace, int index, ContainerRole role) {
         if (index < 0 || index >= workplace.links().size()) {
             return Optional.empty();
         }
 
         List<ContainerLink> links = new ArrayList<>(workplace.links());
-        ContainerLink link = links.get(index);
-        links.set(index, link.withRole(link.role().next()));
+        links.set(index, links.get(index).withRole(role));
         return Optional.of(workplace.withLinks(links).markInitialized());
     }
 

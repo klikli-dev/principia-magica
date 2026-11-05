@@ -42,18 +42,37 @@ public class ENUSProvider extends LanguageProvider {
         this.add("golem_status.principiamagica.no_deposit", "No deposit container");
         this.add("golem_status.principiamagica.deposit_full", "Deposit full");
         this.add("golem_status.principiamagica.needs_supplies", "Needs supplies");
+        this.add("golem_status.principiamagica.ok.description", "The golem is working on its job.");
+        this.add("golem_status.principiamagica.no_job.description", "Insert a job core to give the golem a job.");
+        this.add("golem_status.principiamagica.no_zone.description", "Add a work zone with the Golem Baton.");
+        this.add("golem_status.principiamagica.missing_tool.description", "The job needs its tool in the golem's main hand.");
+        this.add("golem_status.principiamagica.no_deposit.description", "Link a container with the deposit or both role.");
+        this.add("golem_status.principiamagica.deposit_full.description", "The deposit containers have no room left.");
+        this.add("golem_status.principiamagica.needs_supplies.description", "A needed item is missing and no supply container holds it.");
 
         this.add("job_option.principiamagica.pickup_items", "Pick up stray items");
         this.add("job_option.principiamagica.pickup_items.description", "Pick up loose items inside the work zone and deposit them.");
         this.add("job_option.principiamagica.replant", "Replant harvested crops");
         this.add("job_option.principiamagica.replant.description", "Plant a seed on empty farmland after harvesting, preferring the seed that grew there before.");
-        this.add("job_option.principiamagica.till", "Till soil near water (needs a hoe)");
+        this.add("job_option.principiamagica.clear_obstructions", "Clear obstructions");
+
+        this.add("job_option.principiamagica.clear_obstructions.description", "Clear grass, flowers and similar plants from the work area so crops can be planted. Seeds dropped by grass go into the golem's inventory.");
+
+        this.add("job_option.principiamagica.till", "Till soil near water");
         this.add("job_option.principiamagica.till.description", "Turn dirt and grass near water into farmland. Needs a hoe in the main hand and uses its durability.");
         this.add("job_option.principiamagica.bonemeal", "Apply bone meal to crops");
         this.add("job_option.principiamagica.bonemeal.description", "Use bone meal on crops that can still grow. Bone meal is restocked from supply containers.");
+        this.add("job_option.principiamagica.replant_saplings", "Replant saplings");
+        this.add("job_option.principiamagica.replant_saplings.description", "Plant a matching sapling on the stump of each felled tree. Saplings are restocked from supply containers.");
+        this.add("job_option.principiamagica.clear_leaves", "Clear blocking leaves");
+        this.add("job_option.principiamagica.clear_leaves.description", "Break natural leaves around a trunk when they stop the golem from reaching it. Player-placed leaves are never broken.");
+        this.add("job_option.principiamagica.bonemeal_saplings", "Apply bone meal to saplings");
+        this.add("job_option.principiamagica.bonemeal_saplings.description", "Use bone meal on saplings in the work area so trees grow faster. Bone meal is restocked from supply containers.");
 
         this.add("golem_job.principiamagica.farming", "Farming");
         this.add("item.principiamagica.farming_core", "Farming Core");
+        this.add("golem_job.principiamagica.lumberjack", "Lumberjack");
+        this.add("item.principiamagica.lumberjack_core", "Lumberjack Core");
 
         this.add("golem_upgrade.principiamagica.swiftness", "Swiftness");
         this.add("golem_upgrade.principiamagica.swiftness.description", "Faster movement and work speed");
@@ -63,26 +82,46 @@ public class ENUSProvider extends LanguageProvider {
         this.add("item.principiamagica.capacity_upgrade", "Capacity Upgrade");
 
         this.add("gui.principiamagica.golem.title", "%s Golem");
-        this.add("gui.principiamagica.golem.info", "%s, %s");
         this.add("gui.principiamagica.golem.no_core", "No core");
         this.add("gui.principiamagica.golem.options", "Job options");
-        this.add("gui.principiamagica.golem.option_state", "%s: %s");
-        this.add("gui.principiamagica.golem.on", "On");
-        this.add("gui.principiamagica.golem.off", "Off");
+        this.add("gui.principiamagica.golem.no_job_hint", "Insert a job core into the golem to give it a job. Right-click the golem with a core.");
+        this.add("gui.principiamagica.golem.material", "Material: %s");
+        this.add("gui.principiamagica.golem.job", "Job: %s");
+        this.add("gui.principiamagica.golem.mode", "Mode");
+        this.add("gui.principiamagica.golem.remove_core", "Remove core");
+        this.add("gui.principiamagica.golem.remove_core.tooltip", "Takes the job core out of the golem and returns it to you");
+        this.add("gui.principiamagica.golem.tab.overview", "Overview");
+        this.add("gui.principiamagica.golem.tab.job", "Job");
+        this.add("gui.principiamagica.golem.tab.workplace", "Workplace");
+        this.add("gui.principiamagica.golem.tab.upgrades", "Upgrades");
+        this.add("gui.principiamagica.golem.tab.inventory", "Inventory");
+        this.add("gui.principiamagica.golem.back", "Back");
         this.add("gui.principiamagica.golem.zones", "Work zones (%s)");
         this.add("gui.principiamagica.golem.no_zones", "No work zones, use the baton to add one");
         this.add("gui.principiamagica.golem.zone_row", "Zone %sx%sx%s at %s, %s, %s");
         this.add("gui.principiamagica.golem.containers", "Containers (%s)");
         this.add("gui.principiamagica.golem.no_containers", "No containers, use the baton to link one");
+        this.add("gui.principiamagica.golem.workplace_hint", "Edit zones and containers with the Golem Baton");
+        this.add("gui.principiamagica.golem.zone.title", "Zone %s");
+        this.add("gui.principiamagica.golem.zone.size", "Size: %s x %s x %s");
+        this.add("gui.principiamagica.golem.zone.from", "From: %s, %s, %s");
+        this.add("gui.principiamagica.golem.zone.to", "To: %s, %s, %s");
+        this.add("gui.principiamagica.golem.zone.remove", "Remove zone");
+        this.add("gui.principiamagica.golem.link.title", "Container");
+        this.add("gui.principiamagica.golem.link.position", "Position: %s, %s, %s");
+        this.add("gui.principiamagica.golem.link.side", "Side: %s");
+        this.add("gui.principiamagica.golem.link.role", "Role");
+        this.add("gui.principiamagica.golem.link.remove", "Remove container");
         this.add("gui.principiamagica.golem.role_supply", "Supply");
         this.add("gui.principiamagica.golem.role_deposit", "Deposit");
         this.add("gui.principiamagica.golem.role_both", "Both");
-        this.add("gui.principiamagica.golem.remove", "Remove");
-        this.add("gui.principiamagica.golem.remove_core", "Remove core");
         this.add("gui.principiamagica.golem.upgrades", "Upgrades (%s/%s)");
         this.add("gui.principiamagica.golem.no_upgrades", "No upgrades, use an upgrade item on the golem");
-        this.add("gui.principiamagica.golem.hint_line_1", "Edit zones and containers");
-        this.add("gui.principiamagica.golem.hint_line_2", "with the Golem Baton");
+        this.add("gui.principiamagica.golem.upgrade.effects", "Effects");
+        this.add("gui.principiamagica.golem.upgrade.remove", "Remove upgrade");
+        this.add("gui.principiamagica.golem.attribute", "%s %s");
+        this.add("gui.principiamagica.golem.inventory.tool", "Tool");
+        this.add("gui.principiamagica.golem.inventory.golem", "Golem inventory");
 
         this.add("tooltip.principiamagica.golem.material", "Material: %s");
         this.add("tooltip.principiamagica.golem.upgrades", "Upgrades: %s/%s");

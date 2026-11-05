@@ -40,8 +40,9 @@ public class GolemMenuGameTests {
         helper.assertTrue(GolemCommands.removeZone(workplace, -1).isEmpty(), "Negative zone index should be rejected");
         helper.assertTrue(GolemCommands.removeZone(workplace, 0).orElseThrow().zones().isEmpty(), "A valid zone index should remove the zone");
 
-        helper.assertTrue(GolemCommands.cycleLinkRole(workplace, 1).isEmpty(), "Link index past the end should be rejected");
-        helper.assertTrue(GolemCommands.cycleLinkRole(workplace, 0).orElseThrow().links().get(0).role() == ContainerRole.DEPOSIT, "Cycling should advance the role");
+        helper.assertTrue(GolemCommands.setLinkRole(workplace, 1, ContainerRole.DEPOSIT).isEmpty(), "Link index past the end should be rejected");
+        helper.assertTrue(GolemCommands.setLinkRole(workplace, 0, ContainerRole.DEPOSIT).orElseThrow().links().get(0).role() == ContainerRole.DEPOSIT, "Setting a role should replace the link role");
+        helper.assertTrue(GolemCommands.setLinkRole(workplace, 0, ContainerRole.SUPPLY).orElseThrow().links().get(0).role() == ContainerRole.SUPPLY, "Setting the current role should keep it");
 
         helper.assertTrue(GolemCommands.removeLink(workplace, 1).isEmpty(), "Link index past the end should be rejected on removal");
         helper.assertTrue(GolemCommands.removeLink(workplace, 0).orElseThrow().links().isEmpty(), "A valid link index should remove the link");

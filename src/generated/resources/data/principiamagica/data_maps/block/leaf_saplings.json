@@ -1,0 +1,15 @@
+{
+  "values": {
+    "minecraft:acacia_leaves": "minecraft:acacia_sapling",
+    "minecraft:azalea_leaves": "minecraft:azalea",
+    "minecraft:birch_leaves": "minecraft:birch_sapling",
+    "minecraft:cherry_leaves": "minecraft:cherry_sapling",
+    "minecraft:dark_oak_leaves": "minecraft:dark_oak_sapling",
+    "minecraft:flowering_azalea_leaves": "minecraft:flowering_azalea",
+    "minecraft:jungle_leaves": "minecraft:jungle_sapling",
+    "minecraft:mangrove_leaves": "minecraft:mangrove_propagule",
+    "minecraft:oak_leaves": "minecraft:oak_sapling",
+    "minecraft:pale_oak_leaves": "minecraft:pale_oak_sapling",
+    "minecraft:spruce_leaves": "minecraft:spruce_sapling"
+  }
+}

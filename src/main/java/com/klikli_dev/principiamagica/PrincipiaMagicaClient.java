@@ -5,8 +5,9 @@
 package com.klikli_dev.principiamagica;
 
 import com.klikli_dev.principiamagica.content.golem.client.GolemRenderer;
-import com.klikli_dev.principiamagica.content.golem.client.GolemScreen;
-import com.klikli_dev.principiamagica.content.golem.client.WorkplaceOverlayRenderer;
+import com.klikli_dev.principiamagica.content.golem.client.gui.GolemScreen;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceOverlayRenderer;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceRenderTypes;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.MenuRegistry;
 import net.neoforged.api.distmarker.Dist;
@@ -26,7 +27,10 @@ public class PrincipiaMagicaClient {
 
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterEntityRenderers);
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterMenuScreens);
-        NeoForge.EVENT_BUS.addListener(WorkplaceOverlayRenderer::onRenderLevelStage);
+        modEventBus.addListener(WorkplaceRenderTypes::onRegisterRenderPipelines);
+        WorkplaceOverlayRenderer workplaceOverlay = new WorkplaceOverlayRenderer();
+        NeoForge.EVENT_BUS.addListener(workplaceOverlay::onRenderLevelStage);
+        NeoForge.EVENT_BUS.addListener(workplaceOverlay::onClientTick);
     }
 
     public static void onRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
