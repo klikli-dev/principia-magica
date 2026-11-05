@@ -14,6 +14,7 @@ import com.klikli_dev.principiamagica.datagen.book.PrincipiaBookProvider;
 import com.klikli_dev.principiamagica.datagen.datamap.PrincipiaMagicaDataMapProvider;
 import com.klikli_dev.principiamagica.datagen.lang.ENUSProvider;
 import com.klikli_dev.principiamagica.datagen.model.PrincipiaMagicaModelProvider;
+import com.klikli_dev.principiamagica.datagen.research.PrincipiaResearch;
 import com.klikli_dev.principiamagica.datagen.recipe.ShapedRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.recipe.ShapelessRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.tag.PrincipiaMagicaBlockTagsProvider;
@@ -35,7 +36,9 @@ public class PrincipiaMagicaDataGenerators {
         generator.addProvider(true, NeoBookProvider.of(event, langCache, researchCache,
                 new PrincipiaBookProvider()
         ));
-        generator.addProvider(true, NeoResearchProvider.of(event, langCache, researchCache));
+        generator.addProvider(true, NeoResearchProvider.of(event, langCache, researchCache,
+                new PrincipiaResearch()
+        ));
 
         //Important: the lang provider needs to be added after the book provider to process the texts added by the book provider
         generator.addProvider(true, new ENUSProvider(generator.getPackOutput(), langCache));

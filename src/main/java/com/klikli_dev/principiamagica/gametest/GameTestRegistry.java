@@ -231,6 +231,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STYLUS_ENTRY_LOADS =
             TEST_FUNCTIONS.register("stylus_entry_loads", () -> ProgressionGameTests::stylusEntryLoads);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WET_TABLET_ADVANCEMENT_RECIPE_AND_ENTRY_EXIST =
+            TEST_FUNCTIONS.register("wet_tablet_advancement_recipe_and_entry_exist", () -> ProgressionGameTests::wetTabletAdvancementRecipeAndEntryExist);
+
     public static void onRegisterGameTests(RegisterGameTestsEvent event) {
         registerGolemTests(event);
         registerProgressionTests(event);
@@ -244,6 +247,7 @@ public class GameTestRegistry {
         registerTest(event, PRINCIPIA_BOOK_AND_FIRST_ENTRY_LOAD, environment, structure, 40, 0);
         registerTest(event, WEDGE_OF_COPPER_ADVANCEMENT_AND_STYLUS_RECIPE_EXIST, environment, structure, 40, 0);
         registerTest(event, STYLUS_ENTRY_LOADS, environment, structure, 40, 0);
+        registerTest(event, WET_TABLET_ADVANCEMENT_RECIPE_AND_ENTRY_EXIST, environment, structure, 40, 0);
     }
 
     private static void registerGolemTests(RegisterGameTestsEvent event) {

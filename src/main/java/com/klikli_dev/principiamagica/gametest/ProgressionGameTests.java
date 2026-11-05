@@ -11,6 +11,7 @@ import com.klikli_dev.principiamagica.datagen.advancement.PrincipiaMagicaAdvance
 import com.klikli_dev.principiamagica.datagen.book.wetclay.PrincipiaEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.StylusEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.WetClayCategoryProvider;
+import com.klikli_dev.principiamagica.datagen.book.wetclay.WetTabletEntry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
@@ -54,6 +55,22 @@ public class ProgressionGameTests {
         helper.assertTrue(category != null, "Category the_wet_clay is missing");
         helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + StylusEntry.ENTRY_ID)) != null,
                 "Entry the_stylus is missing from category the_wet_clay");
+        helper.succeed();
+    }
+
+    public static void wetTabletAdvancementRecipeAndEntryExist(GameTestHelper helper) {
+        var server = helper.getLevel().getServer();
+
+        helper.assertTrue(server.getAdvancements().get(PrincipiaMagicaAdvancementSubProvider.WET_CLAY) != null,
+                "Advancement wet_clay is missing");
+        helper.assertTrue(server.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("wet_tablet"))).isPresent(),
+                "Recipe wet_tablet is missing");
+        var book = BookDataManager.get().getBook(PrincipiaItem.PRINCIPIA);
+        helper.assertTrue(book != null, "Modonomicon book principia is missing");
+        var category = book.getCategory(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID));
+        helper.assertTrue(category != null, "Category the_wet_clay is missing");
+        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + WetTabletEntry.ENTRY_ID)) != null,
+                "Entry wet_clay is missing from category the_wet_clay");
         helper.succeed();
     }
 }

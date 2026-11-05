@@ -27,6 +27,7 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
 
     public static final Identifier THE_CLAY_REMEMBERS = PrincipiaMagica.loc("the_clay_remembers");
     public static final Identifier A_WEDGE_OF_COPPER = PrincipiaMagica.loc("a_wedge_of_copper");
+    public static final Identifier WET_CLAY = PrincipiaMagica.loc("wet_clay");
 
     public static final ResourceKey<Recipe<?>> PRINCIPIA_RECIPE = ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("principia"));
 
@@ -63,5 +64,21 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
                 .build(A_WEDGE_OF_COPPER);
 
         writer.accept(aWedgeOfCopper);
+
+        var wetClay = Advancement.Builder.advancement()
+                .parent(aWedgeOfCopper)
+                .display(
+                        ItemRegistry.WET_TABLET.get(),
+                        Component.translatable("advancements.principiamagica.wet_clay.title"),
+                        Component.translatable("advancements.principiamagica.wet_clay.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        false,
+                        false)
+                .addCriterion("has_wet_tablet", InventoryChangeTrigger.TriggerInstance.hasItems(ItemRegistry.WET_TABLET.get()))
+                .build(WET_CLAY);
+
+        writer.accept(wetClay);
     }
 }

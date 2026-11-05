@@ -1,0 +1,8 @@
+[
+  {
+    "fact_id": "principiamagica:research/advancement/a_wedge_of_copper",
+    "id": "principiamagica:research/advancement/a_wedge_of_copper_hook",
+    "trigger_target": "principiamagica:a_wedge_of_copper",
+    "trigger_type": "modonomicon:advancement"
+  }
+]

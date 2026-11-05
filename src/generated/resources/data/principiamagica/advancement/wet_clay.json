@@ -1,0 +1,33 @@
+{
+  "parent": "principiamagica:a_wedge_of_copper",
+  "criteria": {
+    "has_wet_tablet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "principiamagica:wet_tablet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.principiamagica.wet_clay.description"
+    },
+    "icon": {
+      "id": "principiamagica:wet_tablet"
+    },
+    "title": {
+      "translate": "advancements.principiamagica.wet_clay.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_wet_tablet"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
