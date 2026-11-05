@@ -8,7 +8,6 @@ import com.google.common.collect.ImmutableList;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceDefaults;
 import com.klikli_dev.principiamagica.registry.ActivityRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import com.klikli_dev.principiamagica.registry.SensorTypeRegistry;
@@ -74,7 +73,6 @@ public class GolemAi {
 
     public static void updateActivity(GolemEntity golem) {
         if (golem.level() instanceof ServerLevel level) {
-            WorkplaceDefaults.initializeIfNeeded(golem, level);
             updateStatus(level, golem);
         }
 

@@ -18,8 +18,11 @@ public enum GolemStatus {
     DEPOSIT_FULL,
     NEEDS_SUPPLIES;
 
+    /**
+     * @return true if the status needs the player's attention. Purposeless is a calm state, not a problem.
+     */
     public boolean isProblem() {
-        return this != OK;
+        return this != OK && this != NO_PURPOSE;
     }
 
     public String translationKey() {

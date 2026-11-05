@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "scribe",
+  "show_title_separator": true,
+  "sort_number": 0,
+  "text": "book.principiamagica.principia.the_wet_clay.purpose.scribe.text",
+  "title": "book.principiamagica.principia.the_wet_clay.purpose.scribe.title"
+}

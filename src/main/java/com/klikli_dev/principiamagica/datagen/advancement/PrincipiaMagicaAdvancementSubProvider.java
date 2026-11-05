@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.datagen.advancement;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.golem.advancement.GolemGivenAxiomTrigger;
 import com.klikli_dev.principiamagica.content.golem.advancement.GolemPlacedTrigger;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
@@ -35,6 +36,7 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
     public static final Identifier ROTTEN_FLESH = PrincipiaMagica.loc("rotten_flesh");
     public static final Identifier QUICKENED = PrincipiaMagica.loc("quickened");
     public static final Identifier CLAY_THAT_STANDS = PrincipiaMagica.loc("clay_that_stands");
+    public static final Identifier PURPOSE = PrincipiaMagica.loc("purpose");
 
     public static final ResourceKey<Recipe<?>> PRINCIPIA_RECIPE = ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("principia"));
 
@@ -152,5 +154,21 @@ public class PrincipiaMagicaAdvancementSubProvider implements AdvancementSubProv
                 .build(CLAY_THAT_STANDS);
 
         writer.accept(clayThatStands);
+
+        var purpose = Advancement.Builder.advancement()
+                .parent(clayThatStands)
+                .display(
+                        ItemRegistry.AXIOM_OF_HARVEST.get(),
+                        Component.translatable("advancements.principiamagica.purpose.title"),
+                        Component.translatable("advancements.principiamagica.purpose.description"),
+                        null,
+                        AdvancementType.TASK,
+                        true,
+                        false,
+                        false)
+                .addCriterion("given_axiom", GolemGivenAxiomTrigger.given())
+                .build(PURPOSE);
+
+        writer.accept(purpose);
     }
 }

@@ -52,6 +52,27 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PLACED_GOLEM_WITHOUT_AXIOM_IS_PURPOSELESS =
             TEST_FUNCTIONS.register("placed_golem_without_axiom_is_purposeless", () -> GolemGameTests::placedGolemWithoutAxiomIsPurposeless);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> DEFAULTS_KEEP_CONFIGURED_WORKPLACE =
+            TEST_FUNCTIONS.register("defaults_keep_configured_workplace", () -> GolemGameTests::defaultsKeepConfiguredWorkplace);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> REMOVING_AXIOM_KEEPS_FOLLOW =
+            TEST_FUNCTIONS.register("removing_axiom_keeps_follow", () -> GolemGameTests::removingAxiomKeepsFollow);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_GIVEN_STARTS_WORK_IN_DEFAULT_AREA =
+            TEST_FUNCTIONS.register("axiom_given_starts_work_in_default_area", () -> GolemGameTests::axiomGivenStartsWorkInDefaultArea);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_GIVEN_KEEPS_CONFIGURED_WORKPLACE =
+            TEST_FUNCTIONS.register("axiom_given_keeps_configured_workplace", () -> GolemGameTests::axiomGivenKeepsConfiguredWorkplace);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> NON_OWNER_CANNOT_GIVE_AXIOM =
+            TEST_FUNCTIONS.register("non_owner_cannot_give_axiom", () -> GolemGameTests::nonOwnerCannotGiveAxiom);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_GIVEN_HARVESTS_FIELD =
+            TEST_FUNCTIONS.register("axiom_given_harvests_field", () -> GolemGameTests::axiomGivenHarvestsField);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL =
+            TEST_FUNCTIONS.register("axiom_given_lumberjack_without_axe_reports_missing_tool", () -> GolemGameTests::axiomGivenLumberjackWithoutAxeReportsMissingTool);
+
     // --- Golem stylus ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CONTAINER_LINK_CYCLES =
@@ -252,6 +273,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GOLEM_BODY_RECIPE_ADVANCEMENT_AND_ENTRY_EXIST =
             TEST_FUNCTIONS.register("golem_body_recipe_advancement_and_entry_exist", () -> ProgressionGameTests::golemBodyRecipeAdvancementAndEntryExist);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PURPOSE_ADVANCEMENT_AND_ENTRY_EXIST =
+            TEST_FUNCTIONS.register("purpose_advancement_and_entry_exist", () -> ProgressionGameTests::purposeAdvancementAndEntryExist);
+
     public static void onRegisterGameTests(RegisterGameTestsEvent event) {
         registerGolemTests(event);
         registerProgressionTests(event);
@@ -269,6 +293,7 @@ public class GameTestRegistry {
         registerTest(event, AXIOM_ADVANCEMENT_RECIPES_AND_ENTRY_EXIST, environment, structure, 40, 0);
         registerTest(event, QUICKENED_ADVANCEMENTS_RECIPE_AND_ENTRY_EXIST, environment, structure, 40, 0);
         registerTest(event, GOLEM_BODY_RECIPE_ADVANCEMENT_AND_ENTRY_EXIST, environment, structure, 40, 0);
+        registerTest(event, PURPOSE_ADVANCEMENT_AND_ENTRY_EXIST, environment, structure, 40, 0);
     }
 
     private static void registerGolemTests(RegisterGameTestsEvent event) {
@@ -290,6 +315,13 @@ public class GameTestRegistry {
         registerTest(event, PURPOSELESS_GOLEM_STAYS_AND_CANNOT_WORK, environment, structure, 80, 0);
         registerTest(event, AXIOM_ENABLES_WORK_AND_REMOVAL_RETURNS_TO_STAY, environment, structure, 40, 0);
         registerTest(event, PLACED_GOLEM_WITHOUT_AXIOM_IS_PURPOSELESS, environment, structure, 40, 0);
+        registerTest(event, DEFAULTS_KEEP_CONFIGURED_WORKPLACE, environment, structure, 40, 0);
+        registerTest(event, REMOVING_AXIOM_KEEPS_FOLLOW, environment, structure, 40, 0);
+        registerTest(event, AXIOM_GIVEN_STARTS_WORK_IN_DEFAULT_AREA, environment, structure, 40, 0);
+        registerTest(event, AXIOM_GIVEN_KEEPS_CONFIGURED_WORKPLACE, environment, structure, 40, 0);
+        registerTest(event, NON_OWNER_CANNOT_GIVE_AXIOM, environment, structure, 40, 0);
+        registerTest(event, AXIOM_GIVEN_HARVESTS_FIELD, environment, structure, 800, 0);
+        registerTest(event, AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL, environment, structure, 80, 0);
 
         registerTest(event, FARMING_HARVEST_AND_REPLANT, environment, structure, 800, 0);
         registerTest(event, FARMING_DEPOSIT_FULL_INVENTORY, environment, structure, 800, 0);

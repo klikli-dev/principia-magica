@@ -1,0 +1,26 @@
+{
+  "parent": "principiamagica:clay_that_stands",
+  "criteria": {
+    "given_axiom": {
+      "trigger": "principiamagica:golem_given_axiom"
+    }
+  },
+  "display": {
+    "announce_to_chat": false,
+    "description": {
+      "translate": "advancements.principiamagica.purpose.description"
+    },
+    "icon": {
+      "id": "principiamagica:axiom_of_harvest"
+    },
+    "title": {
+      "translate": "advancements.principiamagica.purpose.title"
+    }
+  },
+  "requirements": [
+    [
+      "given_axiom"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

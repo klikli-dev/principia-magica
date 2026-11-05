@@ -23,5 +23,17 @@
     "required_facts": [
       "principiamagica:research/advancement/quickened"
     ]
+  },
+  {
+    "id": "principiamagica:research/advancement/clay_that_stands",
+    "required_facts": [
+      "principiamagica:research/advancement/clay_that_stands"
+    ]
+  },
+  {
+    "id": "principiamagica:research/advancement/purpose",
+    "required_facts": [
+      "principiamagica:research/advancement/purpose"
+    ]
   }
 ]

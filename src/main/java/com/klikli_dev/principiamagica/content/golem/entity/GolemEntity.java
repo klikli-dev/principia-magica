@@ -402,6 +402,7 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
 
     /**
      * Removes the job and returns its axiom item, or an empty stack if there was no job or no axiom item for it.
+     * The golem is purposeless afterwards: it stays, unless it was set to follow.
      */
     public ItemStack takeJob() {
         Optional<Holder<GolemJob>> job = this.getSpec().job();
@@ -411,6 +412,9 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
 
         ItemStack axiom = AxiomItem.createStack(job.get());
         this.setSpec(this.getSpec().withoutJob());
+        if (this.getMode() != GolemMode.FOLLOW) {
+            this.setMode(GolemMode.STAY);
+        }
         return axiom;
     }
 

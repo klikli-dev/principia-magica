@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "giving",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.principiamagica.principia.the_wet_clay.purpose.giving.text",
+  "title": "book.principiamagica.principia.the_wet_clay.purpose.giving.title"
+}

@@ -7,6 +7,7 @@ package com.klikli_dev.principiamagica.content.golem.workplace;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.Capabilities;
 
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Zero-config workplace: a 9x9 zone centred on the anchor, plus any container touching the anchor as BOTH.
+ * Zero-config workplace: a 9x9 zone centred on the golem, plus any container touching the golem as BOTH.
  */
 public final class WorkplaceDefaults {
     public static final int RADIUS = 4;
@@ -24,19 +25,21 @@ public final class WorkplaceDefaults {
     private WorkplaceDefaults() {
     }
 
-    public static void initializeIfNeeded(GolemEntity golem, ServerLevel level) {
-        golem.getAnchor()
-                .filter(anchor -> anchor.dimension().equals(level.dimension()))
-                .ifPresent(anchor -> golem.getWorkplace(level)
-                        .filter(workplace -> !workplace.initialized())
-                        .ifPresent(workplace -> golem.updateWorkplace(current -> initialize(level, anchor.pos(), current))));
+    /**
+     * Applies the default work area around the golem's current position when it has no zones yet, e.g. when it is given an axiom.
+     * The anchor moves to the current position so the zone and the golem's home agree. Existing zones and links are kept.
+     */
+    public static void applyIfEmpty(GolemEntity golem, ServerLevel level) {
+        if (golem.getWorkplace(level).map(workplace -> !workplace.zones().isEmpty()).orElse(true)) {
+            return;
+        }
+
+        BlockPos pos = golem.blockPosition();
+        golem.setAnchor(GlobalPos.of(level.dimension(), pos));
+        golem.updateWorkplace(current -> initialize(level, pos, current));
     }
 
     public static Workplace initialize(ServerLevel level, BlockPos anchor, Workplace workplace) {
-        if (workplace.initialized()) {
-            return workplace;
-        }
-
         List<ContainerLink> links = new ArrayList<>(workplace.links());
         for (Direction direction : Direction.values()) {
             BlockPos pos = anchor.relative(direction);

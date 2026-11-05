@@ -41,6 +41,10 @@ public class WetClayCategoryProvider extends CategoryProvider {
         var theBodyEntry = this.add(new TheBodyEntry(this).generate());
         this.layout().entry(theBodyEntry).at(3, 1);
         theBodyEntry.withParent(fleshAndClayEntry).hideWhileLocked(true);
+
+        var purposeEntry = this.add(new PurposeEntry(this).generate());
+        this.layout().entry(purposeEntry).at(4, 1);
+        purposeEntry.withParent(theBodyEntry).hideWhileLocked(true);
     }
 
     @Override

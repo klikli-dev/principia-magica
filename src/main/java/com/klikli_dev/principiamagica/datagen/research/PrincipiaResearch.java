@@ -16,6 +16,8 @@ public class PrincipiaResearch extends SingleResearchSubProvider {
     public static final ResearchNodeRef WET_CLAY = node("research/advancement/wet_clay");
     public static final ResearchNodeRef FLESH_AND_CLAY = node("research/flesh_and_clay");
     public static final ResearchNodeRef QUICKENED = node("research/advancement/quickened");
+    public static final ResearchNodeRef CLAY_THAT_STANDS = node("research/advancement/clay_that_stands");
+    public static final ResearchNodeRef PURPOSE = node("research/advancement/purpose");
 
     public PrincipiaResearch() {
         super("principia", PrincipiaMagica.MODID);
@@ -41,10 +43,20 @@ public class PrincipiaResearch extends SingleResearchSubProvider {
                 .onAdvancementEarned(PrincipiaMagicaAdvancementSubProvider.QUICKENED)
                 .declareFact("research/advancement/quickened"));
 
+        this.node(CLAY_THAT_STANDS, this.ingress()
+                .onAdvancementEarned(PrincipiaMagicaAdvancementSubProvider.CLAY_THAT_STANDS)
+                .declareFact("research/advancement/clay_that_stands"));
+
+        this.node(PURPOSE, this.ingress()
+                .onAdvancementEarned(PrincipiaMagicaAdvancementSubProvider.PURPOSE)
+                .declareFact("research/advancement/purpose"));
+
         this.researchNodeName(A_WEDGE_OF_COPPER, "A Wedge of Copper");
         this.researchNodeName(WET_CLAY, "Wet Clay");
         this.researchNodeName(FLESH_AND_CLAY, "Flesh and Clay");
         this.researchNodeName(QUICKENED, "Quickened");
+        this.researchNodeName(CLAY_THAT_STANDS, "Clay That Stands");
+        this.researchNodeName(PURPOSE, "Purpose");
     }
 
     static ResearchNodeRef node(String path) {

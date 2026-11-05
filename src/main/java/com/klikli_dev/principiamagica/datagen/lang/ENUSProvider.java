@@ -36,6 +36,8 @@ public class ENUSProvider extends LanguageProvider {
         this.add("advancements.principiamagica.quickened.description", "Knead flesh into clay.");
         this.add("advancements.principiamagica.clay_that_stands.title", "Clay That Stands");
         this.add("advancements.principiamagica.clay_that_stands.description", "Set down a body of wood and clay.");
+        this.add("advancements.principiamagica.purpose.title", "Purpose");
+        this.add("advancements.principiamagica.purpose.description", "Give a golem a law to follow.");
         this.add("item.principiamagica.principia", "Principia");
         this.add("item.principiamagica.wet_tablet", "Wet Tablet");
         this.add("item.principiamagica.quickened_clay", "Quickened Clay");

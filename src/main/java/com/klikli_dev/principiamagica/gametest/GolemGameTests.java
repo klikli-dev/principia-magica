@@ -22,6 +22,7 @@ import com.klikli_dev.principiamagica.datagen.advancement.PrincipiaMagicaAdvance
 import com.klikli_dev.principiamagica.registry.ActivityRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
+import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
@@ -33,6 +34,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.Items;
@@ -40,6 +42,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -143,26 +147,42 @@ public class GolemGameTests {
 
     public static void workplaceDefaultsLinkAdjacentChest(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        BlockPos anchorPos = new BlockPos(2, 2, 2);
+        BlockPos golemPos = new BlockPos(2, 2, 2);
         BlockPos chestPos = new BlockPos(3, 2, 2);
         helper.setBlock(chestPos, Blocks.CHEST);
 
-        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), golemPos);
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
-        golem.setAnchor(GlobalPos.of(level.dimension(), helper.absolutePos(anchorPos)));
 
-        WorkplaceDefaults.initializeIfNeeded(golem, level);
+        WorkplaceDefaults.applyIfEmpty(golem, level);
 
         Workplace workplace = golem.getWorkplace(level).orElseThrow();
         helper.assertTrue(workplace.initialized(), "Defaults should mark the workplace as initialized");
         helper.assertTrue(workplace.zones().size() == 1, "Defaults should create exactly one zone");
-        helper.assertTrue(workplace.containsInZone(helper.absolutePos(anchorPos)), "Default zone should contain the anchor");
+        helper.assertTrue(workplace.containsInZone(helper.absolutePos(golemPos)), "Default zone should contain the golem");
+        helper.assertTrue(golem.getAnchor().equals(Optional.of(GlobalPos.of(level.dimension(), helper.absolutePos(golemPos)))),
+                "Defaults should move the anchor to the golem's position");
 
         BlockPos absoluteChest = helper.absolutePos(chestPos);
         helper.assertTrue(workplace.links().stream().anyMatch(link -> link.pos().equals(absoluteChest)
                         && link.role() == ContainerRole.BOTH
                         && link.side() == Direction.WEST),
-                "Adjacent chest should be auto-linked as BOTH on the face towards the anchor");
+                "Adjacent chest should be auto-linked as BOTH on the face towards the golem");
+
+        helper.succeed();
+    }
+
+    public static void defaultsKeepConfiguredWorkplace(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        WorkZone configured = WorkZone.of(helper.absolutePos(new BlockPos(0, 1, 0)), helper.absolutePos(new BlockPos(1, 1, 1)));
+        golem.updateWorkplace(workplace -> workplace.withZones(List.of(configured)));
+
+        WorkplaceDefaults.applyIfEmpty(golem, level);
+
+        Workplace workplace = golem.getWorkplace(level).orElseThrow();
+        helper.assertTrue(workplace.zones().equals(List.of(configured)), "A configured zone should be kept, got " + workplace.zones());
 
         helper.succeed();
     }
@@ -188,6 +208,7 @@ public class GolemGameTests {
         golem.setMode(GolemMode.STAY);
         helper.runAfterDelay(40, () -> {
             helper.assertTrue(golem.getStatus() == GolemStatus.NO_PURPOSE, "Purposeless golem should report no purpose, got " + golem.getStatus());
+            helper.assertTrue(!golem.getStatus().isProblem(), "No purpose should not count as a problem");
             helper.assertTrue(!golem.getBrain().isActive(Activity.WORK), "Purposeless golem should never activate its work");
             helper.succeed();
         });
@@ -205,6 +226,131 @@ public class GolemGameTests {
         helper.succeed();
     }
 
+    public static void removingAxiomKeepsFollow(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(PrincipiaMagicaRegistries.GOLEM_JOB.get(FarmingJob.KEY).orElseThrow()));
+        golem.setMode(GolemMode.FOLLOW);
+
+        ItemStack axiom = golem.takeJob();
+        helper.assertTrue(axiom.is(ItemRegistry.AXIOM_OF_HARVEST.get()), "Removing the job should return the harvest axiom");
+        helper.assertTrue(golem.getMode() == GolemMode.FOLLOW, "Removing the axiom should keep Follow, got " + golem.getMode());
+
+        helper.succeed();
+    }
+
+    public static void axiomGivenStartsWorkInDefaultArea(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        helper.setBlock(new BlockPos(2, 2, 1), Blocks.CHEST);
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        golem.setOwnerUUID(player.getUUID());
+        ItemStack axiom = ItemRegistry.AXIOM_OF_HARVEST.get().getDefaultInstance();
+        player.setItemInHand(InteractionHand.MAIN_HAND, axiom);
+
+        InteractionResult result = axiom.interactLivingEntity(player, golem, InteractionHand.MAIN_HAND);
+        helper.assertTrue(result.consumesAction(), "Giving an axiom to an owned golem should succeed, got " + result);
+        helper.assertTrue(axiom.isEmpty(), "The axiom should be consumed by the golem");
+        helper.assertTrue(golem.getSpec().job().isPresent(), "The golem should have the farming job");
+        helper.assertTrue(golem.getMode() == GolemMode.WORK, "The golem should switch to Work, got " + golem.getMode());
+
+        ServerLevel level = helper.getLevel();
+        Workplace workplace = golem.getWorkplace(level).orElseThrow();
+        helper.assertTrue(workplace.zones().size() == 1, "Giving an axiom should create the default zone");
+        WorkZone zone = workplace.zones().getFirst();
+        helper.assertTrue(zone.min().equals(helper.absolutePos(new BlockPos(-3, 1, -3))) && zone.max().equals(helper.absolutePos(new BlockPos(5, 4, 5))),
+                "Default zone should be 9x9 around the golem, got " + zone.min() + " to " + zone.max());
+        BlockPos absoluteChest = helper.absolutePos(new BlockPos(2, 2, 1));
+        helper.assertTrue(workplace.links().stream().anyMatch(link -> link.pos().equals(absoluteChest) && link.role() == ContainerRole.BOTH),
+                "The adjacent chest should be linked as BOTH");
+
+        helper.succeed();
+    }
+
+    public static void axiomGivenKeepsConfiguredWorkplace(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        WorkZone configured = WorkZone.of(helper.absolutePos(new BlockPos(0, 1, 0)), helper.absolutePos(new BlockPos(1, 1, 1)));
+        golem.updateWorkplace(workplace -> workplace.withZones(List.of(configured)));
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        golem.setOwnerUUID(player.getUUID());
+        ItemStack axiom = ItemRegistry.AXIOM_OF_HARVEST.get().getDefaultInstance();
+        player.setItemInHand(InteractionHand.MAIN_HAND, axiom);
+
+        axiom.interactLivingEntity(player, golem, InteractionHand.MAIN_HAND);
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().zones().equals(List.of(configured)),
+                "Giving an axiom should keep the configured work area");
+
+        helper.succeed();
+    }
+
+    public static void nonOwnerCannotGiveAxiom(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        golem.setOwnerUUID(UUID.randomUUID());
+
+        Player stranger = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack axiom = ItemRegistry.AXIOM_OF_HARVEST.get().getDefaultInstance();
+        stranger.setItemInHand(InteractionHand.MAIN_HAND, axiom);
+
+        InteractionResult result = axiom.interactLivingEntity(stranger, golem, InteractionHand.MAIN_HAND);
+        helper.assertTrue(result == InteractionResult.FAIL, "A non-owner should be refused, got " + result);
+        helper.assertTrue(golem.getSpec().job().isEmpty(), "A non-owner should not give the golem a job");
+        helper.assertTrue(!axiom.isEmpty(), "A refused axiom should not be consumed");
+
+        helper.succeed();
+    }
+
+    public static void axiomGivenHarvestsField(GameTestHelper helper) {
+        for (int x = 1; x <= 5; x++) {
+            for (int z = 1; z <= 5; z++) {
+                helper.setBlock(new BlockPos(x, 1, z), Blocks.STONE);
+            }
+        }
+        for (int x = 2; x <= 4; x++) {
+            for (int z = 2; z <= 4; z++) {
+                helper.setBlock(new BlockPos(x, 1, z), Blocks.FARMLAND);
+                helper.setBlock(new BlockPos(x, 2, z), Blocks.WHEAT.defaultBlockState().setValue(CropBlock.AGE, 7));
+            }
+        }
+        helper.setBlock(new BlockPos(2, 2, 1), Blocks.CHEST);
+
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        golem.setOwnerUUID(player.getUUID());
+        ItemStack axiom = ItemRegistry.AXIOM_OF_HARVEST.get().getDefaultInstance();
+        player.setItemInHand(InteractionHand.MAIN_HAND, axiom);
+        axiom.interactLivingEntity(player, golem, InteractionHand.MAIN_HAND);
+
+        helper.succeedWhen(() -> {
+            for (int x = 2; x <= 4; x++) {
+                for (int z = 2; z <= 4; z++) {
+                    BlockState state = helper.getBlockState(new BlockPos(x, 2, z));
+                    helper.assertTrue(!(state.is(Blocks.WHEAT) && state.getValue(CropBlock.AGE) == 7), "Mature wheat at " + x + "," + z + " should be harvested");
+                }
+            }
+            helper.assertTrue(golem.getInventory().countItem(Items.WHEAT) >= 9, "The golem should carry the harvested wheat, has " + golem.getInventory().countItem(Items.WHEAT));
+        });
+    }
+
+    public static void axiomGivenLumberjackWithoutAxeReportsMissingTool(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        golem.setOwnerUUID(player.getUUID());
+        ItemStack axiom = ItemRegistry.AXIOM_OF_FELLING.get().getDefaultInstance();
+        player.setItemInHand(InteractionHand.MAIN_HAND, axiom);
+        axiom.interactLivingEntity(player, golem, InteractionHand.MAIN_HAND);
+
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(golem.getMode() == GolemMode.WORK, "The lumberjack should be in Work, got " + golem.getMode());
+            helper.assertTrue(golem.getStatus() == GolemStatus.MISSING_TOOL, "Without an axe the lumberjack should report a missing tool, got " + golem.getStatus());
+            helper.succeed();
+        });
+    }
+
     public static void placedGolemWithoutAxiomIsPurposeless(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.CREATIVE);
@@ -220,6 +366,7 @@ public class GolemGameTests {
         helper.assertTrue(golem.getSpec().job().isEmpty(), "A placed golem should have no axiom");
         helper.assertTrue(golem.getMode() == GolemMode.STAY, "A placed golem without axiom should be in Stay, got " + golem.getMode());
         helper.assertTrue(!golem.removeWhenFarAway(128.0), "A placed golem should never despawn");
+        helper.assertTrue(golem.getWorkplace(level).orElseThrow().zones().isEmpty(), "A placed golem should not create a work area before it is given an axiom");
 
         AdvancementHolder advancement = level.getServer().getAdvancements().get(PrincipiaMagicaAdvancementSubProvider.CLAY_THAT_STANDS);
         helper.assertTrue(advancement != null, "Advancement clay_that_stands is missing");
