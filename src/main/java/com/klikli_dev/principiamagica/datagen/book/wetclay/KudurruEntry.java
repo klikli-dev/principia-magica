@@ -62,7 +62,7 @@ public class KudurruEntry extends PrincipiaEntryProvider {
                 .withText(this.context().pageText()));
         this.pageTitle("Erasing a Boundary");
         this.pageText("""
-                Shift-right-click a carved glyph with the stylus to erase its boundary, and the field it belonged to is gone. Breaking the block a glyph is carved into does not erase it. The glyph stays on the face where the block was, and the boundary holds until the stylus removes it.
+                Shift-right-click a carved glyph with the stylus to erase its boundary, and the field it belonged to is gone. You can do this from a distance: while you sneak with the stylus, the glyph under your crosshair glows, and shift-right-click it to erase. Shift-right-click inside a boundary also erases it. Breaking the block a glyph is carved into does not erase it. The glyph stays on the face where the block was, and the boundary holds until the stylus removes it.
                 """
         );
 

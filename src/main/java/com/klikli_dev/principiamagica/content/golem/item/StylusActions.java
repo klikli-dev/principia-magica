@@ -105,6 +105,23 @@ public final class StylusActions {
     }
 
     /**
+     * Erases the footprint that carries exactly this glyph, matching both its block and its face.
+     *
+     * @return the workplace without the footprint, or empty if no footprint carries the glyph
+     */
+    public static Optional<Workplace> removeFootprintWithGlyph(Workplace workplace, CarvedGlyph glyph) {
+        Optional<WorkFootprint> target = workplace.footprints().stream()
+                .filter(footprint -> footprint.glyphs().contains(glyph))
+                .findFirst();
+
+        return target.map(footprint -> {
+            List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+            footprints.remove(footprint);
+            return workplace.withFootprints(footprints).markInitialized();
+        });
+    }
+
+    /**
      * Overwrites footprints and links of the target with the relative clipboard placed at the target anchor. Options are kept.
      */
     public static Workplace paste(Workplace target, Workplace relativeClipboard, BlockPos anchor) {

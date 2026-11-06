@@ -32,6 +32,7 @@ public class PrincipiaMagicaClient {
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onRenderLevelStage);
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onClientTick);
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onMouseScrolling);
+        NeoForge.EVENT_BUS.addListener(workplaceOverlay::onInteractionKeyMapping);
     }
 
     public static void onRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {

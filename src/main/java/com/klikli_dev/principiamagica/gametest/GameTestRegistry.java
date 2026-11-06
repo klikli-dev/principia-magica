@@ -113,6 +113,18 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> SHIFT_CARVE_ERASES_FOOTPRINT =
             TEST_FUNCTIONS.register("shift_carve_erases_footprint", () -> StylusGameTests::shiftCarveErasesFootprint);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GLYPH_TARGET_HITS_EVERY_FACE_FROM_AFAR =
+            TEST_FUNCTIONS.register("glyph_target_hits_every_face_from_afar", () -> StylusGameTests::glyphTargetHitsEveryFaceFromAfar);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GLYPH_TARGET_PREFERS_NEAREST_GLYPH =
+            TEST_FUNCTIONS.register("glyph_target_prefers_nearest_glyph", () -> StylusGameTests::glyphTargetPrefersNearestGlyph);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GLYPH_TARGET_MISSES_BESIDE_AND_YIELDS_TO_BLOCKS =
+            TEST_FUNCTIONS.register("glyph_target_misses_beside_and_yields_to_blocks", () -> StylusGameTests::glyphTargetMissesBesideAndYieldsToBlocks);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> REMOVE_FOOTPRINT_WITH_GLYPH_MATCHES_BLOCK_AND_FACE =
+            TEST_FUNCTIONS.register("remove_footprint_with_glyph_matches_block_and_face", () -> StylusGameTests::removeFootprintWithGlyphMatchesBlockAndFace);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT =
             TEST_FUNCTIONS.register("copy_and_paste_keeps_relative_layout", () -> StylusGameTests::copyAndPasteKeepsRelativeLayout);
 
@@ -356,6 +368,10 @@ public class GameTestRegistry {
         registerTest(event, CARVING_TWO_GLYPHS_CREATES_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, OVERSIZED_FOOTPRINT_IS_REJECTED, environment, structure, 40, 0);
         registerTest(event, SHIFT_CARVE_ERASES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, GLYPH_TARGET_HITS_EVERY_FACE_FROM_AFAR, environment, structure, 40, 0);
+        registerTest(event, GLYPH_TARGET_PREFERS_NEAREST_GLYPH, environment, structure, 40, 0);
+        registerTest(event, GLYPH_TARGET_MISSES_BESIDE_AND_YIELDS_TO_BLOCKS, environment, structure, 40, 0);
+        registerTest(event, REMOVE_FOOTPRINT_WITH_GLYPH_MATCHES_BLOCK_AND_FACE, environment, structure, 40, 0);
         registerTest(event, COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT, environment, structure, 40, 0);
         registerTest(event, COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES, environment, structure, 40, 0);
         registerTest(event, JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS, environment, structure, 40, 0);

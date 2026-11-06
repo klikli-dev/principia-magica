@@ -33,7 +33,14 @@ public final class ZoneRenderer {
      * A carved glyph decal on the block face it was carved into. Glows, so it reads while the stylus is held.
      */
     public static void renderGlyph(WorkplaceGeometry geometry, CarvedGlyph glyph, int color, float alpha, double time) {
+        renderGlyph(geometry, glyph, color, GLYPH_SIZE, alpha, time);
+    }
+
+    /**
+     * Same as {@link #renderGlyph(WorkplaceGeometry, CarvedGlyph, int, float, double)} with a custom decal size.
+     */
+    public static void renderGlyph(WorkplaceGeometry geometry, CarvedGlyph glyph, int color, float size, float alpha, double time) {
         float pulse = WorkplaceGeometry.pulse(time, 0.12, 0.7F);
-        geometry.decal(glyph.pos(), glyph.face(), GLYPH_SIZE, WorkplaceGeometry.argb(color, alpha * pulse));
+        geometry.decal(glyph.pos(), glyph.face(), size, WorkplaceGeometry.argb(color, alpha * pulse));
     }
 }
