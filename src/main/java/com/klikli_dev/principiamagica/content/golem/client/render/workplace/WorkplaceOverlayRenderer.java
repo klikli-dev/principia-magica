@@ -260,7 +260,7 @@ public class WorkplaceOverlayRenderer {
         });
     }
 
-    private static ItemStack heldStylus(Player player) {
+    static ItemStack heldStylus(Player player) {
         if (player.getMainHandItem().getItem() instanceof StylusItem) {
             return player.getMainHandItem();
         }
@@ -277,7 +277,7 @@ public class WorkplaceOverlayRenderer {
     }
 
     @Nullable
-    private static BlockPos hoveredBlock(Minecraft minecraft) {
+    static BlockPos hoveredBlock(Minecraft minecraft) {
         return minecraft.hitResult instanceof BlockHitResult hit && hit.getType() == HitResult.Type.BLOCK ? hit.getBlockPos() : null;
     }
 
@@ -328,7 +328,7 @@ public class WorkplaceOverlayRenderer {
     }
 
     @Nullable
-    private static GolemEntity findGolem(ClientLevel level, @Nullable UUID selected) {
+    static GolemEntity findGolem(ClientLevel level, @Nullable UUID selected) {
         if (selected == null) {
             return null;
         }

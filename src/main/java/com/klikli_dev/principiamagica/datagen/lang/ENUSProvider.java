@@ -126,6 +126,9 @@ public class ENUSProvider extends LanguageProvider {
         this.add("gui.principiamagica.golem.mode.stay.tooltip", "The golem stays where it is");
         this.add("gui.principiamagica.golem.tool.disabled", "A golem without an axiom cannot use a tool");
         this.add("gui.principiamagica.golem.inventory.locked", "Locked: needs more inventory slots");
+        this.add("hud.principiamagica.stylus.role.supply", "Supply");
+        this.add("hud.principiamagica.stylus.role.deposit", "Deposit");
+        this.add("hud.principiamagica.stylus.role.both", "Both");
         this.add("gui.principiamagica.golem.status_hint.no_purpose", "No purpose: place an Axiom");
         this.add("gui.principiamagica.golem.status_hint.no_zone", "No work zone: use the Stylus");
         this.add("gui.principiamagica.golem.status_hint.missing_tool", "Missing tool: add one to slot");

@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica;
 
 import com.klikli_dev.principiamagica.content.golem.client.GolemRenderer;
 import com.klikli_dev.principiamagica.content.golem.client.gui.GolemScreen;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.StylusHud;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceOverlayRenderer;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceRenderTypes;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
@@ -29,6 +30,8 @@ public class PrincipiaMagicaClient {
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterMenuScreens);
         modEventBus.addListener(WorkplaceRenderTypes::onRegisterRenderPipelines);
         WorkplaceOverlayRenderer workplaceOverlay = new WorkplaceOverlayRenderer();
+        StylusHud stylusHud = new StylusHud();
+        modEventBus.addListener(stylusHud::onRegisterGuiLayers);
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onRenderLevelStage);
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onClientTick);
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onMouseScrolling);
