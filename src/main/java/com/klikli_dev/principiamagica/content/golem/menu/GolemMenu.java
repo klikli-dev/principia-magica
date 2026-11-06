@@ -33,6 +33,9 @@ import java.util.Optional;
  */
 public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
 
+    public static final int BUTTON_SEAL_DETAIL_OPEN = 2;
+    public static final int BUTTON_SEAL_DETAIL_CLOSE = 3;
+
     private static final int TOOL_SLOT = 0;
     private static final int GOLEM_SLOT_START = 1;
     private static final int PLAYER_SLOT_START = GOLEM_SLOT_START + GolemInventory.MAX_SLOTS;
@@ -45,7 +48,8 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     private final Container toolContainer;
     private final Container golemInventory;
     private final MenuLayoutController layoutController = new MenuLayoutController(this);
-    private GolemMenuTab activeTab = GolemMenuTab.OVERVIEW;
+    private GolemMenuTab activeTab = GolemMenuTab.GOLEM;
+    private boolean sealDetailOpen;
 
     public GolemMenu(int containerId, Inventory playerInventory, int golemId) {
         super(MenuRegistry.GOLEM.get(), containerId);
@@ -72,10 +76,16 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     }
 
     /**
-     * The client sends the tab ordinal as button id whenever the player switches tabs. The server rejects unknown ids.
+     * The client sends the tab ordinal as button id whenever the player switches tabs, and the seal detail button ids when it opens or closes
+     * the seal detail page. The server rejects unknown ids.
      */
     @Override
     public boolean clickMenuButton(Player player, int buttonId) {
+        if (buttonId == BUTTON_SEAL_DETAIL_OPEN || buttonId == BUTTON_SEAL_DETAIL_CLOSE) {
+            this.sealDetailOpen = buttonId == BUTTON_SEAL_DETAIL_OPEN;
+            return true;
+        }
+
         if (buttonId < 0 || buttonId >= GolemMenuTab.values().length) {
             return false;
         }
@@ -96,8 +106,11 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
         super.clicked(slotIndex, buttonNum, containerInput, player);
     }
 
-    private boolean isInventoryTabActive() {
-        return this.activeTab == GolemMenuTab.INVENTORY;
+    /**
+     * @return true if the golem-side slots (tool and golem inventory) are shown and usable. The player inventory is always active.
+     */
+    private boolean isGolemSideActive() {
+        return this.activeTab == GolemMenuTab.GOLEM && !this.sealDetailOpen;
     }
 
     @Override
@@ -116,12 +129,12 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
 
         for (int i = 0; i < GolemMenuLayout.PLAYER_MAIN_ROWS * GolemMenuLayout.PLAYER_COLUMNS; i++) {
             int slot = i + GolemMenuLayout.PLAYER_COLUMNS;
-            registry.bind("player.slot_" + slot, ctx -> this.addSlot(new InventoryTabSlot(this.playerInventory, slot, ctx.node().x(), ctx.node().y())));
+            registry.bind("player.slot_" + slot, ctx -> this.addSlot(new Slot(this.playerInventory, slot, ctx.node().x(), ctx.node().y())));
         }
 
         for (int column = 0; column < GolemMenuLayout.PLAYER_COLUMNS; column++) {
             int slot = column;
-            registry.bind("player.hotbar_" + column, ctx -> this.addSlot(new InventoryTabSlot(this.playerInventory, slot, ctx.node().x(), ctx.node().y())));
+            registry.bind("player.hotbar_" + column, ctx -> this.addSlot(new Slot(this.playerInventory, slot, ctx.node().x(), ctx.node().y())));
         }
     }
 
@@ -211,20 +224,25 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     }
 
     /**
-     * A slot that is only shown and usable on the inventory tab. Used for the tool and the player inventory.
+     * A slot on the golem side of the menu. Only shown and usable on the golem tab, while no seal detail page is open.
      */
-    private class InventoryTabSlot extends Slot {
-        InventoryTabSlot(Container container, int slot, int x, int y) {
+    private abstract class GolemSideSlot extends Slot {
+        GolemSideSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }
 
         @Override
         public boolean isActive() {
-            return GolemMenu.this.isInventoryTabActive();
+            return GolemMenu.this.isGolemSideActive();
+        }
+
+        @Override
+        public boolean mayPlace(ItemStack stack) {
+            return this.isActive() && super.mayPlace(stack);
         }
     }
 
-    private class ToolSlot extends InventoryTabSlot {
+    private class ToolSlot extends GolemSideSlot {
         ToolSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }
@@ -235,7 +253,7 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
         }
     }
 
-    private class GolemSlot extends InventoryTabSlot {
+    private class GolemSlot extends GolemSideSlot {
         GolemSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }
@@ -243,11 +261,6 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
         @Override
         public boolean isActive() {
             return super.isActive() && this.getContainerSlot() < GolemMenu.this.getUsableGolemSlots();
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack) {
-            return this.isActive() && super.mayPlace(stack);
         }
     }
 

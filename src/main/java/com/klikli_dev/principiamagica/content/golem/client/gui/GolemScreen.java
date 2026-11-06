@@ -58,10 +58,7 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
         Supplier<GolemView> views = () -> this.view;
         List<Tab> tabs = List.of(
                 new OverviewTab(views),
-                new JobTab(views),
-                new WorkplaceTab(views),
-                new UpgradesTab(views),
-                new InventoryTab(views, this.menu)
+                new JobTab(views)
         );
         ContentRect frame = new ContentRect(this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
         this.tabs = new TabHost(this, frame, tabs, index -> this.selectTab(GolemMenuTab.values()[index]));
