@@ -4,16 +4,32 @@
 
 package com.klikli_dev.principiamagica.gametest;
 
+import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
+import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.CommonJobOptions;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemCommands;
+import com.klikli_dev.principiamagica.content.golem.menu.GolemMenu;
+import com.klikli_dev.principiamagica.content.golem.menu.GolemMenuTab;
+import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
+import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
+import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,5 +72,138 @@ public class GolemMenuGameTests {
         helper.assertTrue(GolemCommands.removeLink(workplace, 0).orElseThrow().links().isEmpty(), "A valid link index should remove the link");
 
         helper.succeed();
+    }
+
+    public static void axiomSlotInstallsJob(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        helper.setBlock(new BlockPos(2, 2, 1), Blocks.CHEST);
+        Player player = ownedPlayer(helper, golem);
+        GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
+
+        ItemStack axiom = ItemRegistry.AXIOM_OF_HARVEST.get().getDefaultInstance();
+        helper.assertTrue(menu.axiomSlot().mayPlace(axiom), "An owned golem should accept an axiom in the axiom slot");
+        menu.axiomSlot().set(axiom);
+
+        helper.assertTrue(golem.getSpec().job().isPresent(), "Setting the axiom slot should install the job");
+        helper.assertTrue(golem.getMode() == GolemMode.WORK, "Installing a job should switch to Work, got " + golem.getMode());
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().footprints().size() == 1,
+                "Installing a job into a purposeless golem should create the default footprint");
+        helper.assertTrue(menu.axiomSlot().getItem().is(ItemRegistry.AXIOM_OF_HARVEST.get()), "The slot should show the installed axiom");
+
+        helper.succeed();
+    }
+
+    public static void axiomSlotPickupReturnsAxiomOnce(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(AxiomItem.jobOf(harvestAxiom()).orElseThrow()));
+        golem.setMode(GolemMode.WORK);
+        Player player = ownedPlayer(helper, golem);
+        GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
+
+        menu.clicked(indexOf(menu, menu.axiomSlot()), 0, ContainerInput.PICKUP, player);
+
+        ItemStack carried = menu.getCarried();
+        helper.assertTrue(carried.is(ItemRegistry.AXIOM_OF_HARVEST.get()) && carried.getCount() == 1, "Taking the axiom should put it on the cursor, got " + carried);
+        helper.assertTrue(golem.getSpec().job().isEmpty(), "Taking the axiom should remove the job");
+        helper.assertTrue(golem.getMode() == GolemMode.STAY, "Taking the axiom should return the golem to Stay, got " + golem.getMode());
+        helper.assertTrue(!player.getInventory().contains(stack -> stack.is(ItemRegistry.AXIOM_OF_HARVEST.get())),
+                "The axiom should exist only on the cursor");
+
+        helper.succeed();
+    }
+
+    public static void axiomSlotSwapReturnsPreviousAxiom(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(AxiomItem.jobOf(harvestAxiom()).orElseThrow()));
+        golem.setMode(GolemMode.WORK);
+        Player player = ownedPlayer(helper, golem);
+        GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
+
+        ItemStack felling = ItemRegistry.AXIOM_OF_FELLING.get().getDefaultInstance();
+        menu.setCarried(felling);
+        menu.clicked(indexOf(menu, menu.axiomSlot()), 0, ContainerInput.PICKUP, player);
+
+        helper.assertTrue(golem.getSpec().job().equals(AxiomItem.jobOf(felling)), "Swapping should install the felling job");
+        ItemStack carried = menu.getCarried();
+        helper.assertTrue(carried.is(ItemRegistry.AXIOM_OF_HARVEST.get()) && carried.getCount() == 1,
+                "Swapping should put the previous axiom on the cursor, got " + carried);
+        helper.assertTrue(!player.getInventory().contains(stack -> stack.is(ItemRegistry.AXIOM_OF_HARVEST.get()) || stack.is(ItemRegistry.AXIOM_OF_FELLING.get())),
+                "Swapping should not duplicate or drop an axiom into the inventory");
+        helper.assertTrue(menu.axiomSlot().getItem().is(ItemRegistry.AXIOM_OF_FELLING.get()), "The slot should show the new axiom");
+
+        helper.succeed();
+    }
+
+    public static void axiomShiftClickInstallsJob(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        Player player = ownedPlayer(helper, golem);
+        GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
+
+        ItemStack axiom = ItemRegistry.AXIOM_OF_HARVEST.get().getDefaultInstance();
+        player.getInventory().setItem(0, axiom);
+        Slot hotbar = menu.playerSlots().stream().filter(slot -> slot.getItem() == axiom).findFirst().orElseThrow();
+        menu.clicked(indexOf(menu, hotbar), 0, ContainerInput.QUICK_MOVE, player);
+
+        helper.assertTrue(golem.getSpec().job().isPresent(), "Shift-clicking an axiom should install the job");
+        helper.assertTrue(!player.getInventory().contains(stack -> stack.is(ItemRegistry.AXIOM_OF_HARVEST.get())),
+                "Shift-clicking should move the axiom out of the inventory");
+
+        helper.succeed();
+    }
+
+    public static void toolSlotRejectsWithoutJob(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        Player player = ownedPlayer(helper, golem);
+        GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
+
+        helper.assertTrue(!menu.toolSlot().mayPlace(new ItemStack(Items.IRON_AXE)), "A golem without a job should not accept a tool");
+
+        helper.succeed();
+    }
+
+    public static void golemSideSlotsInactiveOnJobTabAndSeals(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(AxiomItem.jobOf(harvestAxiom()).orElseThrow()));
+        golem.setMode(GolemMode.WORK);
+        Player player = ownedPlayer(helper, golem);
+        GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
+        Slot playerSlot = menu.playerSlots().getFirst();
+
+        helper.assertTrue(menu.axiomSlot().isActive() && menu.toolSlot().isActive(), "Golem-side slots should be active on the golem tab by default");
+
+        helper.assertTrue(menu.clickMenuButton(player, GolemMenuTab.JOB.ordinal()), "The job tab button should be accepted");
+        helper.assertTrue(!menu.axiomSlot().isActive() && !menu.toolSlot().isActive(), "Golem-side slots should be inactive on the job tab");
+        helper.assertTrue(playerSlot.isActive(), "Player slots should stay active on the job tab");
+
+        menu.clicked(indexOf(menu, menu.axiomSlot()), 0, ContainerInput.PICKUP, player);
+        helper.assertTrue(golem.getSpec().job().isPresent(), "Clicks on inactive slots should be ignored");
+
+        helper.assertTrue(menu.clickMenuButton(player, GolemMenuTab.GOLEM.ordinal()), "The golem tab button should be accepted");
+        helper.assertTrue(menu.clickMenuButton(player, GolemMenu.BUTTON_SEAL_DETAIL_OPEN), "Opening the seal detail should be accepted");
+        helper.assertTrue(!menu.axiomSlot().isActive() && !menu.toolSlot().isActive(), "Golem-side slots should be inactive while a seal detail is open");
+        helper.assertTrue(playerSlot.isActive(), "Player slots should stay active while a seal detail is open");
+
+        helper.assertTrue(menu.clickMenuButton(player, GolemMenu.BUTTON_SEAL_DETAIL_CLOSE), "Closing the seal detail should be accepted");
+        helper.assertTrue(menu.axiomSlot().isActive(), "Golem-side slots should be active again after closing the seal detail");
+
+        helper.succeed();
+    }
+
+    private static Player ownedPlayer(GameTestHelper helper, GolemEntity golem) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        golem.setOwnerUUID(player.getUUID());
+        player.setPos(golem.getX(), golem.getY(), golem.getZ());
+        return player;
+    }
+
+    private static ItemStack harvestAxiom() {
+        return ItemRegistry.AXIOM_OF_HARVEST.get().getDefaultInstance();
+    }
+
+    private static int indexOf(GolemMenu menu, Slot slot) {
+        return menu.slots.indexOf(slot);
     }
 }

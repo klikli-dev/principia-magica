@@ -139,6 +139,24 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> ZONE_AND_LINK_INDICES_ARE_VALIDATED =
             TEST_FUNCTIONS.register("zone_and_link_indices_are_validated", () -> GolemMenuGameTests::zoneAndLinkIndicesAreValidated);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_SLOT_INSTALLS_JOB =
+            TEST_FUNCTIONS.register("axiom_slot_installs_job", () -> GolemMenuGameTests::axiomSlotInstallsJob);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_SLOT_PICKUP_RETURNS_AXIOM_ONCE =
+            TEST_FUNCTIONS.register("axiom_slot_pickup_returns_axiom_once", () -> GolemMenuGameTests::axiomSlotPickupReturnsAxiomOnce);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_SLOT_SWAP_RETURNS_PREVIOUS_AXIOM =
+            TEST_FUNCTIONS.register("axiom_slot_swap_returns_previous_axiom", () -> GolemMenuGameTests::axiomSlotSwapReturnsPreviousAxiom);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_SHIFT_CLICK_INSTALLS_JOB =
+            TEST_FUNCTIONS.register("axiom_shift_click_installs_job", () -> GolemMenuGameTests::axiomShiftClickInstallsJob);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> TOOL_SLOT_REJECTS_WITHOUT_JOB =
+            TEST_FUNCTIONS.register("tool_slot_rejects_without_job", () -> GolemMenuGameTests::toolSlotRejectsWithoutJob);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB_AND_SEALS =
+            TEST_FUNCTIONS.register("golem_side_slots_inactive_on_job_tab_and_seals", () -> GolemMenuGameTests::golemSideSlotsInactiveOnJobTabAndSeals);
+
     // --- Farming ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_HARVEST_AND_REPLANT =
@@ -376,6 +394,12 @@ public class GameTestRegistry {
         registerTest(event, COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES, environment, structure, 40, 0);
         registerTest(event, JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS, environment, structure, 40, 0);
         registerTest(event, ZONE_AND_LINK_INDICES_ARE_VALIDATED, environment, structure, 40, 0);
+        registerTest(event, AXIOM_SLOT_INSTALLS_JOB, environment, structure, 40, 0);
+        registerTest(event, AXIOM_SLOT_PICKUP_RETURNS_AXIOM_ONCE, environment, structure, 40, 0);
+        registerTest(event, AXIOM_SLOT_SWAP_RETURNS_PREVIOUS_AXIOM, environment, structure, 40, 0);
+        registerTest(event, AXIOM_SHIFT_CLICK_INSTALLS_JOB, environment, structure, 40, 0);
+        registerTest(event, TOOL_SLOT_REJECTS_WITHOUT_JOB, environment, structure, 40, 0);
+        registerTest(event, GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB_AND_SEALS, environment, structure, 40, 0);
         registerTest(event, PURPOSELESS_GOLEM_STAYS_AND_CANNOT_WORK, environment, structure, 80, 0);
         registerTest(event, AXIOM_ENABLES_WORK_AND_REMOVAL_RETURNS_TO_STAY, environment, structure, 40, 0);
         registerTest(event, PLACED_GOLEM_WITHOUT_AXIOM_IS_PURPOSELESS, environment, structure, 40, 0);
