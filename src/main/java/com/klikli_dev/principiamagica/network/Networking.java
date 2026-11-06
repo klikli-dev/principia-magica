@@ -6,13 +6,9 @@ package com.klikli_dev.principiamagica.network;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.network.messages.MessageEraseGlyph;
-import com.klikli_dev.principiamagica.network.messages.MessageRemoveGolemAxiom;
 import com.klikli_dev.principiamagica.network.messages.MessageRemoveGolemUpgrade;
-import com.klikli_dev.principiamagica.network.messages.MessageRemoveLink;
-import com.klikli_dev.principiamagica.network.messages.MessageRemoveZone;
 import com.klikli_dev.principiamagica.network.messages.MessageSetGolemMode;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
-import com.klikli_dev.principiamagica.network.messages.MessageSetLinkRole;
 import com.klikli_dev.principiamagica.network.messages.MessageShiftZone;
 import com.klikli_dev.principiamagica.network.messages.MessageSyncGolemWorkplace;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,12 +27,8 @@ public class Networking {
         //to server
         registrar.playToServer(MessageSetGolemMode.TYPE, MessageSetGolemMode.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageSetJobOption.TYPE, MessageSetJobOption.STREAM_CODEC, MessageHandler::handle);
-        registrar.playToServer(MessageRemoveZone.TYPE, MessageRemoveZone.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageShiftZone.TYPE, MessageShiftZone.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageEraseGlyph.TYPE, MessageEraseGlyph.STREAM_CODEC, MessageHandler::handle);
-        registrar.playToServer(MessageSetLinkRole.TYPE, MessageSetLinkRole.STREAM_CODEC, MessageHandler::handle);
-        registrar.playToServer(MessageRemoveLink.TYPE, MessageRemoveLink.STREAM_CODEC, MessageHandler::handle);
-        registrar.playToServer(MessageRemoveGolemAxiom.TYPE, MessageRemoveGolemAxiom.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageRemoveGolemUpgrade.TYPE, MessageRemoveGolemUpgrade.STREAM_CODEC, MessageHandler::handle);
     }
 
