@@ -86,6 +86,13 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     }
 
     /**
+     * @return true while the seal detail page covers the golem tab. Synced to the server with {@link #clickMenuButton}.
+     */
+    public boolean isSealDetailOpen() {
+        return this.sealDetailOpen;
+    }
+
+    /**
      * The client sends the tab ordinal as button id whenever the player switches tabs, and the seal detail button ids when it opens or closes
      * the seal detail page. The server rejects unknown ids.
      */

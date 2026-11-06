@@ -23,6 +23,7 @@ public final class TabHost {
 
     private final List<Tab> tabs;
     private final List<PageStack> stacks = new ArrayList<>();
+    private final List<TabButton> buttons;
     private final TabBar tabBar;
     private final IntConsumer onSelected;
     private int selected = -1;
@@ -48,7 +49,15 @@ public final class TabHost {
             this.stacks.add(new PageStack(tab, new WidgetGroup(host), area));
         }
 
+        this.buttons = List.copyOf(buttons);
         this.tabBar = new TabBar(chrome, area.x() - TabButton.SIZE + TabBar.OVERLAP, area.y() + TabBar.TOP_MARGIN, TabBar.SPACING, buttons);
+    }
+
+    /**
+     * Enables or disables the tab button. A disabled tab cannot be selected by clicking it, but a selected tab stays shown until it is switched.
+     */
+    public void setEnabled(int index, boolean enabled) {
+        this.buttons.get(index).active = enabled;
     }
 
     /**

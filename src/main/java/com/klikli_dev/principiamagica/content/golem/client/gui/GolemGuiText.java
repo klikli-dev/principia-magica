@@ -6,24 +6,20 @@ package com.klikli_dev.principiamagica.content.golem.client.gui;
 
 import com.klikli_dev.principiamagica.content.golem.upgrade.GolemUpgrade;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
-import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
 import java.util.Locale;
 
 /**
- * Text, color and item helpers shared by the golem GUI tabs and pages.
+ * Text and color helpers shared by the golem GUI tabs and pages.
  */
 final class GolemGuiText {
 
     static final int OK_COLOR = 0xFF1B5E20;
+    static final int NEUTRAL_COLOR = 0xFF707070;
     static final int PROBLEM_COLOR = 0xFFA01818;
 
     private GolemGuiText() {
@@ -53,31 +49,6 @@ final class GolemGuiText {
 
     static Component modeName(GolemMode mode) {
         return Component.translatable("golem_mode.principiamagica." + mode.name().toLowerCase(Locale.ROOT));
-    }
-
-    static Component roleName(ContainerRole role) {
-        return switch (role) {
-            case SUPPLY -> Component.translatable("gui.principiamagica.golem.role_supply");
-            case DEPOSIT -> Component.translatable("gui.principiamagica.golem.role_deposit");
-            case BOTH -> Component.translatable("gui.principiamagica.golem.role_both");
-        };
-    }
-
-    static Component blockName(BlockPos pos) {
-        Level level = Minecraft.getInstance().level;
-        return level != null ? level.getBlockState(pos).getBlock().getName() : Component.empty();
-    }
-
-    static ItemStack blockItem(BlockPos pos) {
-        Level level = Minecraft.getInstance().level;
-        return level != null ? new ItemStack(level.getBlockState(pos).getBlock().asItem()) : ItemStack.EMPTY;
-    }
-
-    /**
-     * Formats a footprint's raise offset with an explicit sign, e.g. "+2", "0" or "-3".
-     */
-    static String signed(int raise) {
-        return raise == 0 ? "0" : String.format(Locale.ROOT, "%+d", raise);
     }
 
     /**
