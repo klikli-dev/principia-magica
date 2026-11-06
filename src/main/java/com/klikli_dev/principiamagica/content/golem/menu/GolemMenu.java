@@ -231,9 +231,7 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
             if (!this.moveItemStackTo(stack, PLAYER_SLOT_START, PLAYER_SLOT_END, true)) {
                 return ItemStack.EMPTY;
             }
-        } else if (!this.moveItemStackTo(stack, AXIOM_SLOT, AXIOM_SLOT + 1, false)
-                && !this.moveItemStackTo(stack, TOOL_SLOT, TOOL_SLOT + 1, false)
-                && !this.moveItemStackTo(stack, GOLEM_SLOT_START, PLAYER_SLOT_START, false)) {
+        } else if (!this.moveToGolemSide(stack)) {
             if (index < HOTBAR_SLOT_START) {
                 if (!this.moveItemStackTo(stack, HOTBAR_SLOT_START, PLAYER_SLOT_END, false)) {
                     return ItemStack.EMPTY;
@@ -255,6 +253,26 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
 
         slot.onTake(player, stack);
         return result;
+    }
+
+    /**
+     * Moves a stack from the player inventory to the golem side. Vanilla merges into matching stacks without checking the target, so every
+     * target is gated here: nothing moves while the golem side is inactive, and the golem inventory is limited to its usable slots.
+     */
+    private boolean moveToGolemSide(ItemStack stack) {
+        if (!this.isGolemSideActive()) {
+            return false;
+        }
+
+        if (this.canPlaceAxiom(stack) && this.moveItemStackTo(stack, AXIOM_SLOT, AXIOM_SLOT + 1, false)) {
+            return true;
+        }
+
+        if (this.canPlaceTool(stack) && this.moveItemStackTo(stack, TOOL_SLOT, TOOL_SLOT + 1, false)) {
+            return true;
+        }
+
+        return this.moveItemStackTo(stack, GOLEM_SLOT_START, GOLEM_SLOT_START + this.getUsableGolemSlots(), false);
     }
 
     /**

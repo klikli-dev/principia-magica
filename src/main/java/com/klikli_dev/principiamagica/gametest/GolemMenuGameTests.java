@@ -192,6 +192,27 @@ public class GolemMenuGameTests {
         helper.succeed();
     }
 
+    public static void shiftClickOnJobTabDoesNotEnterGolemInventory(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(AxiomItem.jobOf(harvestAxiom()).orElseThrow()));
+        golem.setMode(GolemMode.WORK);
+        Player player = ownedPlayer(helper, golem);
+        GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
+
+        golem.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE));
+        player.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE));
+        Slot hotbar = menu.playerSlots().stream().filter(slot -> slot.getItem().is(Items.COBBLESTONE) && slot.getItem().getCount() == 1 && slot.getContainerSlot() == 0)
+                .findFirst().orElseThrow();
+        helper.assertTrue(menu.clickMenuButton(player, GolemMenuTab.JOB.ordinal()), "The job tab button should be accepted");
+
+        menu.clicked(indexOf(menu, hotbar), 0, ContainerInput.QUICK_MOVE, player);
+
+        helper.assertTrue(golem.getInventory().getItem(0).getCount() == 1,
+                "Shift-clicking on the job tab should not merge into the golem inventory, got " + golem.getInventory().getItem(0).getCount());
+
+        helper.succeed();
+    }
+
     private static Player ownedPlayer(GameTestHelper helper, GolemEntity golem) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         golem.setOwnerUUID(player.getUUID());

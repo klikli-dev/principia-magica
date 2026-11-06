@@ -157,6 +157,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB_AND_SEALS =
             TEST_FUNCTIONS.register("golem_side_slots_inactive_on_job_tab_and_seals", () -> GolemMenuGameTests::golemSideSlotsInactiveOnJobTabAndSeals);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> SHIFT_CLICK_ON_JOB_TAB_DOES_NOT_ENTER_GOLEM_INVENTORY =
+            TEST_FUNCTIONS.register("shift_click_on_job_tab_does_not_enter_golem_inventory", () -> GolemMenuGameTests::shiftClickOnJobTabDoesNotEnterGolemInventory);
+
     // --- Farming ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_HARVEST_AND_REPLANT =
@@ -400,6 +403,7 @@ public class GameTestRegistry {
         registerTest(event, AXIOM_SHIFT_CLICK_INSTALLS_JOB, environment, structure, 40, 0);
         registerTest(event, TOOL_SLOT_REJECTS_WITHOUT_JOB, environment, structure, 40, 0);
         registerTest(event, GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB_AND_SEALS, environment, structure, 40, 0);
+        registerTest(event, SHIFT_CLICK_ON_JOB_TAB_DOES_NOT_ENTER_GOLEM_INVENTORY, environment, structure, 40, 0);
         registerTest(event, PURPOSELESS_GOLEM_STAYS_AND_CANNOT_WORK, environment, structure, 80, 0);
         registerTest(event, AXIOM_ENABLES_WORK_AND_REMOVAL_RETURNS_TO_STAY, environment, structure, 40, 0);
         registerTest(event, PLACED_GOLEM_WITHOUT_AXIOM_IS_PURPOSELESS, environment, structure, 40, 0);
