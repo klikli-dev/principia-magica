@@ -6,10 +6,7 @@ package com.klikli_dev.principiamagica.content.golem.item;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
-import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceDefaults;
-import com.klikli_dev.principiamagica.registry.CriterionTriggerRegistry;
 import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
@@ -28,6 +25,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.Optional;
 
 /**
  * One axiom per job. Right-click an owned golem to give it the job. Right-clicking a golem that has a different job
@@ -64,6 +63,17 @@ public class AxiomItem extends Item {
     }
 
     /**
+     * @return the job the axiom stack gives, or empty if the stack is not an axiom or its job is not registered
+     */
+    public static Optional<Holder<GolemJob>> jobOf(ItemStack stack) {
+        if (!(stack.getItem() instanceof AxiomItem axiom)) {
+            return Optional.empty();
+        }
+
+        return PrincipiaMagicaRegistries.GOLEM_JOB.get(axiom.getJob()).map(holder -> holder);
+    }
+
+    /**
      * Installs the axiom into an owned golem. A purposeless golem gets the default work area around its position (unless it already has zones)
      * and switches to Work. Right-clicking a golem that has a different job swaps the axioms: the previous job's axiom is returned to the player.
      */
@@ -95,21 +105,12 @@ public class AxiomItem extends Item {
 
         ItemStack previousAxiom = current != null ? createStack(current) : ItemStack.EMPTY;
 
-        golem.setSpec(golem.getSpec().withJob(holder));
         stack.consume(1, player);
-
-        if (current == null) {
-            WorkplaceDefaults.applyIfEmpty(golem, level);
-            golem.setMode(GolemMode.WORK);
-        }
+        golem.installJob(holder, player instanceof ServerPlayer serverPlayer ? serverPlayer : null);
 
         if (!previousAxiom.isEmpty()) {
             player.getInventory().placeItemBackInInventory(previousAxiom);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.golem.job_swapped"));
-        }
-
-        if (player instanceof ServerPlayer serverPlayer) {
-            CriterionTriggerRegistry.GOLEM_GIVEN_AXIOM.get().trigger(serverPlayer);
         }
 
         level.sendParticles(ParticleTypes.ENCHANT, golem.getX(), golem.getY(0.5), golem.getZ(), 30, 0.4, 0.5, 0.4, 0.2);

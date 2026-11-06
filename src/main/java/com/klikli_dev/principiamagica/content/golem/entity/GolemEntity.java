@@ -26,8 +26,10 @@ import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.golem.upgrade.GolemUpgrade;
 import com.klikli_dev.principiamagica.content.golem.upgrade.UpgradeAddResult;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceDefaults;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceSource;
 import com.klikli_dev.principiamagica.registry.AttributeRegistry;
+import com.klikli_dev.principiamagica.registry.CriterionTriggerRegistry;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.EntityDataSerializerRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
@@ -481,6 +483,24 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return false;
+    }
+
+    /**
+     * Gives the golem a job. A purposeless golem gets the default work area around its position (unless it already has zones)
+     * and switches to Work. The previous job, if any, is replaced without returning its axiom: callers handle that.
+     */
+    public void installJob(Holder<GolemJob> job, @Nullable ServerPlayer player) {
+        boolean wasPurposeless = this.getSpec().job().isEmpty();
+        this.setSpec(this.getSpec().withJob(job));
+
+        if (wasPurposeless && this.level() instanceof ServerLevel level) {
+            WorkplaceDefaults.applyIfEmpty(this, level);
+            this.setMode(GolemMode.WORK);
+        }
+
+        if (player != null) {
+            CriterionTriggerRegistry.GOLEM_GIVEN_AXIOM.get().trigger(player);
+        }
     }
 
     /**
