@@ -59,6 +59,9 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     @Override
     protected void init() {
         super.init();
+        if (this.menu.isSealDetailOpen()) {
+            this.pressMenuButton(GolemMenu.BUTTON_SEAL_DETAIL_CLOSE);
+        }
         this.view = this.createView();
         this.addGuiWidget(new GuiBackgroundWidget(this));
 
