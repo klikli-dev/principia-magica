@@ -7,7 +7,6 @@ package com.klikli_dev.principiamagica;
 import com.klikli_dev.principiamagica.datagen.PrincipiaMagicaDataGenerators;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceEvents;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.gametest.GameTestRegistry;
 import com.klikli_dev.principiamagica.registry.ActivityRegistry;
@@ -68,7 +67,6 @@ public class PrincipiaMagica {
         modEventBus.addListener(GolemEntity::onEntityAttributeCreation);
         modEventBus.addListener(Networking::register);
         NeoForge.EVENT_BUS.addListener(PrincipiaMagica::onPlayerTick);
-        NeoForge.EVENT_BUS.addListener(WorkplaceEvents::onBlockBreak);
         modEventBus.addListener(GameTestRegistry::onRegisterGameTests);
         modEventBus.addListener(PrincipiaMagicaDataGenerators::onGatherData);
     }

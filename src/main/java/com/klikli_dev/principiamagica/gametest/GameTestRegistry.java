@@ -34,8 +34,8 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> RAISE_OFFSET_MOVES_EFFECTIVE_BOX =
             TEST_FUNCTIONS.register("raise_offset_moves_effective_box", () -> GolemGameTests::raiseOffsetMovesEffectiveBox);
 
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> BREAKING_GLYPH_ERASES_FOOTPRINT =
-            TEST_FUNCTIONS.register("breaking_glyph_erases_footprint", () -> GolemGameTests::breakingGlyphErasesFootprint);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> BREAKING_GLYPH_KEEPS_FOOTPRINT =
+            TEST_FUNCTIONS.register("breaking_glyph_keeps_footprint", () -> GolemGameTests::breakingGlyphKeepsFootprint);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CONTAINER_ROLE_CYCLES =
             TEST_FUNCTIONS.register("container_role_cycles", () -> GolemGameTests::containerRoleCycles);
@@ -346,7 +346,7 @@ public class GameTestRegistry {
         registerTest(event, GOLEM_SPAWNS_WITH_BRAIN, environment, structure, 40, 0);
         registerTest(event, WORK_ZONE_CONTAINS_AND_ITERATES, environment, structure, 40, 0);
         registerTest(event, RAISE_OFFSET_MOVES_EFFECTIVE_BOX, environment, structure, 40, 0);
-        registerTest(event, BREAKING_GLYPH_ERASES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, BREAKING_GLYPH_KEEPS_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, CONTAINER_ROLE_CYCLES, environment, structure, 40, 0);
         registerTest(event, WORKPLACE_CODEC_ROUND_TRIPS, environment, structure, 40, 0);
         registerTest(event, WORK_RESERVATIONS_ARE_EXCLUSIVE, environment, structure, 40, 0);

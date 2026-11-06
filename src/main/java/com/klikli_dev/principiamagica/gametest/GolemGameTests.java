@@ -16,7 +16,6 @@ import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceEvents;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkReservations;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
@@ -321,9 +320,9 @@ public class GolemGameTests {
     }
 
     /**
-     * Breaking a block with a carved glyph erases the footprint that owns it, and leaves other footprints alone.
+     * Breaking the block a glyph is carved into keeps its footprint. Only the stylus erases glyphs, and other footprints are untouched.
      */
-    public static void breakingGlyphErasesFootprint(GameTestHelper helper) {
+    public static void breakingGlyphKeepsFootprint(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
@@ -335,12 +334,12 @@ public class GolemGameTests {
         WorkFootprint other = WorkFootprint.centered(helper.absolutePos(new BlockPos(8, 2, 8)), 1, glyphPos.getY());
         golem.updateWorkplace(workplace -> workplace.withFootprints(List.of(carved, other)));
 
-        helper.setBlock(new BlockPos(0, 1, 0), Blocks.AIR);
-        WorkplaceEvents.eraseGlyphsAt(level, glyphPos);
+        helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+        helper.destroyBlock(new BlockPos(0, 1, 0));
+        helper.assertTrue(helper.getBlockState(new BlockPos(0, 1, 0)).isAir(), "The glyph block should be broken");
 
         Workplace workplace = golem.getWorkplace(level).orElseThrow();
-        helper.assertTrue(workplace.footprints().equals(List.of(other)), "Breaking a glyph block should erase only its footprint, got " + workplace.footprints());
-        helper.assertTrue(!workplace.hasGlyphAt(glyphPos), "No glyph should remain at the broken block");
+        helper.assertTrue(workplace.footprints().equals(List.of(carved, other)), "Breaking a glyph block should keep every footprint, got " + workplace.footprints());
 
         helper.succeed();
     }

@@ -91,21 +91,6 @@ public record Workplace(
         return this.zones(below, above).stream().anyMatch(zone -> zone.contains(pos));
     }
 
-    public boolean hasGlyphAt(BlockPos pos) {
-        return this.footprints.stream().anyMatch(footprint -> footprint.hasGlyphAt(pos));
-    }
-
-    /**
-     * @return the workplace without the footprints that have a glyph at pos. Returns the workplace unchanged if none has.
-     */
-    public Workplace withoutGlyphAt(BlockPos pos) {
-        if (!this.hasGlyphAt(pos)) {
-            return this;
-        }
-
-        return this.withFootprints(this.footprints.stream().filter(footprint -> !footprint.hasGlyphAt(pos)).toList());
-    }
-
     /**
      * @return the index of the smallest footprint whose rectangle contains the column of pos, or -1 if none does
      */
