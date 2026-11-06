@@ -28,6 +28,7 @@ import com.klikli_dev.principiamagica.content.golem.upgrade.UpgradeAddResult;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceSource;
 import com.klikli_dev.principiamagica.registry.AttributeRegistry;
+import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.EntityDataSerializerRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
@@ -35,6 +36,7 @@ import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
@@ -65,6 +67,7 @@ import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
@@ -400,32 +403,60 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     }
 
     public ItemStack toItemStack() {
-        return GolemItem.createStack(this.getSpec());
+        ItemStack stack = GolemItem.createStack(this.getSpec());
+        GolemStorage storage = this.createStorage();
+        if (storage.itemCount() > 0) {
+            stack.set(DataComponentRegistry.GOLEM_STORAGE.get(), storage);
+        }
+        return stack;
     }
 
     /**
-     * On death the golem collapses into a cracked golem that keeps its spec and workplace. Inventory and equipment are
-     * dropped separately, the vanilla loot table is replaced. Discarding the golem (e.g. stylus pickup) does not get here.
+     * Snapshots the inventory and equipment. The golem keeps them, so the caller decides what to do with the snapshot.
+     */
+    public GolemStorage createStorage() {
+        List<ItemStack> items = new ArrayList<>();
+        for (int i = 0; i < this.inventory.getContainerSize(); i++) {
+            items.add(this.inventory.getItem(i));
+        }
+
+        List<ItemStack> equipment = new ArrayList<>();
+        for (EquipmentSlot slot : EquipmentSlot.VALUES) {
+            equipment.add(this.getItemBySlot(slot));
+        }
+
+        return new GolemStorage(ItemContainerContents.fromItems(items), ItemContainerContents.fromItems(equipment));
+    }
+
+    /**
+     * Puts the stored inventory and equipment back on the golem. Used when a golem item with storage is placed.
+     */
+    public void restoreStorage(GolemStorage storage) {
+        NonNullList<ItemStack> items = NonNullList.withSize(this.inventory.getContainerSize(), ItemStack.EMPTY);
+        storage.inventory().copyInto(items);
+        for (int i = 0; i < items.size(); i++) {
+            this.inventory.setItem(i, items.get(i));
+        }
+
+        NonNullList<ItemStack> equipment = NonNullList.withSize(EquipmentSlot.VALUES.size(), ItemStack.EMPTY);
+        storage.equipment().copyInto(equipment);
+        for (int i = 0; i < equipment.size(); i++) {
+            this.setItemSlot(EquipmentSlot.VALUES.get(i), equipment.get(i));
+        }
+    }
+
+    /**
+     * On death the golem collapses into a cracked golem that keeps its spec, workplace, inventory and equipment. The
+     * vanilla loot table is replaced, so nothing is dropped on the ground. Discarding the golem (e.g. stylus pickup) does not get here.
      */
     @Override
     protected void dropAllDeathLoot(ServerLevel level, DamageSource source) {
         this.dropCrackedGolem(level);
-
-        for (int i = 0; i < this.inventory.getContainerSize(); i++) {
-            this.dropIfPresent(level, this.inventory.removeItemNoUpdate(i));
-        }
-
-        for (EquipmentSlot slot : EquipmentSlot.VALUES) {
-            ItemStack stack = this.getItemBySlot(slot);
-            this.setItemSlot(slot, ItemStack.EMPTY);
-            this.dropIfPresent(level, stack);
-        }
-
         this.dropExperience(level, source.getEntity());
     }
 
     private void dropCrackedGolem(ServerLevel level) {
-        this.spawnAtLocation(level, CrackedGolemItem.createStack(this.getSpec(), this.relativeWorkplace(level)));
+        this.spawnAtLocation(level, CrackedGolemItem.createStack(this.getSpec(), this.relativeWorkplace(level), this.createStorage()));
 
         Vec3 center = this.position().add(0.0, this.getBbHeight() / 2.0, 0.0);
         level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.CLAY.defaultBlockState()),
@@ -435,12 +466,6 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         Component golemName = GolemItem.createStack(this.getSpec()).getHoverName();
         this.getOwner(level).ifPresent(owner -> owner.sendSystemMessage(Component.translatable("message.principiamagica.golem.cracked",
                 golemName, this.getBlockX(), this.getBlockY(), this.getBlockZ())));
-    }
-
-    private void dropIfPresent(ServerLevel level, ItemStack stack) {
-        if (!stack.isEmpty()) {
-            this.spawnAtLocation(level, stack);
-        }
     }
 
     private Workplace relativeWorkplace(ServerLevel level) {

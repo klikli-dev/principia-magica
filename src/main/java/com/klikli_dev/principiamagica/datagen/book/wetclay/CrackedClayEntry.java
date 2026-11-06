@@ -39,7 +39,7 @@ public class CrackedClayEntry extends PrincipiaEntryProvider {
                 A golem that dies collapses into a cracked golem. Its axiom, its seals and its workplace stay with it, so the work you carved and the law you gave it are not lost.
                 \\
                 \\
-                Its inventory and whatever it held in its hands are dropped where it fell. Pick them up quickly, dropped things do not last forever.
+                Its inventory and the tools it held stay with it too, sealed inside the cracked golem. Nothing is dropped where it fell.
                 """
         );
 
@@ -52,7 +52,7 @@ public class CrackedClayEntry extends PrincipiaEntryProvider {
                 Craft a copper stylus, the cracked golem and a quickened clay in any slots of the crafting grid. The stylus is returned to you, the clay is used up.
                 \\
                 \\
-                The result is the golem again, with its axiom, seals and workplace. Repairing it takes flesh again, so keep rotten flesh at hand.
+                The result is the golem again, with its axiom, seals, workplace, inventory and tools. Repairing it takes flesh again, so keep rotten flesh at hand.
                 """
         );
     }

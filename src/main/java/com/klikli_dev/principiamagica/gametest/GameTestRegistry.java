@@ -81,14 +81,20 @@ public class GameTestRegistry {
 
     // --- Cracked golem ---
 
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> DEATH_DROPS_CRACKED_GOLEM_AND_INVENTORY =
-            TEST_FUNCTIONS.register("death_drops_cracked_golem_and_inventory", () -> CrackedGolemGameTests::deathDropsCrackedGolemAndInventory);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> DEATH_DROPS_CRACKED_GOLEM_WITHOUT_LOOT =
+            TEST_FUNCTIONS.register("death_drops_cracked_golem_without_loot", () -> CrackedGolemGameTests::deathDropsCrackedGolemWithoutLoot);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> DISCARDED_GOLEM_DROPS_NOTHING =
             TEST_FUNCTIONS.register("discarded_golem_drops_nothing", () -> CrackedGolemGameTests::discardedGolemDropsNothing);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STYLUS_PICKUP_KEEPS_INVENTORY_ON_GOLEM_ITEM =
+            TEST_FUNCTIONS.register("stylus_pickup_keeps_inventory_on_golem_item", () -> CrackedGolemGameTests::stylusPickupKeepsInventoryOnGolemItem);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> REPAIR_RECIPE_MATCHES_ANY_ORDER_AND_KEEPS_COMPONENTS =
             TEST_FUNCTIONS.register("repair_recipe_matches_any_order_and_keeps_components", () -> CrackedGolemGameTests::repairRecipeMatchesAnyOrderAndKeepsComponents);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> REPAIRED_GOLEM_RESTORES_INVENTORY_AND_TOOL =
+            TEST_FUNCTIONS.register("repaired_golem_restores_inventory_and_tool", () -> CrackedGolemGameTests::repairedGolemRestoresInventoryAndTool);
 
     // --- Golem stylus ---
 
@@ -365,9 +371,11 @@ public class GameTestRegistry {
         registerTest(event, AXIOM_GIVEN_HARVESTS_FIELD, environment, structure, 800, 0);
         registerTest(event, AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL, environment, structure, 80, 0);
 
-        registerTest(event, DEATH_DROPS_CRACKED_GOLEM_AND_INVENTORY, environment, structure, 40, 0);
+        registerTest(event, DEATH_DROPS_CRACKED_GOLEM_WITHOUT_LOOT, environment, structure, 40, 0);
         registerTest(event, DISCARDED_GOLEM_DROPS_NOTHING, environment, structure, 40, 0);
+        registerTest(event, STYLUS_PICKUP_KEEPS_INVENTORY_ON_GOLEM_ITEM, environment, structure, 40, 0);
         registerTest(event, REPAIR_RECIPE_MATCHES_ANY_ORDER_AND_KEEPS_COMPONENTS, environment, structure, 40, 0);
+        registerTest(event, REPAIRED_GOLEM_RESTORES_INVENTORY_AND_TOOL, environment, structure, 40, 0);
 
         registerTest(event, FARMING_HARVEST_AND_REPLANT, environment, structure, 800, 0);
         registerTest(event, FARMING_DEPOSIT_FULL_INVENTORY, environment, structure, 800, 0);

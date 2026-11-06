@@ -156,6 +156,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("item.principiamagica.cracked_golem.named", "Cracked %s Golem");
         this.add("tooltip.principiamagica.cracked_golem.axiom", "Axiom: %s");
         this.add("tooltip.principiamagica.cracked_golem.no_axiom", "No axiom");
+        this.add("tooltip.principiamagica.cracked_golem.carries", "Carries %s items");
         this.add("tooltip.principiamagica.cracked_golem.repair", "Repair: copper stylus, quickened clay");
         this.add("message.principiamagica.golem.cracked", "Your %s cracked at %s, %s, %s.");
         this.add("item.principiamagica.copper_stylus", "Copper Stylus");

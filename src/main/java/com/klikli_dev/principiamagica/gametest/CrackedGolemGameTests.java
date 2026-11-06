@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemStorage;
 import com.klikli_dev.principiamagica.content.golem.item.CrackedGolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
@@ -21,13 +22,20 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +44,7 @@ import java.util.UUID;
 
 public class CrackedGolemGameTests {
 
-    public static void deathDropsCrackedGolemAndInventory(GameTestHelper helper) {
+    public static void deathDropsCrackedGolemWithoutLoot(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 2, 1);
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), pos);
         var job = PrincipiaMagicaRegistries.GOLEM_JOB.get(FarmingJob.KEY).orElseThrow();
@@ -60,12 +68,17 @@ public class CrackedGolemGameTests {
 
             helper.assertTrue(count(dropped, ItemRegistry.CRACKED_GOLEM.get()) == 1, "Death should drop exactly one cracked golem");
             helper.assertTrue(count(dropped, ItemRegistry.GOLEM.get()) == 0, "Death must not drop a golem item");
-            helper.assertTrue(count(dropped, Items.WHEAT) == 3, "Death should drop the inventory contents");
-            helper.assertTrue(count(dropped, Items.IRON_AXE) == 1, "Death should drop the equipped tool");
+            helper.assertTrue(count(dropped, Items.WHEAT) == 0, "Death must not drop the inventory contents");
+            helper.assertTrue(count(dropped, Items.IRON_AXE) == 0, "Death must not drop the equipped tool");
+            helper.assertTrue(dropped.size() == 1, "Death should drop nothing but the cracked golem, got " + dropped);
 
             ItemStack cracked = dropped.stream().filter(stack -> stack.is(ItemRegistry.CRACKED_GOLEM.get())).findFirst().orElseThrow();
             helper.assertTrue(spec.equals(cracked.get(DataComponentRegistry.GOLEM_SPEC.get())), "Cracked golem should keep the spec (axiom, upgrades)");
             helper.assertTrue(expectedWorkplace.equals(cracked.get(DataComponentRegistry.GOLEM_WORKPLACE.get())), "Cracked golem should keep the workplace");
+
+            List<ItemStack> carried = carried(cracked);
+            helper.assertTrue(count(carried, Items.WHEAT) == 3, "Cracked golem should carry the inventory, got " + carried);
+            helper.assertTrue(count(carried, Items.IRON_AXE) == 1, "Cracked golem should carry the equipped tool, got " + carried);
             helper.succeed();
         });
     }
@@ -81,7 +94,39 @@ public class CrackedGolemGameTests {
 
         helper.runAfterDelay(2, () -> {
             helper.assertTrue(helper.getLevel().getEntitiesOfClass(ItemEntity.class, area).isEmpty(),
-                    "Discarding a golem (as the stylus pickup does) must not drop a cracked golem or loot");
+                    "Discarding a golem must not drop a cracked golem or loot");
+            helper.succeed();
+        });
+    }
+
+    public static void stylusPickupKeepsInventoryOnGolemItem(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 2, 1);
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), pos);
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        golem.getInventory().insert(new ItemStack(Items.WHEAT, 3));
+        golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+        AABB area = new AABB(helper.absolutePos(pos)).inflate(4);
+        player.setShiftKeyDown(true);
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        helper.assertTrue(ItemRegistry.COPPER_STYLUS.get().onLeftClickEntity(stylus, player, golem), "Shift-left-click should pick the golem up");
+
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(helper.getLevel().getEntitiesOfClass(ItemEntity.class, area).isEmpty(),
+                    "Stylus pickup must not drop the inventory or the tool on the ground");
+
+            List<ItemStack> inventory = new ArrayList<>();
+            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                inventory.add(player.getInventory().getItem(i));
+            }
+            ItemStack golemItem = inventory.stream().filter(stack -> stack.is(ItemRegistry.GOLEM.get())).findFirst().orElseThrow(
+                    () -> new AssertionError("Stylus pickup should give the player a golem item"));
+
+            List<ItemStack> carried = carried(golemItem);
+            helper.assertTrue(count(carried, Items.WHEAT) == 3, "Golem item should carry the inventory, got " + carried);
+            helper.assertTrue(count(carried, Items.IRON_AXE) == 1, "Golem item should carry the equipped tool, got " + carried);
             helper.succeed();
         });
     }
@@ -90,7 +135,8 @@ public class CrackedGolemGameTests {
         BlockPos pos = new BlockPos(1, 2, 1);
         GolemSpec spec = GolemSpec.of(GolemMaterialRegistry.WOOD);
         Workplace workplace = StylusActions.cycleLink(Workplace.EMPTY, pos, Direction.UP);
-        ItemStack cracked = CrackedGolemItem.createStack(spec, workplace);
+        GolemStorage storage = new GolemStorage(ItemContainerContents.fromItems(List.of(new ItemStack(Items.WHEAT, 3))), ItemContainerContents.EMPTY);
+        ItemStack cracked = CrackedGolemItem.createStack(spec, workplace, storage);
         ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
         ItemStack clay = new ItemStack(ItemRegistry.QUICKENED_CLAY.get());
         var recipe = new RepairCrackedGolemRecipe();
@@ -103,6 +149,7 @@ public class CrackedGolemGameTests {
         helper.assertTrue(result.is(ItemRegistry.GOLEM.get()), "Repair should result in a golem item");
         helper.assertTrue(spec.equals(result.get(DataComponentRegistry.GOLEM_SPEC.get())), "Repair should keep the spec");
         helper.assertTrue(workplace.equals(result.get(DataComponentRegistry.GOLEM_WORKPLACE.get())), "Repair should keep the workplace");
+        helper.assertTrue(storage.equals(result.get(DataComponentRegistry.GOLEM_STORAGE.get())), "Repair should keep the inventory and equipment");
 
         NonNullList<ItemStack> remainders = recipe.getRemainingItems(input);
         helper.assertTrue(remainders.stream().filter(stack -> !stack.isEmpty()).count() == 1
@@ -115,6 +162,60 @@ public class CrackedGolemGameTests {
         helper.assertTrue(!recipe.matches(grid(stylus, cracked, clay, new ItemStack(Items.STICK)), level), "Repair rejects foreign items");
         helper.assertTrue(!recipe.matches(grid(cracked, clay), level), "Repair needs the stylus");
         helper.succeed();
+    }
+
+    /**
+     * Full cycle: the golem dies, the cracked golem is repaired and the golem item is placed again. The placed golem has
+     * its inventory and tool back.
+     */
+    public static void repairedGolemRestoresInventoryAndTool(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 2, 1);
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), pos);
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        golem.setOwnerUUID(UUID.randomUUID());
+        golem.getInventory().insert(new ItemStack(Items.WHEAT, 3));
+        golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+        AABB area = new AABB(helper.absolutePos(pos)).inflate(4);
+
+        golem.hurtServer(helper.getLevel(), helper.getLevel().damageSources().generic(), 1000.0F);
+
+        helper.runAfterDelay(2, () -> {
+            ItemStack cracked = helper.getLevel().getEntitiesOfClass(ItemEntity.class, area).stream()
+                    .map(ItemEntity::getItem)
+                    .filter(stack -> stack.is(ItemRegistry.CRACKED_GOLEM.get()))
+                    .findFirst().orElseThrow(() -> new AssertionError("Death should drop a cracked golem"));
+
+            CraftingInput input = grid(new ItemStack(ItemRegistry.COPPER_STYLUS.get()), cracked, new ItemStack(ItemRegistry.QUICKENED_CLAY.get()));
+            ItemStack repaired = new RepairCrackedGolemRecipe().assemble(input);
+
+            ServerPlayer player = helper.makeMockServerPlayerInLevel();
+            BlockPos placeAt = helper.absolutePos(new BlockPos(6, 1, 6));
+            BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(placeAt), Direction.UP, placeAt, false);
+            UseOnContext context = new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, repaired, hit);
+            InteractionResult result = repaired.getItem().useOn(context);
+            helper.assertTrue(result == InteractionResult.SUCCESS, "Placing the repaired golem should succeed, got " + result);
+
+            AABB placedArea = new AABB(placeAt).inflate(2);
+            List<GolemEntity> placed = helper.getLevel().getEntitiesOfClass(GolemEntity.class, placedArea);
+            helper.assertTrue(placed.size() == 1, "Placing should spawn exactly one golem, got " + placed.size());
+
+            GolemEntity restored = placed.getFirst();
+            helper.assertTrue(restored.getInventory().countItem(Items.WHEAT) == 3, "Placed golem should have its inventory back");
+            helper.assertTrue(restored.getItemBySlot(EquipmentSlot.MAINHAND).is(Items.IRON_AXE), "Placed golem should hold its axe again");
+            helper.succeed();
+        });
+    }
+
+    private static List<ItemStack> carried(ItemStack cracked) {
+        GolemStorage storage = cracked.get(DataComponentRegistry.GOLEM_STORAGE.get());
+        if (storage == null) {
+            return List.of();
+        }
+
+        List<ItemStack> carried = new ArrayList<>();
+        storage.inventory().nonEmptyItemCopyStream().forEach(carried::add);
+        storage.equipment().nonEmptyItemCopyStream().forEach(carried::add);
+        return carried;
     }
 
     private static CraftingInput grid(ItemStack... stacks) {

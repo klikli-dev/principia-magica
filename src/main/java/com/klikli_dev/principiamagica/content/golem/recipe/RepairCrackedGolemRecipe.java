@@ -19,7 +19,7 @@ import net.minecraft.world.level.Level;
 
 /**
  * Repairs a cracked golem: one copper stylus, one cracked golem and one quickened clay in any slots.
- * The result is a golem item with all components of the cracked golem (axiom, upgrades, workplace).
+ * The result is a golem item with all components of the cracked golem (axiom, upgrades, workplace, inventory and equipment).
  * The stylus is returned, the cracked golem and the clay are consumed.
  */
 public class RepairCrackedGolemRecipe extends CustomRecipe {

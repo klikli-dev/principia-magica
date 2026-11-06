@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.registry;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemStorage;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
@@ -31,6 +32,14 @@ public class DataComponentRegistry {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Workplace>> GOLEM_WORKPLACE = DATA_COMPONENTS.registerComponentType("golem_workplace", builder -> builder
             .persistent(Workplace.CODEC)
             .networkSynchronized(Workplace.STREAM_CODEC)
+    );
+
+    /**
+     * Inventory and equipment of a golem that died or was picked up, restored when the golem is placed again.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GolemStorage>> GOLEM_STORAGE = DATA_COMPONENTS.registerComponentType("golem_storage", builder -> builder
+            .persistent(GolemStorage.CODEC)
+            .networkSynchronized(GolemStorage.STREAM_CODEC)
     );
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<UUID>> STYLUS_SELECTION = DATA_COMPONENTS.registerComponentType("stylus_selection", builder -> builder

@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.item;
 
+import com.klikli_dev.principiamagica.content.golem.entity.GolemStorage;
 import com.klikli_dev.principiamagica.content.golem.recipe.RepairCrackedGolemRecipe;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
@@ -19,8 +20,8 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import java.util.function.Consumer;
 
 /**
- * The remains of a golem that died. Keeps its spec (axiom, upgrades) and its workplace, relative to the golem's anchor,
- * so it can be repaired with {@link RepairCrackedGolemRecipe}.
+ * The remains of a golem that died. Keeps its spec (axiom, upgrades), its workplace relative to the golem's anchor and
+ * its inventory and equipment, so it can be repaired with {@link RepairCrackedGolemRecipe}.
  */
 public class CrackedGolemItem extends Item {
 
@@ -28,10 +29,11 @@ public class CrackedGolemItem extends Item {
         super(properties);
     }
 
-    public static ItemStack createStack(GolemSpec spec, Workplace relativeWorkplace) {
+    public static ItemStack createStack(GolemSpec spec, Workplace relativeWorkplace, GolemStorage storage) {
         ItemStack stack = new ItemStack(ItemRegistry.CRACKED_GOLEM.get());
         stack.set(DataComponentRegistry.GOLEM_SPEC.get(), spec);
         stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), relativeWorkplace);
+        stack.set(DataComponentRegistry.GOLEM_STORAGE.get(), storage);
         return stack;
     }
 
@@ -57,6 +59,12 @@ public class CrackedGolemItem extends Item {
         adder.accept(spec.job()
                 .map(job -> Component.translatable("tooltip.principiamagica.cracked_golem.axiom", job.value().getName()).withStyle(ChatFormatting.GRAY))
                 .orElseGet(() -> Component.translatable("tooltip.principiamagica.cracked_golem.no_axiom").withStyle(ChatFormatting.GRAY)));
+
+        GolemStorage storage = stack.get(DataComponentRegistry.GOLEM_STORAGE.get());
+        if (storage != null && storage.itemCount() > 0) {
+            adder.accept(Component.translatable("tooltip.principiamagica.cracked_golem.carries", storage.itemCount()).withStyle(ChatFormatting.GRAY));
+        }
+
         adder.accept(Component.translatable("tooltip.principiamagica.cracked_golem.repair").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

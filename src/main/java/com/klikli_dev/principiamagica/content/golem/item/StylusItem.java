@@ -26,7 +26,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -226,17 +225,16 @@ public class StylusItem extends Item {
         return true;
     }
 
+    /**
+     * Picks the golem up: it becomes a golem item with its workplace and its inventory and equipment, which are kept
+     * on the item instead of being dropped. Placing the item again restores them.
+     */
     private static void pickUp(ServerPlayer player, GolemEntity golem) {
         ServerLevel level = (ServerLevel) golem.level();
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
 
         ItemStack stack = golem.toItemStack();
         stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), StylusActions.toRelative(workplace, anchorOf(golem)));
-
-        for (int i = 0; i < golem.getInventory().getContainerSize(); i++) {
-            ItemStack contained = golem.getInventory().removeItemNoUpdate(i);
-            Containers.dropItemStack(level, golem.getX(), golem.getY(), golem.getZ(), contained);
-        }
 
         golem.discard();
         player.getInventory().placeItemBackInInventory(stack);

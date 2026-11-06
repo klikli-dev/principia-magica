@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.item;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemStorage;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemMaterial;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.golem.upgrade.GolemUpgrade;
@@ -75,6 +76,11 @@ public class GolemItem extends Item {
         Workplace stored = stack.get(DataComponentRegistry.GOLEM_WORKPLACE.get());
         if (stored != null) {
             golem.updateWorkplace(current -> StylusActions.toAbsolute(stored, pos));
+        }
+
+        GolemStorage storage = stack.get(DataComponentRegistry.GOLEM_STORAGE.get());
+        if (storage != null) {
+            golem.restoreStorage(storage);
         }
 
         if (player != null) {
