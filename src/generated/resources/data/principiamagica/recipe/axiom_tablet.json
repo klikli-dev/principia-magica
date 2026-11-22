@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "principiamagica:copper_stylus",
+    "principiamagica:quickened_clay",
+    "principiamagica:quickened_clay"
+  ],
+  "result": {
+    "id": "principiamagica:axiom_tablet"
+  }
+}
