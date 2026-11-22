@@ -21,11 +21,6 @@ public class GolemRenderState extends LivingEntityRenderState implements GeoRend
     }
 
     @Override
-    public boolean hasGeckolibData(DataTicket<?> dataTicket) {
-        return this.geckolibData.containsKey(dataTicket);
-    }
-
-    @Override
     public int getPackedLight() {
         return this.getOrDefaultGeckolibData(DataTickets.PACKED_LIGHT, this.lightCoords);
     }

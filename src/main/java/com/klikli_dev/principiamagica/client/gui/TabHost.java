@@ -85,10 +85,6 @@ public final class TabHost {
         return this.selected;
     }
 
-    public Tab selectedTab() {
-        return this.tabs.get(this.selected);
-    }
-
     /**
      * Ticks the top page of the selected tab.
      */

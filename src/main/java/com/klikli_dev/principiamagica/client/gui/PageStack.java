@@ -85,10 +85,6 @@ public final class PageStack {
         return true;
     }
 
-    public boolean canPop() {
-        return this.pages.size() > 1;
-    }
-
     public Page top() {
         return this.pages.peek();
     }

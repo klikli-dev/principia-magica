@@ -6,7 +6,6 @@ package com.klikli_dev.principiamagica.client.gui.widget;
 
 import com.klikli_dev.codedefinedgui.api.style.GuiStyleProperties;
 import com.klikli_dev.codedefinedgui.api.style.StyleContext;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -16,7 +15,6 @@ import net.minecraft.util.Mth;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
  * A scrollable list of fixed-height rows.
@@ -48,8 +46,6 @@ public class ScrollList<T> extends AbstractWidget {
     private final ListEntryRenderer<T> renderer;
     private final Consumer<T> onSelect;
     private StyleContext style = WidgetParts.defaultStyle();
-    private Predicate<T> selectable = entry -> true;
-    private Component emptyText = Component.empty();
     private List<T> entries = List.of();
     private float previousOffset;
     private float offset;
@@ -76,19 +72,6 @@ public class ScrollList<T> extends AbstractWidget {
 
     public ScrollList<T> withStyle(StyleContext style) {
         this.style = style;
-        return this;
-    }
-
-    /**
-     * @param selectable rows for which the predicate is false are drawn but ignore clicks, e.g. section headers
-     */
-    public ScrollList<T> withSelectable(Predicate<T> selectable) {
-        this.selectable = selectable;
-        return this;
-    }
-
-    public ScrollList<T> withEmptyText(Component emptyText) {
-        this.emptyText = emptyText;
         return this;
     }
 
@@ -132,8 +115,6 @@ public class ScrollList<T> extends AbstractWidget {
         graphics.fill(left, top, right, bottom, this.style.get(WidgetParts.LIST, GuiStyleProperties.COLOR, DEFAULT_BACKGROUND));
 
         if (this.entries.isEmpty()) {
-            graphics.centeredText(Minecraft.getInstance().font, this.emptyText, left + this.getWidth() / 2, top + (this.getHeight() - 8) / 2,
-                    this.style.get(WidgetParts.TEXT, GuiStyleProperties.TEXT_COLOR, WidgetParts.DEFAULT_MUTED_TEXT_COLOR));
             return;
         }
 
@@ -183,10 +164,7 @@ public class ScrollList<T> extends AbstractWidget {
 
         int index = this.rowIndexAt(event.y());
         if (index >= 0 && index < this.entries.size()) {
-            T entry = this.entries.get(index);
-            if (this.selectable.test(entry)) {
-                this.onSelect.accept(entry);
-            }
+            this.onSelect.accept(this.entries.get(index));
         }
     }
 

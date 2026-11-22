@@ -16,8 +16,6 @@ public final class GolemMenuLayout {
     public static final int HEIGHT = 222;
     public static final int SLOT_SIZE = 18;
 
-    public static final int HEADER_Y = 6;
-
     public static final int PREVIEW_X = 8;
     public static final int PREVIEW_Y = 18;
     public static final int PREVIEW_WIDTH = 52;
