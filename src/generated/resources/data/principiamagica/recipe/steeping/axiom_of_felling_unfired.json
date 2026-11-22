@@ -1,0 +1,14 @@
+{
+  "type": "principiamagica:steeping",
+  "ingredient": "principiamagica:axiom_of_felling_unfired",
+  "principles": [
+    {
+      "amount": 100,
+      "principle": "principiamagica:shard"
+    }
+  ],
+  "result": {
+    "id": "principiamagica:axiom_of_felling_unfired_steeped"
+  },
+  "time": 100
+}

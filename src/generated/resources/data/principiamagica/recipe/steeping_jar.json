@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": "minecraft:brick",
+    "C": "minecraft:copper_ingot",
+    "W": "minecraft:string"
+  },
+  "pattern": [
+    "BWB",
+    "BCB",
+    "BBB"
+  ],
+  "result": {
+    "id": "principiamagica:steeping_jar"
+  }
+}
