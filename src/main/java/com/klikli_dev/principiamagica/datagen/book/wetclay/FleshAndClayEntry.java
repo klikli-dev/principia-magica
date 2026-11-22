@@ -8,7 +8,6 @@ import com.klikli_dev.modonomicon.api.datagen.CategoryProvider;
 import com.klikli_dev.modonomicon.api.datagen.EntryBackground;
 import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
 import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
-import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.datagen.book.PrincipiaEntryProvider;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 

@@ -6,7 +6,6 @@ package com.klikli_dev.principiamagica.registry;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
-import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.job.lumberjack.LumberjackJob;
 import net.neoforged.neoforge.registries.DeferredHolder;
