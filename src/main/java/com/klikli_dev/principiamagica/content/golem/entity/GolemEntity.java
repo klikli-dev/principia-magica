@@ -258,10 +258,6 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         this.getBrain().setMemory(MemoryModuleTypeRegistry.ANCHOR.value(), anchor);
     }
 
-    public WorkplaceSource getWorkplaceSource() {
-        return this.workplaceSource;
-    }
-
     public Optional<Workplace> getWorkplace(ServerLevel level) {
         return this.workplaceSource.resolve(level);
     }

@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -36,27 +35,6 @@ public final class FlatItems {
             states.add(itemState);
         }
         return states;
-    }
-
-    /**
-     * Submits the items at the four slot positions of a surface at the given height in blocks, rotated by the facing.
-     * The dissolving slot of the state is scaled by its dissolve scale.
-     */
-    public static void submitSlots(PoseStack poseStack, SubmitNodeCollector collector, FlatItemsRenderState state, float surfaceY, float scale, int light) {
-        poseStack.pushPose();
-        LibationGeometry.applyFacing(poseStack, state.facing);
-        for (int slot = 0; slot < state.items.size(); slot++) {
-            ItemStackRenderState item = state.items.get(slot);
-            if (!item.isEmpty()) {
-                float slotScale = slot == state.dissolvingSlot ? scale * state.dissolveScale : scale;
-                submit(poseStack, collector, item,
-                        LibationGeometry.SLOT_X[slot] * LibationGeometry.PIXEL,
-                        surfaceY,
-                        LibationGeometry.SLOT_Z[slot] * LibationGeometry.PIXEL,
-                        0.0F, slotScale, light);
-            }
-        }
-        poseStack.popPose();
     }
 
     /**

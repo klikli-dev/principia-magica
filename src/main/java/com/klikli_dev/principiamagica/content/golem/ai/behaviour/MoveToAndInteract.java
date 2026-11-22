@@ -22,7 +22,6 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -123,14 +122,6 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
     protected int workDelayTicks(ServerLevel level, GolemEntity golem, BlockPos target) {
         double workSpeed = Math.max(0.1, golem.getAttributeValue(AttributeRegistry.GOLEM_WORK_SPEED));
         return Math.max(1, (int) Math.ceil(this.breakTicks(level, golem, target) / workSpeed));
-    }
-
-    /**
-     * @return the first candidate from WORK_CANDIDATES (sorted nearest first) that is available to this golem.
-     */
-    protected static Optional<BlockPos> nearestWorkCandidate(ServerLevel level, GolemEntity golem) {
-        List<BlockPos> candidates = golem.getBrain().getMemory(MemoryModuleTypeRegistry.WORK_CANDIDATES.value()).orElse(List.of());
-        return candidates.stream().filter(pos -> isAvailable(level, golem, pos)).findFirst();
     }
 
     /**
