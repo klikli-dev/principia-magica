@@ -346,6 +346,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_DRYING_SLAB_STALLS_WHEN_OUTPUT_IS_FULL =
             TEST_FUNCTIONS.register("libation_drying_slab_stalls_when_output_is_full", () -> LibationGameTests::dryingSlabStallsWhenOutputIsFull);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_DRYING_SLAB_HOPPER_INSERTS_AND_EXTRACTS =
+            TEST_FUNCTIONS.register("libation_drying_slab_hopper_inserts_and_extracts", () -> LibationGameTests::dryingSlabHopperInsertsInputAndExtractsOutput);
+
     // --- Persistence ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PERSISTENCE_SAVE_AND_LOAD_KEEPS_EVERYTHING =
@@ -534,6 +537,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LIBATION_STEEPING_RESETS_WHEN_ITEM_IS_REMOVED, environment, structure, 300, 0);
         registerTest(event, LIBATION_DRYING_SLAB_DRIES_INTO_OUTPUT, environment, structure, 600, 0);
         registerTest(event, LIBATION_DRYING_SLAB_STALLS_WHEN_OUTPUT_IS_FULL, environment, structure, 1000, 0);
+        registerTest(event, LIBATION_DRYING_SLAB_HOPPER_INSERTS_AND_EXTRACTS, environment, structure, 600, 0);
     }
 
     private static void registerTest(

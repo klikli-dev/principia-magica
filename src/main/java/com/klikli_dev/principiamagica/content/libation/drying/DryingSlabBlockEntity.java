@@ -23,22 +23,32 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.Optional;
+
+import static com.klikli_dev.principiamagica.content.libation.drying.DryingSlabItemHandler.INPUT;
+import static com.klikli_dev.principiamagica.content.libation.drying.DryingSlabItemHandler.OUTPUT;
 
 /**
  * Holds one stack of items to dry and one stack of the dried results. Only the first input item dries at a time, the
  * result is merged into the output stack. Drying pauses while the output cannot accept the result.
  * <p>
+ * The stacks live in an item handler. Hoppers and pipes insert into it through {@link DryingSlabItemHandler}, which only
+ * accepts drying inputs into an empty input and only extracts the finished items.
+ * <p>
  * The progress advances by a rate that depends on the light, so it is only synced when the rate changes. Clients
  * interpolate the progress between syncs, see {@link #getDisplayProgress}.
- * <p>
- * TODO: Hopper automation is not supported.
  */
 public class DryingSlabBlockEntity extends LibationBlockEntity {
 
-    private ItemStack input = ItemStack.EMPTY;
-    private ItemStack output = ItemStack.EMPTY;
+    private final ItemStacksResourceHandler items = new ItemHandler();
+    private final ResourceHandler<ItemResource> itemCapability = new DryingSlabItemHandler(this.items);
     /**
      * The drying of the first input item. Its rate is the light divided by {@link LibationFlow#FULL_LIGHT}.
      */
@@ -48,18 +58,27 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
         super(BlockEntityTypeRegistry.DRYING_SLAB.get(), pos, state);
     }
 
+    public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.Item.BLOCK, BlockEntityTypeRegistry.DRYING_SLAB.get(), (slab, side) -> slab.itemCapability);
+    }
+
     /**
      * @return the stack of items that is drying, may be empty.
      */
     public ItemStack getInput() {
-        return this.input;
+        return this.stackOf(INPUT);
     }
 
     /**
      * @return the stack of dried items, may be empty.
      */
     public ItemStack getOutput() {
-        return this.output;
+        return this.stackOf(OUTPUT);
+    }
+
+    private ItemStack stackOf(int slot) {
+        ItemResource resource = this.items.getResource(slot);
+        return resource.isEmpty() ? ItemStack.EMPTY : resource.toStack(this.items.getAmountAsInt(slot));
     }
 
     /**
@@ -90,23 +109,25 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
             return InteractionResult.PASS;
         }
 
-        if (this.input.isEmpty()) {
-            int count = Math.min(held.getCount(), held.getMaxStackSize());
-            this.input = held.copyWithCount(count);
-            this.drying.restart();
-            held.shrink(count);
-        } else if (ItemStack.isSameItemSameComponents(this.input, held) && this.input.getCount() < this.input.getMaxStackSize()) {
-            int count = Math.min(held.getCount(), this.input.getMaxStackSize() - this.input.getCount());
-            this.input.grow(count);
-            held.shrink(count);
-        } else {
+        boolean wasEmpty = this.getInput().isEmpty();
+        int inserted;
+        try (Transaction transaction = Transaction.open(null)) {
+            inserted = this.items.insert(INPUT, ItemResource.of(held), held.getCount(), transaction);
+            transaction.commit();
+        }
+        if (inserted == 0) {
             return InteractionResult.PASS;
         }
-
-        LibationUtils.sync(this);
+        if (wasEmpty) {
+            this.drying.restart();
+        }
+        held.shrink(inserted);
         return InteractionResult.SUCCESS;
     }
 
+    /**
+     * Takes the dried items first, then the input. Taking the input restarts its drying.
+     */
     @Override
     public InteractionResult useWithoutItem(Player player) {
         if (!player.getMainHandItem().isEmpty()) {
@@ -116,32 +137,34 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
             return InteractionResult.SUCCESS;
         }
 
-        ItemStack stack;
-        if (!this.output.isEmpty()) {
-            stack = this.output;
-            this.output = ItemStack.EMPTY;
-        } else if (!this.input.isEmpty()) {
-            stack = this.input;
-            this.input = ItemStack.EMPTY;
-            this.drying.restart();
-        } else {
+        int slot = this.items.getResource(OUTPUT).isEmpty() ? INPUT : OUTPUT;
+        if (this.items.getResource(slot).isEmpty()) {
             return InteractionResult.PASS;
         }
-
+        if (slot == INPUT) {
+            this.drying.restart();
+        }
+        ItemStack stack;
+        try (Transaction transaction = Transaction.open(null)) {
+            ItemResource resource = this.items.getResource(slot);
+            int extracted = this.items.extract(slot, resource, this.items.getAmountAsInt(slot), transaction);
+            stack = resource.toStack(extracted);
+            transaction.commit();
+        }
         player.getInventory().placeItemBackInInventory(stack);
-        LibationUtils.sync(this);
         return InteractionResult.SUCCESS;
     }
 
     private void tickDrying(Level level, BlockPos pos) {
-        Optional<RecipeHolder<DryingRecipe>> recipe = this.input.isEmpty() ? Optional.empty() : LibationUtils.drying(level, this.input);
+        ItemStack input = this.getInput();
+        Optional<RecipeHolder<DryingRecipe>> recipe = input.isEmpty() ? Optional.empty() : LibationUtils.drying(level, input);
         if (recipe.isEmpty()) {
             this.drying.stop();
             return;
         }
 
         DryingRecipe dry = recipe.get().value();
-        ItemStack result = dry.assemble(new SingleRecipeInput(this.input.copyWithCount(1)));
+        ItemStack result = dry.assemble(new SingleRecipeInput(input.copyWithCount(1)));
         int light = level.getMaxLocalRawBrightness(pos.above());
         if (light <= 0 || !this.canMergeOutput(result)) {
             this.drying.pause();
@@ -150,8 +173,11 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
 
         float rate = light / (float) LibationFlow.FULL_LIGHT;
         this.drying.advance(rate, dry.time(), () -> {
-            this.input.shrink(1);
-            this.output = this.output.isEmpty() ? result.copy() : this.output.copyWithCount(this.output.getCount() + result.getCount());
+            try (Transaction transaction = Transaction.open(null)) {
+                this.items.extract(INPUT, ItemResource.of(input), 1, transaction);
+                this.items.insert(OUTPUT, ItemResource.of(result), result.getCount(), transaction);
+                transaction.commit();
+            }
             level.playSound(null, pos, SoundRegistry.DRYING_SLAB_DRIED.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         });
     }
@@ -160,32 +186,50 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
      * @return true if the result of drying the input item fits into the output stack. Drying stalls while it does not.
      */
     public boolean canMergeOutput(ItemStack result) {
-        if (this.output.isEmpty()) {
+        ItemStack output = this.getOutput();
+        if (output.isEmpty()) {
             return true;
         }
-        return ItemStack.isSameItemSameComponents(this.output, result)
-                && this.output.getCount() + result.getCount() <= this.output.getMaxStackSize();
+        return ItemStack.isSameItemSameComponents(output, result)
+                && output.getCount() + result.getCount() <= output.getMaxStackSize();
     }
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        this.dropItems(this.input, this.output);
+        this.dropItems(this.getInput(), this.getOutput());
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.input = input.read("input", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
-        this.output = input.read("output", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
+        this.items.deserialize(input.childOrEmpty("items"));
         this.drying.load(input);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store("input", ItemStack.OPTIONAL_CODEC, this.input);
-        output.store("output", ItemStack.OPTIONAL_CODEC, this.output);
+        this.items.serialize(output.child("items"));
         this.drying.save(output, this.level != null ? this.level.getGameTime() : 0L);
     }
 
+    /**
+     * Holds the input and the output. Changes sync to the clients. Only drying inputs are valid in the input slot.
+     */
+    private final class ItemHandler extends ItemStacksResourceHandler {
+        private ItemHandler() {
+            super(2);
+        }
+
+        @Override
+        public boolean isValid(int index, ItemResource resource) {
+            return index == OUTPUT || (DryingSlabBlockEntity.this.level != null
+                    && LibationUtils.drying(DryingSlabBlockEntity.this.level, resource.toStack()).isPresent());
+        }
+
+        @Override
+        protected void onContentsChanged(int index, ItemStack previousContents) {
+            LibationUtils.sync(DryingSlabBlockEntity.this);
+        }
+    }
 }

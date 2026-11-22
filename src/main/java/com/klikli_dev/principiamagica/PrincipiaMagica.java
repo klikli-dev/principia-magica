@@ -7,6 +7,7 @@ package com.klikli_dev.principiamagica;
 import com.klikli_dev.principiamagica.datagen.PrincipiaMagicaDataGenerators;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
+import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEntity;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.gametest.GameTestRegistry;
@@ -84,6 +85,7 @@ public class PrincipiaMagica {
         NeoForge.EVENT_BUS.addListener(RecipeTypeRegistry::onDatapackSync);
         modEventBus.addListener(GameTestRegistry::onRegisterGameTests);
         modEventBus.addListener(LibationSlabBlockEntity::onRegisterCapabilities);
+        modEventBus.addListener(DryingSlabBlockEntity::onRegisterCapabilities);
         modEventBus.addListener(PrincipiaMagicaDataGenerators::onGatherData);
     }
 

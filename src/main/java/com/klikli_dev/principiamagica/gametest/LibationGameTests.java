@@ -15,6 +15,10 @@ import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.SteepingRecipe;
 import com.klikli_dev.principiamagica.registry.BlockRegistry;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import com.klikli_dev.principiamagica.registry.PrincipleRegistry;
 import net.minecraft.core.BlockPos;
@@ -259,6 +263,57 @@ public class LibationGameTests {
                 helper.assertTrue(be.getOutput().getCount() == 1, "The output should stay at one axiom, output is " + be.getOutput());
                 helper.succeed();
             });
+        });
+    }
+
+    /**
+     * A hopper inserts a drying input into the empty input of the drying slab, and only extracts the dried output. Once the output
+     * holds the result, the input cannot be extracted and a second input is refused while the first one dries.
+     */
+    public static void dryingSlabHopperInsertsInputAndExtractsOutput(GameTestHelper helper) {
+        int time = dryingTime(helper);
+        BlockPos slab = new BlockPos(3, 2, 3);
+        helper.setBlock(slab, BlockRegistry.DRYING_SLAB.get().defaultBlockState());
+        helper.setBlock(slab.above(), Blocks.GLOWSTONE);
+        DryingSlabBlockEntity be = (DryingSlabBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(slab));
+        ResourceHandler<ItemResource> handler = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(slab), Direction.UP);
+        helper.assertTrue(handler != null, "The drying slab should expose an item capability");
+        ItemStack steeped = new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get());
+
+        int refused;
+        int accepted;
+        int extractedInput;
+        try (Transaction transaction = Transaction.open(null)) {
+            refused = handler.insert(ItemResource.of(new ItemStack(Items.DIRT)), 1, transaction);
+            accepted = handler.insert(ItemResource.of(steeped), 1, transaction);
+            transaction.commit();
+        }
+        try (Transaction transaction = Transaction.open(null)) {
+            extractedInput = handler.extract(ItemResource.of(steeped), 1, transaction);
+            transaction.commit();
+        }
+        helper.assertTrue(refused == 0, "The slab should refuse items that do not dry, accepted " + refused);
+        helper.assertTrue(accepted == 1, "The slab should accept a drying input into its empty input, accepted " + accepted);
+        helper.assertTrue(extractedInput == 0, "The input should not be extractable from outside, extracted " + extractedInput);
+        helper.assertTrue(be.getInput().is(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()), "The input should hold the inserted item, got " + be.getInput());
+
+        int secondInput;
+        try (Transaction transaction = Transaction.open(null)) {
+            secondInput = handler.insert(ItemResource.of(steeped), 1, transaction);
+            transaction.commit();
+        }
+        helper.assertTrue(secondInput == 0, "The slab should refuse a second input while the input is not empty, accepted " + secondInput);
+
+        helper.runAfterDelay(time + 10, () -> {
+            helper.assertTrue(be.getOutput().is(ItemRegistry.AXIOM_OF_HARVEST.get()), "The input should dry into the output, got " + be.getOutput());
+            int extractedOutput;
+            try (Transaction transaction = Transaction.open(null)) {
+                extractedOutput = handler.extract(ItemResource.of(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST.get())), 1, transaction);
+                transaction.commit();
+            }
+            helper.assertTrue(extractedOutput == 1, "A hopper should extract the finished axiom, extracted " + extractedOutput);
+            helper.assertTrue(be.getOutput().isEmpty(), "The output should be empty after the extraction, got " + be.getOutput());
+            helper.succeed();
         });
     }
 
