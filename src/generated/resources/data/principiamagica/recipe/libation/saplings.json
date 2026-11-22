@@ -1,0 +1,10 @@
+{
+  "type": "principiamagica:libation",
+  "ingredient": "#minecraft:saplings",
+  "principles": [
+    {
+      "amount": 50,
+      "principle": "principiamagica:sap"
+    }
+  ]
+}

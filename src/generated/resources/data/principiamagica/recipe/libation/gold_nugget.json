@@ -1,0 +1,10 @@
+{
+  "type": "principiamagica:libation",
+  "ingredient": "minecraft:gold_nugget",
+  "principles": [
+    {
+      "amount": 25,
+      "principle": "principiamagica:gleam"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "type": "principiamagica:libation",
+  "ingredient": "minecraft:clay_ball",
+  "principles": [
+    {
+      "amount": 50,
+      "principle": "principiamagica:silt"
+    }
+  ]
+}
