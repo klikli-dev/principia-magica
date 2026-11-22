@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.WeakHashMap;
 import java.util.function.Predicate;
 
 /**
@@ -41,7 +42,11 @@ public final class TreeAccess {
     private static final int MAX_DEPTH = 5;
     private static final long PREFERRED_TICKS = 200;
 
-    private static final Map<UUID, Preferred> PREFERRED = new HashMap<>();
+    /**
+     * The direction each golem chose per stump, per level. Expired entries are pruned on access, and the weak keys drop
+     * the maps of levels that are unloaded.
+     */
+    private static final Map<ServerLevel, Map<UUID, Preferred>> PREFERRED = new WeakHashMap<>();
 
     private TreeAccess() {
     }
@@ -98,8 +103,12 @@ public final class TreeAccess {
 
     public static Optional<Plan> plan(ServerLevel level, BlockPos stump, UUID golemId, BlockPos golemPos, Predicate<BlockPos> usable) {
         List<Direction> order = rank(stump, golemPos);
-        Preferred preferred = PREFERRED.get(golemId);
-        if (preferred != null && preferred.stump().equals(stump) && level.getGameTime() - preferred.gameTime() < PREFERRED_TICKS) {
+        long gameTime = level.getGameTime();
+        Map<UUID, Preferred> preferredByGolem = PREFERRED.computeIfAbsent(level, key -> new HashMap<>());
+        preferredByGolem.values().removeIf(preferred -> gameTime - preferred.gameTime() >= PREFERRED_TICKS);
+
+        Preferred preferred = preferredByGolem.get(golemId);
+        if (preferred != null && preferred.stump().equals(stump)) {
             order.remove(preferred.direction());
             order.add(0, preferred.direction());
         }
@@ -107,7 +116,7 @@ public final class TreeAccess {
         for (Direction direction : order) {
             Optional<Plan> plan = line(level, stump, direction, golemPos, usable);
             if (plan.isPresent()) {
-                PREFERRED.put(golemId, new Preferred(stump, direction, level.getGameTime()));
+                preferredByGolem.put(golemId, new Preferred(stump, direction, gameTime));
                 return plan;
             }
         }
