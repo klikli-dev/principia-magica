@@ -143,7 +143,11 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
             return InteractionResult.SUCCESS;
         }
 
+        int waterBefore = this.getWater();
         if (FluidUtil.interactWithFluidHandler(player, hand, this.worldPosition, this.waterInput, null)) {
+            if (this.getWater() > waterBefore) {
+                this.level.playSound(null, this.worldPosition, SoundRegistry.LIBATION_SLAB_POUR.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+            }
             LibationUtils.sync(this);
             return InteractionResult.SUCCESS;
         }
