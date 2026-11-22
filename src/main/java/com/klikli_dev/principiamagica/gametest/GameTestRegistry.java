@@ -428,6 +428,17 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         var environment = event.registerEnvironment(PrincipiaMagica.loc("golem"));
         var structure = PrincipiaMagica.loc("golem_test");
 
+        registerGolemCoreTests(event, environment, structure);
+        registerStylusTests(event, environment, structure);
+        registerMenuTests(event, environment, structure);
+        registerAxiomTests(event, environment, structure);
+        registerRemovalTests(event, environment, structure);
+        registerFarmingTests(event, environment, structure);
+        registerLumberjackTests(event, environment, structure);
+        registerLibationTests(event, environment, structure);
+    }
+
+    private static void registerGolemCoreTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, GOLEM_SPAWNS_WITH_BRAIN, environment, structure, 40, 0);
         registerTest(event, WORK_ZONE_CONTAINS_AND_ITERATES, environment, structure, 40, 0);
         registerTest(event, FLAT_AND_VOLUME_ZONES, environment, structure, 40, 0);
@@ -436,6 +447,10 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, WORKPLACE_CODEC_ROUND_TRIPS, environment, structure, 40, 0);
         registerTest(event, WORK_RESERVATIONS_ARE_EXCLUSIVE, environment, structure, 40, 0);
         registerTest(event, WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST, environment, structure, 40, 0);
+        registerTest(event, PERSISTENCE_SAVE_AND_LOAD_KEEPS_EVERYTHING, environment, structure, 40, 0);
+    }
+
+    private static void registerStylusTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, CONTAINER_LINK_CYCLES, environment, structure, 40, 0);
         registerTest(event, REMOVE_LINK_KEEPS_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, CARVING_TWO_GLYPHS_CREATES_FOOTPRINT, environment, structure, 40, 0);
@@ -452,6 +467,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LEGACY_FOOTPRINT_LOADS_FLAT, environment, structure, 40, 0);
         registerTest(event, PICK_UP_CANCEL_RESTORES_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES, environment, structure, 40, 0);
+    }
+
+    private static void registerMenuTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS, environment, structure, 40, 0);
         registerTest(event, ZONE_AND_LINK_INDICES_ARE_VALIDATED, environment, structure, 40, 0);
         registerTest(event, AXIOM_SLOT_INSTALLS_JOB, environment, structure, 40, 0);
@@ -461,6 +479,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, TOOL_SLOT_REJECTS_WITHOUT_JOB, environment, structure, 40, 0);
         registerTest(event, GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB_AND_SEALS, environment, structure, 40, 0);
         registerTest(event, SHIFT_CLICK_ON_JOB_TAB_DOES_NOT_ENTER_GOLEM_INVENTORY, environment, structure, 40, 0);
+    }
+
+    private static void registerAxiomTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, PURPOSELESS_GOLEM_STAYS_AND_CANNOT_WORK, environment, structure, 80, 0);
         registerTest(event, AXIOM_ENABLES_WORK_AND_REMOVAL_RETURNS_TO_STAY, environment, structure, 40, 0);
         registerTest(event, PLACED_GOLEM_WITHOUT_AXIOM_IS_PURPOSELESS, environment, structure, 40, 0);
@@ -471,12 +492,16 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, NON_OWNER_CANNOT_GIVE_AXIOM, environment, structure, 40, 0);
         registerTest(event, AXIOM_GIVEN_HARVESTS_FIELD, environment, structure, 800, 0);
         registerTest(event, AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL, environment, structure, 80, 0);
+    }
 
+    private static void registerRemovalTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, DEATH_DROPS_CONTENTS_EQUIPMENT_AND_AXIOM, environment, structure, 40, 0);
         registerTest(event, DEATH_WITHOUT_AXIOM_DROPS_NO_AXIOM, environment, structure, 40, 0);
         registerTest(event, DISCARDED_GOLEM_DROPS_NOTHING, environment, structure, 40, 0);
         registerTest(event, STYLUS_PICKUP_KEEPS_INVENTORY_ON_GOLEM_ITEM, environment, structure, 40, 0);
+    }
 
+    private static void registerFarmingTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, FARMING_HARVEST_AND_REPLANT, environment, structure, 800, 0);
         registerTest(event, STACKED_FARM_VOLUME_COVERS_EVERY_LAYER, environment, structure, 40, 0);
         registerTest(event, FARMING_DEPOSIT_FULL_INVENTORY, environment, structure, 800, 0);
@@ -493,7 +518,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, FARMING_FIELD_MEMORY_PRUNES_STALE_SPOTS, environment, structure, 800, 0);
         registerTest(event, FARMING_CLEARS_OBSTRUCTIONS_FOR_PLANTING, environment, structure, 800, 0);
         registerTest(event, FARMING_OBSTRUCTIONS_STAY_WHEN_OPTION_OFF, environment, structure, 400, 0);
+    }
 
+    private static void registerLumberjackTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, LUMBERJACK_FELLS_NATURAL_TREE, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_REPLANTS_SAPLING, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_IGNORES_PLAYER_LEAVES, environment, structure, 400, 0);
@@ -522,9 +549,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LUMBERJACK_BONEMEAL_OFF_LEAVES_SAPLING, environment, structure, 400, 0);
         registerTest(event, LUMBERJACK_RESTOCKS_BONEMEAL_FROM_SUPPLY, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL, environment, structure, 1000, 0);
+    }
 
-        registerTest(event, PERSISTENCE_SAVE_AND_LOAD_KEEPS_EVERYTHING, environment, structure, 40, 0);
-
+    private static void registerLibationTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, LIBATION_SPOUT_OPENS_HOLE_IN_SLAB, environment, structure, 40, 0);
         registerTest(event, LIBATION_SPOUT_POPS_OFF_WHEN_HOST_IS_REMOVED, environment, structure, 40, 0);
         registerTest(event, LIBATION_SPOUT_OPENS_FROM_REDSTONE, environment, structure, 40, 0);
