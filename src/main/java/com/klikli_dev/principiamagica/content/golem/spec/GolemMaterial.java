@@ -21,14 +21,12 @@ public class GolemMaterial implements StatContributor {
     }
 
     private final Identifier texture;
-    private final int upgradeSlots;
     private final Ingredient repairIngredient;
     private final boolean fireImmune;
     private final List<ModifierEntry> modifiers;
 
-    public GolemMaterial(Identifier texture, int upgradeSlots, Ingredient repairIngredient, boolean fireImmune, List<ModifierEntry> modifiers) {
+    public GolemMaterial(Identifier texture, Ingredient repairIngredient, boolean fireImmune, List<ModifierEntry> modifiers) {
         this.texture = texture;
-        this.upgradeSlots = upgradeSlots;
         this.repairIngredient = repairIngredient;
         this.fireImmune = fireImmune;
         this.modifiers = modifiers;
@@ -40,10 +38,6 @@ public class GolemMaterial implements StatContributor {
 
     public Identifier texture() {
         return this.texture;
-    }
-
-    public int upgradeSlots() {
-        return this.upgradeSlots;
     }
 
     public Ingredient repairIngredient() {

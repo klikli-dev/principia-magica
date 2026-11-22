@@ -23,7 +23,6 @@ import com.klikli_dev.principiamagica.registry.EntityDataSerializerRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemJobRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
-import com.klikli_dev.principiamagica.registry.GolemUpgradeRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import com.klikli_dev.principiamagica.registry.MenuRegistry;
@@ -71,7 +70,6 @@ public class PrincipiaMagica {
 
         GolemMaterialRegistry.GOLEM_MATERIALS.register(modEventBus);
         GolemJobRegistry.GOLEM_JOBS.register(modEventBus);
-        GolemUpgradeRegistry.GOLEM_UPGRADES.register(modEventBus);
         CropHandlerRegistry.CROP_HANDLERS.register(modEventBus);
         PrincipleRegistry.PRINCIPLES.register(modEventBus);
         CriterionTriggerRegistry.CRITERION_TRIGGERS.register(modEventBus);

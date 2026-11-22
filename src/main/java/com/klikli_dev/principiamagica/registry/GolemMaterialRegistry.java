@@ -20,7 +20,6 @@ public class GolemMaterialRegistry {
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> WOOD = GOLEM_MATERIALS.register("wood", () -> new GolemMaterial(
             PrincipiaMagica.loc("textures/entity/golem/wooden_golem.png"),
-            1,
             Ingredient.of(ItemRegistry.QUICKENED_CLAY.get()),
             false,
             List.of(
@@ -31,7 +30,6 @@ public class GolemMaterialRegistry {
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> STONE = GOLEM_MATERIALS.register("stone", () -> new GolemMaterial(
             PrincipiaMagica.loc("textures/entity/golem/stone_golem.png"),
-            2,
             Ingredient.of(Items.COBBLESTONE),
             false,
             List.of(
@@ -43,7 +41,6 @@ public class GolemMaterialRegistry {
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> METAL = GOLEM_MATERIALS.register("metal", () -> new GolemMaterial(
             PrincipiaMagica.loc("textures/entity/golem/metal_golem.png"),
-            3,
             Ingredient.of(Items.IRON_INGOT),
             true,
             List.of(

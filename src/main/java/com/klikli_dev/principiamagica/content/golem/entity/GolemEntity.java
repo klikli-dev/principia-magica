@@ -17,13 +17,10 @@ import com.klikli_dev.principiamagica.content.golem.ai.GolemPathNavigation;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
-import com.klikli_dev.principiamagica.content.golem.item.GolemUpgradeItem;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemMenu;
 import com.klikli_dev.principiamagica.content.golem.progression.GolemProgression;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
-import com.klikli_dev.principiamagica.content.golem.upgrade.GolemUpgrade;
-import com.klikli_dev.principiamagica.content.golem.upgrade.UpgradeAddResult;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceDefaults;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkplaceSource;
@@ -219,8 +216,8 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     }
 
     /**
-     * Moves items out of inventory slots that are no longer usable (e.g. after an upgrade was removed). Items are moved
-     * into free usable slots first, the rest is dropped at the golem so nothing is lost.
+     * Moves items out of inventory slots that are no longer usable (e.g. after the usable slot count dropped). Items are
+     * moved into free usable slots first, the rest is dropped at the golem so nothing is lost.
      */
     private void evictUnusableSlots() {
         if (!(this.level() instanceof ServerLevel serverLevel)) {
@@ -234,37 +231,6 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
                 this.spawnAtLocation(serverLevel, rest);
             }
         }
-    }
-
-    /**
-     * Adds the upgrade if the golem does not have it yet and its material has a free upgrade slot.
-     */
-    public UpgradeAddResult addUpgrade(Holder<GolemUpgrade> upgrade) {
-        GolemSpec spec = this.getSpec();
-        if (spec.upgrades().stream().anyMatch(existing -> existing.value() == upgrade.value())) {
-            return UpgradeAddResult.DUPLICATE;
-        }
-
-        if (spec.upgrades().size() >= spec.material().value().upgradeSlots()) {
-            return UpgradeAddResult.NO_FREE_SLOT;
-        }
-
-        this.setSpec(spec.withUpgrade(upgrade));
-        return UpgradeAddResult.ADDED;
-    }
-
-    /**
-     * Removes the upgrade at the index and returns its item, or an empty stack if the index is out of range.
-     */
-    public ItemStack removeUpgrade(int index) {
-        List<Holder<GolemUpgrade>> upgrades = this.getSpec().upgrades();
-        if (index < 0 || index >= upgrades.size()) {
-            return ItemStack.EMPTY;
-        }
-
-        Holder<GolemUpgrade> upgrade = upgrades.get(index);
-        this.setSpec(this.getSpec().withoutUpgrade(index));
-        return GolemUpgradeItem.createStack(upgrade);
     }
 
     public @Nullable UUID getOwnerUUID() {
@@ -388,10 +354,6 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         this.getBrain().tick(level, this);
         GolemAi.updateActivity(this);
         super.customServerAiStep(level);
-
-        for (Holder<GolemUpgrade> upgrade : this.getSpec().upgrades()) {
-            upgrade.value().onTick(this);
-        }
 
         if (this.getStatus().isProblem() && this.tickCount % 80 == 0) {
             level.sendParticles(ParticleTypes.ANGRY_VILLAGER, this.getX(), this.getY() + this.getBbHeight() + 0.3, this.getZ(), 1, 0.0, 0.0, 0.0, 0.0);

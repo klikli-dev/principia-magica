@@ -137,11 +137,6 @@ public class ENUSProvider extends LanguageProvider {
         this.add("golem_job.principiamagica.farming", "Farming");
         this.add("golem_job.principiamagica.lumberjack", "Lumberjack");
 
-        this.add("golem_upgrade.principiamagica.swiftness", "Swiftness");
-        this.add("golem_upgrade.principiamagica.swiftness.description", "Faster movement and work speed");
-        this.add("golem_upgrade.principiamagica.capacity", "Capacity");
-        this.add("golem_upgrade.principiamagica.capacity.description", "+3 golem inventory slots");
-
         this.add("gui.principiamagica.golem.title", "%s Golem");
         this.add("gui.principiamagica.golem.no_axiom", "No axiom");
         this.add("gui.principiamagica.golem.options", "Job options");
@@ -215,9 +210,6 @@ public class ENUSProvider extends LanguageProvider {
         this.add("message.principiamagica.golem.job_swapped", "Axiom swapped, previous axiom returned");
         this.add("message.principiamagica.golem.no_job", "This golem has no job");
         this.add("message.principiamagica.golem.not_owner", "You do not own this golem");
-        this.add("message.principiamagica.golem.upgrade_added", "Upgrade installed: %s");
-        this.add("message.principiamagica.golem.upgrade_duplicate", "This golem already has this upgrade");
-        this.add("message.principiamagica.golem.upgrade_no_slot", "This golem has no free upgrade slot");
 
         this.add("message.principiamagica.stylus.not_owner", "You do not own this golem");
         this.add("message.principiamagica.stylus.no_golem_selected", "Select a golem first by right-clicking it");
