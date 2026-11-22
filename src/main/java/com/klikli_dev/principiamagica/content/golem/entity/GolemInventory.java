@@ -12,6 +12,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GolemInventory extends SimpleContainer {
     public static final int MAX_SLOTS = 9;
 
@@ -86,6 +89,22 @@ public class GolemInventory extends SimpleContainer {
 
         this.setChanged();
         return stack;
+    }
+
+    /**
+     * Moves items out of slots beyond the usable slot count (e.g. after the count dropped, or from an older save) into free usable
+     * slots. Items that do not fit are removed and returned, so the caller can drop them at the golem and nothing is lost.
+     */
+    public List<ItemStack> evictUnusableSlots() {
+        List<ItemStack> rest = new ArrayList<>();
+        for (int i = this.getUsableSlots(); i < MAX_SLOTS; i++) {
+            ItemStack stack = this.removeItemNoUpdate(i);
+            ItemStack left = this.insert(stack);
+            if (!left.isEmpty()) {
+                rest.add(left);
+            }
+        }
+        return rest;
     }
 
     public void save(ValueOutput output) {

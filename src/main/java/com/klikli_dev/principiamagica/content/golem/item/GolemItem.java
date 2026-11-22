@@ -119,7 +119,7 @@ public class GolemItem extends Item implements GeoItem {
 
         GolemStorage storage = stack.get(DataComponentRegistry.GOLEM_STORAGE.get());
         if (storage != null) {
-            golem.restoreStorage(storage);
+            storage.restoreTo(golem);
         }
 
         if (player != null) {

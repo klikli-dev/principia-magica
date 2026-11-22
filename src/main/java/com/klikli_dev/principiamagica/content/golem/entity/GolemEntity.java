@@ -7,16 +7,12 @@ package com.klikli_dev.principiamagica.content.golem.entity;
 import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
 import com.geckolib.animatable.manager.AnimatableManager;
-import com.geckolib.animation.AnimationController;
-import com.geckolib.animation.RawAnimation;
-import com.geckolib.animation.object.PlayState;
-import com.geckolib.animation.state.AnimationTest;
 import com.geckolib.util.GeckoLibUtil;
 import com.klikli_dev.principiamagica.content.golem.ai.GolemAi;
 import com.klikli_dev.principiamagica.content.golem.ai.GolemPathNavigation;
-import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
+import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemMenu;
 import com.klikli_dev.principiamagica.content.golem.progression.GolemProgression;
@@ -33,12 +29,10 @@ import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -46,25 +40,21 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.Brain;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
@@ -75,10 +65,7 @@ import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
@@ -88,19 +75,11 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     private static final EntityDataAccessor<Integer> DATA_STATUS = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_MODE = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializers.INT);
     private static final GolemSpec DEFAULT_SPEC = GolemSpec.of(GolemMaterialRegistry.WOOD);
-    private static final int BLOCKER_TICKS = 40;
-
-    public static final String WORK_CONTROLLER = "work";
-    private static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("animation.golem.idle");
-    private static final RawAnimation WALK_ANIM = RawAnimation.begin().thenLoop("animation.golem.walk");
-    private static final RawAnimation ARM_SWING_RIGHT_ANIM = RawAnimation.begin().thenPlay("animation.golem.arm_swing_right");
-    private static final RawAnimation AXE_CHOP_ANIM = RawAnimation.begin().thenPlay("animation.golem.axe_chop");
-    private static final RawAnimation HOE_TILL_ANIM = RawAnimation.begin().thenPlay("animation.golem.hoe_till");
 
     private final AnimatableInstanceCache animatableInstanceCache = GeckoLibUtil.createInstanceCache(this);
-    private final List<AppliedModifier> appliedModifiers = new ArrayList<>();
+    private final GolemSpecModifiers specModifiers = new GolemSpecModifiers();
     private final GolemInventory inventory = new GolemInventory(this);
-    private final Map<GolemStatus, Long> blockers = new EnumMap<>(GolemStatus.class);
+    private final GolemBlockers blockers = new GolemBlockers();
     private WorkplaceSource workplaceSource = new WorkplaceSource.Inline(Workplace.EMPTY);
     private @Nullable BlockPos openedContainerPos;
 
@@ -140,13 +119,7 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(
-                new AnimationController<GolemEntity>("base", 5, this::baseAnimationHandler),
-                new AnimationController<GolemEntity>(WORK_CONTROLLER, 0, test -> PlayState.STOP)
-                        .triggerableAnim("arm_swing_right", ARM_SWING_RIGHT_ANIM)
-                        .triggerableAnim("axe_chop", AXE_CHOP_ANIM)
-                        .triggerableAnim("hoe_till", HOE_TILL_ANIM)
-        );
+        GolemAnimations.registerControllers(controllers);
     }
 
     @Override
@@ -154,26 +127,11 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         return this.animatableInstanceCache;
     }
 
-    private PlayState baseAnimationHandler(AnimationTest<GolemEntity> test) {
-        return test.setAndContinue(test.isMoving() ? WALK_ANIM : IDLE_ANIM);
-    }
-
     /**
-     * Plays the work swing matching the held tool. Work animations only move the job arm (right hand); the other arm
-     * keeps hanging down from the base idle/walk animation.
+     * Plays the work swing matching the held tool.
      */
     public void swingWorkArm() {
-        ItemStack tool = this.getMainHandItem();
-        String animation;
-        if (tool.is(ItemTags.AXES)) {
-            animation = "axe_chop";
-        } else if (tool.is(ItemTags.HOES)) {
-            animation = "hoe_till";
-        } else {
-            animation = "arm_swing_right";
-        }
-
-        this.triggerAnim(WORK_CONTROLLER, animation);
+        this.triggerAnim(GolemAnimations.WORK_CONTROLLER, GolemAnimations.workAnimation(this.getMainHandItem()));
     }
 
     public GolemSpec getSpec() {
@@ -195,39 +153,11 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     }
 
     private void applySpec() {
-        for (AppliedModifier applied : this.appliedModifiers) {
-            AttributeInstance instance = this.getAttribute(applied.attribute());
-            if (instance != null) {
-                instance.removeModifier(applied.id());
-            }
-        }
-        this.appliedModifiers.clear();
-
-        this.getSpec().collectModifiers((attribute, modifier) -> {
-            AttributeInstance instance = this.getAttribute(attribute);
-            if (instance != null) {
-                instance.addOrUpdateTransientModifier(modifier);
-                this.appliedModifiers.add(new AppliedModifier(attribute, modifier.id()));
-            }
-        });
-
+        this.specModifiers.apply(this, this.getSpec());
         this.setHealth(Math.min(this.getHealth(), this.getMaxHealth()));
-        this.evictUnusableSlots();
-    }
 
-    /**
-     * Moves items out of inventory slots that are no longer usable (e.g. after the usable slot count dropped). Items are
-     * moved into free usable slots first, the rest is dropped at the golem so nothing is lost.
-     */
-    private void evictUnusableSlots() {
-        if (!(this.level() instanceof ServerLevel serverLevel)) {
-            return;
-        }
-
-        for (int i = this.inventory.getUsableSlots(); i < GolemInventory.MAX_SLOTS; i++) {
-            ItemStack stack = this.inventory.removeItemNoUpdate(i);
-            ItemStack rest = this.inventory.insert(stack);
-            if (!rest.isEmpty()) {
+        if (this.level() instanceof ServerLevel serverLevel) {
+            for (ItemStack rest : this.inventory.evictUnusableSlots()) {
                 this.spawnAtLocation(serverLevel, rest);
             }
         }
@@ -275,20 +205,17 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     }
 
     /**
-     * Records that a behaviour or sensor found the golem blocked by the given status. The blocker stays active for a
-     * short time, so the status does not flicker while the checks run on cooldowns.
+     * Records that a behaviour or sensor found the golem blocked by the given status.
      */
     public void reportBlocker(GolemStatus status) {
-        this.blockers.put(status, this.level().getGameTime() + BLOCKER_TICKS);
+        this.blockers.report(status, this.level().getGameTime());
     }
 
     /**
      * @return the highest priority blocker that was reported recently, or OK if there is none
      */
     public GolemStatus activeBlocker() {
-        long now = this.level().getGameTime();
-        this.blockers.values().removeIf(expiry -> expiry < now);
-        return this.blockers.keySet().stream().min(Comparator.comparingInt(GolemStatus::ordinal)).orElse(GolemStatus.OK);
+        return this.blockers.active(this.level().getGameTime());
     }
 
     public void setOpenedContainerPos(@Nullable BlockPos pos) {
@@ -362,45 +289,11 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
 
     public ItemStack toItemStack() {
         ItemStack stack = GolemItem.createStack(this.getSpec());
-        GolemStorage storage = this.createStorage();
+        GolemStorage storage = GolemStorage.capture(this);
         if (storage.itemCount() > 0) {
             stack.set(DataComponentRegistry.GOLEM_STORAGE.get(), storage);
         }
         return stack;
-    }
-
-    /**
-     * Snapshots the inventory and equipment. The golem keeps them, so the caller decides what to do with the snapshot.
-     */
-    public GolemStorage createStorage() {
-        List<ItemStack> items = new ArrayList<>();
-        for (int i = 0; i < this.inventory.getContainerSize(); i++) {
-            items.add(this.inventory.getItem(i));
-        }
-
-        List<ItemStack> equipment = new ArrayList<>();
-        for (EquipmentSlot slot : EquipmentSlot.VALUES) {
-            equipment.add(this.getItemBySlot(slot));
-        }
-
-        return new GolemStorage(ItemContainerContents.fromItems(items), ItemContainerContents.fromItems(equipment));
-    }
-
-    /**
-     * Puts the stored inventory and equipment back on the golem. Used when a golem item with storage is placed.
-     */
-    public void restoreStorage(GolemStorage storage) {
-        NonNullList<ItemStack> items = NonNullList.withSize(this.inventory.getContainerSize(), ItemStack.EMPTY);
-        storage.inventory().copyInto(items);
-        for (int i = 0; i < items.size(); i++) {
-            this.inventory.setItem(i, items.get(i));
-        }
-
-        NonNullList<ItemStack> equipment = NonNullList.withSize(EquipmentSlot.VALUES.size(), ItemStack.EMPTY);
-        storage.equipment().copyInto(equipment);
-        for (int i = 0; i < equipment.size(); i++) {
-            this.setItemSlot(EquipmentSlot.VALUES.get(i), equipment.get(i));
-        }
     }
 
     /**
@@ -563,8 +456,5 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         this.entityData.set(DATA_MODE, GolemMode.valueOf(input.getStringOr("Mode", GolemMode.WORK.name())).ordinal());
         input.read("Workplace", WorkplaceSource.CODEC).ifPresent(source -> this.workplaceSource = source);
         this.inventory.load(input);
-    }
-
-    private record AppliedModifier(Holder<Attribute> attribute, Identifier id) {
     }
 }
