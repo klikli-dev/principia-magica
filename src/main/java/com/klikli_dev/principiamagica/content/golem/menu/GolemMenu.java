@@ -14,12 +14,10 @@ import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.registry.MenuRegistry;
 import net.minecraft.core.Holder;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -35,6 +33,7 @@ import java.util.Optional;
 /**
  * Golem GUI. Slots: the axiom (the golem's job), the tool (main hand), its inventory (only usable slots are active), then the player inventory.
  * The golem-side slots are only active on the golem tab while no seal detail page is open. The player inventory is always active.
+ * The slot classes are in this package: {@link AxiomSlot}, {@link ToolSlot}, {@link GolemSlot}.
  */
 public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
 
@@ -139,7 +138,7 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     /**
      * @return true if the golem-side slots (axiom, tool and golem inventory) are shown and usable.
      */
-    private boolean isGolemSideActive() {
+    boolean isGolemSideActive() {
         return this.activeTab == GolemMenuTab.GOLEM && !this.sealDetailOpen;
     }
 
@@ -150,12 +149,12 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
 
     @Override
     public void registerBindings(MenuBindingRegistry registry) {
-        registry.bind("main.axiom", ctx -> this.addSlot(new AxiomSlot(this.axiomContainer, 0, ctx.node().x(), ctx.node().y())));
-        registry.bind("main.tool", ctx -> this.addSlot(new ToolSlot(this.toolContainer, 0, ctx.node().x(), ctx.node().y())));
+        registry.bind("main.axiom", ctx -> this.addSlot(new AxiomSlot(this, this.axiomContainer, 0, ctx.node().x(), ctx.node().y())));
+        registry.bind("main.tool", ctx -> this.addSlot(new ToolSlot(this, this.toolContainer, 0, ctx.node().x(), ctx.node().y())));
 
         for (int i = 0; i < GolemInventory.MAX_SLOTS; i++) {
             int slot = i;
-            registry.bind("golem.slot_" + i, ctx -> this.addSlot(new GolemSlot(this.golemInventory, slot, ctx.node().x(), ctx.node().y())));
+            registry.bind("golem.slot_" + i, ctx -> this.addSlot(new GolemSlot(this, this.golemInventory, slot, ctx.node().x(), ctx.node().y())));
         }
 
         for (int i = 0; i < GolemMenuLayout.PLAYER_MAIN_ROWS * GolemMenuLayout.PLAYER_COLUMNS; i++) {
@@ -204,7 +203,7 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
         return this.golem != null ? this.golem.getInventory().getUsableSlots() : 0;
     }
 
-    private boolean canPlaceAxiom(ItemStack stack) {
+    boolean canPlaceAxiom(ItemStack stack) {
         return this.golem != null
                 && this.golem.isAlive()
                 && this.player.getUUID().equals(this.golem.getOwnerUUID())
@@ -214,7 +213,7 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     /**
      * A golem without a job cannot take a tool, so the tool cannot be placed before an axiom.
      */
-    private boolean canPlaceTool(ItemStack stack) {
+    boolean canPlaceTool(ItemStack stack) {
         if (this.golem == null) {
             return false;
         }
@@ -293,223 +292,5 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
         }
 
         return this.moveItemStackTo(stack, GOLEM_SLOT_START, GOLEM_SLOT_START + this.getUsableGolemSlots(), false);
-    }
-
-    /**
-     * A slot on the golem side of the menu. Only shown and usable on the golem tab, while no seal detail page is open.
-     */
-    private abstract class GolemSideSlot extends Slot {
-        GolemSideSlot(Container container, int slot, int x, int y) {
-            super(container, slot, x, y);
-        }
-
-        @Override
-        public boolean isActive() {
-            return GolemMenu.this.isGolemSideActive();
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack) {
-            return this.isActive() && super.mayPlace(stack);
-        }
-    }
-
-    private class AxiomSlot extends GolemSideSlot {
-        AxiomSlot(Container container, int slot, int x, int y) {
-            super(container, slot, x, y);
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack) {
-            return GolemMenu.this.canPlaceAxiom(stack) && super.mayPlace(stack);
-        }
-    }
-
-    private class ToolSlot extends GolemSideSlot {
-        ToolSlot(Container container, int slot, int x, int y) {
-            super(container, slot, x, y);
-        }
-
-        @Override
-        public boolean mayPlace(ItemStack stack) {
-            return GolemMenu.this.canPlaceTool(stack) && super.mayPlace(stack);
-        }
-    }
-
-    private class GolemSlot extends GolemSideSlot {
-        GolemSlot(Container container, int slot, int x, int y) {
-            super(container, slot, x, y);
-        }
-
-        @Override
-        public boolean isActive() {
-            return super.isActive() && this.getContainerSlot() < GolemMenu.this.getUsableGolemSlots();
-        }
-    }
-
-    /**
-     * Exposes the golem's job as a single axiom. The job in the golem's spec is the only state: the axiom stack is derived from it, and
-     * changes go through {@link GolemEntity#installJob} and {@link GolemEntity#takeJob} on the server. The client only reads the synced spec.
-     * <p>
-     * The stack is cached per job, so vanilla can hold on to it. Every change drops the cache, so a stack that left the slot is never returned again.
-     * The axiom is never destroyed by clearing: it can only leave the slot by being taken.
-     */
-    private static final class AxiomContainer implements Container {
-        private final GolemEntity golem;
-        private final Player player;
-        private @Nullable Holder<GolemJob> cachedJob;
-        private ItemStack cachedStack = ItemStack.EMPTY;
-
-        AxiomContainer(GolemEntity golem, Player player) {
-            this.golem = golem;
-            this.player = player;
-        }
-
-        @Override
-        public int getContainerSize() {
-            return 1;
-        }
-
-        @Override
-        public int getMaxStackSize() {
-            return 1;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return this.golem.getSpec().job().isEmpty();
-        }
-
-        @Override
-        public ItemStack getItem(int slot) {
-            Optional<Holder<GolemJob>> job = this.golem.getSpec().job();
-            if (job.isEmpty()) {
-                this.invalidate();
-                return ItemStack.EMPTY;
-            }
-
-            if (!job.get().equals(this.cachedJob) || this.cachedStack.isEmpty()) {
-                this.cachedJob = job.get();
-                this.cachedStack = AxiomItem.createStack(job.get());
-            }
-
-            return this.cachedStack;
-        }
-
-        @Override
-        public ItemStack removeItem(int slot, int count) {
-            return this.takeAxiom();
-        }
-
-        @Override
-        public ItemStack removeItemNoUpdate(int slot) {
-            return this.takeAxiom();
-        }
-
-        @Override
-        public void setItem(int slot, ItemStack stack) {
-            if (this.golem.level().isClientSide()) {
-                return;
-            }
-
-            this.invalidate();
-            if (stack.isEmpty()) {
-                this.golem.takeJob();
-                return;
-            }
-
-            AxiomItem.jobOf(stack).ifPresent(job -> this.golem.installJob(job, this.player instanceof ServerPlayer serverPlayer ? serverPlayer : null));
-        }
-
-        @Override
-        public void setChanged() {
-        }
-
-        @Override
-        public boolean stillValid(Player player) {
-            return this.golem.isAlive();
-        }
-
-        @Override
-        public void clearContent() {
-        }
-
-        private ItemStack takeAxiom() {
-            if (this.golem.level().isClientSide()) {
-                return ItemStack.EMPTY;
-            }
-
-            this.invalidate();
-            return this.golem.takeJob();
-        }
-
-        private void invalidate() {
-            this.cachedJob = null;
-            this.cachedStack = ItemStack.EMPTY;
-        }
-    }
-
-    /**
-     * Exposes the golem's main hand as a single-slot container.
-     */
-    private static final class GolemToolContainer implements Container {
-        private final GolemEntity golem;
-
-        GolemToolContainer(GolemEntity golem) {
-            this.golem = golem;
-        }
-
-        @Override
-        public int getContainerSize() {
-            return 1;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return this.golem.getMainHandItem().isEmpty();
-        }
-
-        @Override
-        public ItemStack getItem(int slot) {
-            return this.golem.getMainHandItem();
-        }
-
-        @Override
-        public ItemStack removeItem(int slot, int count) {
-            ItemStack stack = this.golem.getMainHandItem();
-            if (stack.isEmpty()) {
-                return ItemStack.EMPTY;
-            }
-
-            ItemStack removed = stack.split(count);
-            this.setItem(slot, stack);
-            return removed;
-        }
-
-        @Override
-        public ItemStack removeItemNoUpdate(int slot) {
-            ItemStack stack = this.golem.getMainHandItem();
-            this.golem.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-            return stack;
-        }
-
-        @Override
-        public void setItem(int slot, ItemStack stack) {
-            this.golem.setItemSlot(EquipmentSlot.MAINHAND, stack);
-        }
-
-        @Override
-        public void setChanged() {
-        }
-
-        @Override
-        public boolean stillValid(Player player) {
-            return this.golem.isAlive();
-        }
-
-        @Override
-        public void clearContent() {
-            this.golem.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
-        }
     }
 }
