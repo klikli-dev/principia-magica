@@ -1,0 +1,260 @@
+// SPDX-FileCopyrightText: 2026 klikli-dev
+//
+// SPDX-License-Identifier: MIT
+
+package com.klikli_dev.principiamagica.datagen.lang;
+
+import com.klikli_dev.principiamagica.content.principle.Principle;
+import com.klikli_dev.modonomicon.api.datagen.LanguageProviderCache;
+import com.klikli_dev.principiamagica.PrincipiaMagica;
+import net.minecraft.data.PackOutput;
+import net.neoforged.neoforge.common.data.LanguageProvider;
+
+public class ENUSProvider extends LanguageProvider {
+    private final LanguageProviderCache langCache;
+
+    public ENUSProvider(PackOutput packOutput, LanguageProviderCache langCache) {
+        super(packOutput, PrincipiaMagica.MODID, "en_us");
+        this.langCache = langCache;
+    }
+
+    private void addPrinciple(String name, String displayName, String description) {
+        this.add("principle." + PrincipiaMagica.MODID + "." + name, displayName);
+        this.add("principle." + PrincipiaMagica.MODID + "." + name + ".description", description);
+    }
+
+    @Override
+    protected void addTranslations() {
+        this.add("modmenu.nameTranslation.principiamagica", "Principia Magica");
+        this.add("itemGroup.principiamagica", "Principia Magica");
+
+        this.add("block.principiamagica.libation_slab", "Libation Slab");
+        this.add("block.principiamagica.libation_spout", "Libation Spout");
+        this.add("block.principiamagica.vessel_tap", "Vessel Tap");
+        this.add("block.principiamagica.catch_trough", "Catch Trough");
+        this.add("block.principiamagica.wabet_basin", "Wabet Basin");
+        this.add("block.principiamagica.steeping_jar", "Steeping Jar");
+        this.add("block.principiamagica.drying_slab", "Drying Slab");
+
+        this.add("subtitles.principiamagica.libation_slab.pour", "Principles pour");
+        this.add("subtitles.principiamagica.libation_slab.dissolve", "Item dissolves");
+        this.add("subtitles.principiamagica.libation_slab.place_item", "Item placed");
+        this.add("subtitles.principiamagica.catch_trough.steep", "Item steeps");
+        this.add("subtitles.principiamagica.vessel.tap_open", "Tap opens");
+        this.add("subtitles.principiamagica.vessel.tap_close", "Tap closes");
+        this.add("subtitles.principiamagica.vessel.cure", "Principles cure");
+        this.add("subtitles.principiamagica.drying_slab.dried", "Item dries");
+
+        this.add("message.principiamagica.libation_slab.not_washable", "Nothing can be washed from this");
+        this.add("message.principiamagica.libation_slab.full", "The slab is full");
+        this.add("message.principiamagica.libation_slab.other_item", "The slab already holds a different item");
+        this.add("message.principiamagica.libation_slab.water_full", "The slab already holds water");
+        this.add("message.principiamagica.libation_slab.water_only", "The slab only takes water");
+
+        this.addPrinciple("silt", "Silt", "Foundation. The weight and permanence of earth, stone and clay.");
+        this.addPrinciple("gleam", "Gleam", "Radiance. The clarity of sky, light and polished things.");
+        this.addPrinciple("sap", "Sap", "Vitality. The growth and moisture of plants and flesh.");
+        this.addPrinciple("ash", "Ash", "Severing. The dryness and edge of things that have ended.");
+        this.addPrinciple("loam", "Loam", "Fertile, sun-baked river earth.");
+        this.addPrinciple("shard", "Shard", "A kiln-hardened terracotta edge.");
+        this.addPrinciple("myrrh", "Myrrh", "A sun-cured golden resin.");
+        this.addPrinciple("glaze", "Glaze", "A luminous, glassy coating.");
+        this.addPrinciple("mire", "Mire", "Clinging sludge of the bog.");
+        this.addPrinciple("bitumen", "Bitumen", "A dark mineral pitch that seals and binds.");
+        this.addPrinciple("unguent", "Unguent", "A fermented anointing oil that quickens clay.");
+        this.addPrinciple("kohl", "Kohl", "A pigment of soot and minerals.");
+        this.addPrinciple("alabaster", "Alabaster", "Translucent stone that holds light in solid mass.");
+        this.addPrinciple("marrow", "Marrow", "Living vitality kept in dry bone.");
+        this.addPrinciple("faience", "Faience", "A radiant blue-gold ceramic.");
+        this.addPrinciple("kyphi", "Kyphi", "Temple incense of great purity.");
+        this.addPrinciple("stele", "Stele", "Monumental carved stone.");
+        this.addPrinciple("sinew", "Sinew", "Living tissue that binds a body together.");
+        this.addPrinciple("brine", "Brine", "Bitter primordial saltwater.");
+        this.addPrinciple("veil", "Veil", "Shadowed sight.");
+
+        this.add("item.principiamagica.principia", "Principia");
+        this.add("item.principiamagica.axiom_tablet", "Axiom Tablet");
+        this.add("item.principiamagica.quickened_clay", "Quickened Clay");
+        this.add("item.principiamagica.axiom_of_harvest_unfired", "Unfired Axiom of Harvest");
+        this.add("item.principiamagica.axiom_of_felling_unfired", "Unfired Axiom of Felling");
+        this.add("item.principiamagica.axiom_of_harvest_unfired_steeped", "Steeped Unfired Axiom of Harvest");
+        this.add("item.principiamagica.axiom_of_felling_unfired_steeped", "Steeped Unfired Axiom of Felling");
+        this.add("item.principiamagica.axiom_of_harvest", "Axiom of Harvest");
+        this.add("item.principiamagica.axiom_of_felling", "Axiom of Felling");
+
+        this.add("golem_material.principiamagica.wood", "Wooden");
+        this.add("golem_material.principiamagica.stone", "Stone");
+        this.add("golem_material.principiamagica.metal", "Metal");
+
+        this.add("attribute.principiamagica.golem_work_speed", "Golem Work Speed");
+        this.add("attribute.principiamagica.golem_work_range", "Golem Work Range");
+        this.add("attribute.principiamagica.golem_inventory_slots", "Golem Inventory Slots");
+
+        this.add("entity.principiamagica.golem", "Golem");
+        this.add("item.principiamagica.golem", "Golem");
+        this.add("item.principiamagica.golem.named", "%s Golem");
+
+        this.add("golem_mode.principiamagica.work", "Work");
+        this.add("golem_mode.principiamagica.follow", "Follow");
+        this.add("golem_mode.principiamagica.stay", "Stay");
+        this.add("message.principiamagica.golem.mode", "Golem mode: %s");
+        this.add("message.principiamagica.golem.job_already_set", "This golem already has a job");
+
+        this.add("golem_status.principiamagica.ok", "Working");
+        this.add("golem_status.principiamagica.no_purpose", "Purposeless");
+        this.add("golem_status.principiamagica.no_zone", "No work zone");
+        this.add("golem_status.principiamagica.missing_tool", "Missing tool");
+        this.add("golem_status.principiamagica.no_deposit", "No deposit container");
+        this.add("golem_status.principiamagica.deposit_full", "Deposit full");
+        this.add("golem_status.principiamagica.needs_supplies", "Needs supplies");
+        this.add("golem_status.principiamagica.ok.description", "The golem is working on its job.");
+        this.add("golem_status.principiamagica.no_purpose.description", "Give it an axiom to give it a purpose. Until then it can only stay or follow you.");
+        this.add("golem_status.principiamagica.no_zone.description", "Carve a footprint with the Copper Stylus.");
+        this.add("golem_status.principiamagica.missing_tool.description", "The job needs its tool in the golem's main hand.");
+        this.add("golem_status.principiamagica.no_deposit.description", "Link a container with the deposit or both role.");
+        this.add("golem_status.principiamagica.deposit_full.description", "The deposit containers have no room left.");
+        this.add("golem_status.principiamagica.needs_supplies.description", "A needed item is missing and no supply container holds it.");
+
+        this.add("job_option.principiamagica.pickup_items", "Pick up stray items");
+        this.add("job_option.principiamagica.pickup_items.description", "Pick up loose items inside the work zone and deposit them.");
+        this.add("job_option.principiamagica.replant", "Replant harvested crops");
+        this.add("job_option.principiamagica.replant.description", "Plant a seed on empty farmland after harvesting, preferring the seed that grew there before.");
+        this.add("job_option.principiamagica.clear_obstructions", "Clear obstructions");
+
+        this.add("job_option.principiamagica.clear_obstructions.description", "Clear grass, flowers and similar plants from the work area so crops can be planted. Seeds dropped by grass go into the golem's inventory.");
+
+        this.add("job_option.principiamagica.till", "Till soil near water");
+        this.add("job_option.principiamagica.till.description", "Turn dirt and grass near water into farmland. Needs a hoe in the main hand and uses its durability.");
+        this.add("job_option.principiamagica.bonemeal", "Bone meal on crops");
+        this.add("job_option.principiamagica.bonemeal.description", "Use bone meal on crops that can still grow. Bone meal is restocked from supply containers.");
+        this.add("job_option.principiamagica.replant_saplings", "Replant saplings");
+        this.add("job_option.principiamagica.replant_saplings.description", "Plant a matching sapling on the stump of each felled tree. Saplings are restocked from supply containers.");
+        this.add("job_option.principiamagica.clear_leaves", "Clear blocking leaves");
+        this.add("job_option.principiamagica.clear_leaves.description", "Break natural leaves around a trunk when they stop the golem from reaching it. Player-placed leaves are never broken.");
+        this.add("job_option.principiamagica.bonemeal_saplings", "Bone meal on saplings");
+        this.add("job_option.principiamagica.bonemeal_saplings.description", "Use bone meal on saplings in the work area so trees grow faster. Bone meal is restocked from supply containers.");
+
+        this.add("golem_job.principiamagica.farming", "Farming");
+        this.add("golem_job.principiamagica.lumberjack", "Lumberjack");
+
+        this.add("golem_upgrade.principiamagica.swiftness", "Swiftness");
+        this.add("golem_upgrade.principiamagica.swiftness.description", "Faster movement and work speed");
+        this.add("golem_upgrade.principiamagica.capacity", "Capacity");
+        this.add("golem_upgrade.principiamagica.capacity.description", "+3 golem inventory slots");
+
+        this.add("gui.principiamagica.golem.title", "%s Golem");
+        this.add("gui.principiamagica.golem.no_axiom", "No axiom");
+        this.add("gui.principiamagica.golem.options", "Job options");
+        this.add("gui.principiamagica.golem.no_job_hint", "Give the golem an axiom to give it a purpose. Right-click the golem with an axiom.");
+        this.add("gui.principiamagica.golem.tab.golem", "Golem");
+        this.add("gui.principiamagica.golem.tab.job", "Job");
+        this.add("gui.principiamagica.golem.back", "Back");
+        this.add("gui.principiamagica.golem.mode.work.tooltip", "The golem works its job");
+        this.add("gui.principiamagica.golem.mode.work.disabled", "Work needs an axiom");
+        this.add("gui.principiamagica.golem.mode.follow.tooltip", "The golem follows you");
+        this.add("gui.principiamagica.golem.mode.stay.tooltip", "The golem stays where it is");
+        this.add("gui.principiamagica.golem.tool.disabled", "A golem without an axiom cannot use a tool");
+        this.add("gui.principiamagica.golem.inventory.locked", "Locked: needs more inventory slots");
+        this.add("hud.principiamagica.stylus.role.supply", "Supply");
+        this.add("hud.principiamagica.stylus.role.deposit", "Deposit");
+        this.add("hud.principiamagica.stylus.role.both", "Both");
+        this.add("hud.principiamagica.stylus.pending_corner", "Corner pending");
+        this.add("hud.principiamagica.stylus.picked_up", "Corner picked up");
+        this.add("hud.principiamagica.stylus.hint.lift_next", "Shift-scroll: lift the next corner");
+        this.add("hud.principiamagica.stylus.hint.carve_opposite", "Right-click a block: carve the opposite corner");
+        this.add("hud.principiamagica.stylus.hint.place_picked_up", "Right-click a block: place the corner there");
+        this.add("hud.principiamagica.stylus.hint.cancel", "Right-click air: cancel");
+        this.add("hud.principiamagica.stylus.hint.lift_corner", "Shift-scroll: lift corner");
+        this.add("hud.principiamagica.stylus.hint.pick_up", "Right-click: pick up glyph to move it");
+        this.add("hud.principiamagica.stylus.hint.erase", "Shift-right-click: erase footprint");
+        this.add("hud.principiamagica.stylus.hint.move_zone", "Shift-scroll: move zone");
+        this.add("hud.principiamagica.libation.empty", "Empty");
+        this.add("hud.principiamagica.libation.status.curing", "Curing");
+        this.add("hud.principiamagica.libation.status.spout_open", "Spout open");
+        this.add("hud.principiamagica.libation.status.spout_closed", "Spout closed");
+        this.add("hud.principiamagica.libation.status.no_spout", "No spout attached");
+        this.add("hud.principiamagica.libation.status.tap_open", "Tap open");
+        this.add("hud.principiamagica.libation.status.tap_closed", "Tap closed");
+        this.add("hud.principiamagica.libation.status.no_tap", "No tap attached");
+        this.add("hud.principiamagica.libation.status.no_target", "Nothing below to receive the drain");
+        this.add("hud.principiamagica.libation.status.no_recipe", "No recipe");
+        this.add("hud.principiamagica.libation.status.too_dark", "Too dark");
+        this.add("hud.principiamagica.libation.status.dried", "Dried");
+        this.add("hud.principiamagica.libation.status.dissolving", "Dissolving");
+        this.add("hud.principiamagica.libation.status.drying", "Drying");
+        this.add("hud.principiamagica.libation.status.output_full", "Output full");
+        this.add("hud.principiamagica.libation.status.steeping", "Steeping");
+        this.add("hud.principiamagica.libation.status.missing_principles", "Missing principles");
+        this.add("hud.principiamagica.libation.water", "Water %s/%s mB");
+        this.add("principle.principiamagica.amount", "%s mB");
+        this.add(Principle.PREFIXED_NAME_KEY, "Principle: %s");
+        this.add("jei.principiamagica.principle.amount", "Amount: %s");
+        this.add("jei.principiamagica.libation", "Libation");
+        this.add("jei.principiamagica.wabet_curing", "Wabet Curing");
+        this.add("jei.principiamagica.steeping_jar_curing", "Steeping Jar Curing");
+        this.add("jei.principiamagica.steeping", "Steeping");
+        this.add("jei.principiamagica.drying", "Drying");
+        this.add("jei.principiamagica.curing.light_min", "Needs light ≥ %s");
+        this.add("jei.principiamagica.time_at_full_light", "%s s at full light");
+        this.add("jei.principiamagica.time", "%s s");
+        this.add("gui.principiamagica.golem.status_hint.no_purpose", "No purpose: place an Axiom");
+        this.add("gui.principiamagica.golem.status_hint.no_zone", "No work zone: use the Stylus");
+        this.add("gui.principiamagica.golem.status_hint.missing_tool", "Missing tool: add one to slot");
+        this.add("gui.principiamagica.golem.status_hint.no_deposit", "No deposit: link one (Stylus)");
+        this.add("gui.principiamagica.golem.status_hint.deposit_full", "Deposit full: empty or relink");
+        this.add("gui.principiamagica.golem.status_hint.needs_supplies", "Needs supplies: stock a chest");
+
+        this.add("tooltip.principiamagica.golem.material", "Material: %s");
+        this.add("message.principiamagica.golem.destroyed", "Your %s was destroyed at %s, %s, %s.");
+        this.add("item.principiamagica.copper_stylus", "Copper Stylus");
+        this.add("golem_role.principiamagica.supply", "Supply");
+        this.add("golem_role.principiamagica.deposit", "Deposit");
+        this.add("golem_role.principiamagica.both", "Supply and deposit");
+
+        this.add("message.principiamagica.golem.job_removed", "Axiom removed");
+        this.add("message.principiamagica.golem.job_swapped", "Axiom swapped, previous axiom returned");
+        this.add("message.principiamagica.golem.no_job", "This golem has no job");
+        this.add("message.principiamagica.golem.not_owner", "You do not own this golem");
+        this.add("message.principiamagica.golem.upgrade_added", "Upgrade installed: %s");
+        this.add("message.principiamagica.golem.upgrade_duplicate", "This golem already has this upgrade");
+        this.add("message.principiamagica.golem.upgrade_no_slot", "This golem has no free upgrade slot");
+
+        this.add("message.principiamagica.stylus.not_owner", "You do not own this golem");
+        this.add("message.principiamagica.stylus.no_golem_selected", "Select a golem first by right-clicking it");
+        this.add("message.principiamagica.stylus.golem_not_found", "The selected golem is not nearby");
+        this.add("message.principiamagica.stylus.selected", "Golem selected");
+        this.add("message.principiamagica.stylus.deselected", "Golem deselected");
+        this.add("message.principiamagica.stylus.copied", "Copied workplace: %s footprints, %s container links");
+        this.add("message.principiamagica.stylus.pasted", "Pasted workplace");
+        this.add("message.principiamagica.stylus.cleared", "Cleared selection and clipboard");
+        this.add("message.principiamagica.stylus.corner_set", "First glyph carved, carve the opposite corner");
+        this.add("message.principiamagica.stylus.footprint_carved", "Footprint carved");
+        this.add("message.principiamagica.stylus.footprint_erased", "Glyph erased, its footprint is gone");
+        this.add("message.principiamagica.stylus.footprint_too_large", "Footprint too large, maximum is %s x %s");
+        this.add("message.principiamagica.stylus.footprint_raised", "Kudurru raised %s");
+        this.add("message.principiamagica.stylus.corner_lifted", "Corner lifted %s");
+        this.add("message.principiamagica.stylus.corner_picked_up", "Corner picked up: right-click a block to place it");
+        this.add("message.principiamagica.stylus.nothing_to_remove", "Nothing to remove here");
+        this.add("message.principiamagica.stylus.link_set", "Container link: %s");
+        this.add("message.principiamagica.stylus.link_removed", "Container link removed");
+        this.add("message.principiamagica.stylus.picked_up", "Golem picked up, its workplace is kept");
+
+        this.add("tooltip.principiamagica.copper_stylus.selected", "Selected golem: %s");
+        this.add("tooltip.principiamagica.copper_stylus.yes", "yes");
+        this.add("tooltip.principiamagica.copper_stylus.none", "none");
+        this.add("tooltip.principiamagica.copper_stylus.pending_corner", "Pending glyph: %s, %s, %s");
+        this.add("tooltip.principiamagica.copper_stylus.clipboard_empty", "Clipboard: empty");
+        this.add("tooltip.principiamagica.copper_stylus.clipboard", "Clipboard: %s footprints, %s container links");
+        this.add("tooltip.principiamagica.copper_stylus.hint_select", "Right-click golem: select / deselect");
+        this.add("tooltip.principiamagica.copper_stylus.hint_copy_paste", "Shift-right-click golem: copy workplace / paste clipboard");
+        this.add("tooltip.principiamagica.copper_stylus.hint_link", "Right-click container: cycle supply, deposit, both, removed");
+        this.add("tooltip.principiamagica.copper_stylus.hint_zone", "Right-click two block faces: carve a footprint");
+        this.add("tooltip.principiamagica.copper_stylus.hint_raise", "Shift-scroll over a glyph: lift its corner. Over a footprint: move it up or down");
+        this.add("tooltip.principiamagica.copper_stylus.hint_pickup_glyph", "Right-click glyph: pick it up, right-click a block to place it again");
+        this.add("tooltip.principiamagica.copper_stylus.hint_remove", "Shift-right-click glyph or container: remove it");
+        this.add("tooltip.principiamagica.copper_stylus.hint_pickup", "Shift-left-click own golem: pick up (keeps workplace)");
+        this.add("tooltip.principiamagica.copper_stylus.hint_clear", "Shift-right-click air: clear selection and clipboard");
+
+        this.langCache.data().forEach(this::add);
+    }
+}

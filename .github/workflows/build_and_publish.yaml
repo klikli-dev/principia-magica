@@ -60,14 +60,21 @@ jobs:
         env:
           MOD_VERSION: ${{ steps.get_version.outputs.result }}
 
+      - name: Update CHANGELOG
+        id: changelog
+        uses: klikli-dev/changelog-action@main
+        with:
+          token: ${{ github.token }}
+          tag: ${{ github.ref_name }}
+          mcVersion: ${{ steps.get_mc_version.outputs.result }}
+
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           draft: false
           name: principiamagica-${{ steps.get_mc_version.outputs.result }}-${{ steps.get_version.outputs.result }}-neoforge-${{ steps.get_release_type.outputs.result }}
-          body: |
-            Automated release for ${{ github.ref_name }}.
+          body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
           tag: ${{ github.ref }}
           artifacts: |
@@ -110,6 +117,7 @@ jobs:
             Find changes for all versions at https://github.com/klikli-dev/principia-magica/releases
           dependencies: |
             modonomicon(required)
+            geckolib(required)
             magic-particles-lib(optional)
             codedefinedgui(optional)
             jei(optional)
@@ -137,6 +145,7 @@ jobs:
             Find changes for all versions at https://github.com/klikli-dev/principia-magica/releases
           dependencies: |
             modonomicon(required)
+            geckolib(required)
             magic-particles-lib(optional)
             codedefinedgui(optional)
             jei(optional)
