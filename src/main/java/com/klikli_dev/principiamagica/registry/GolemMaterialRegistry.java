@@ -8,8 +8,6 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemMaterial;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -20,7 +18,6 @@ public class GolemMaterialRegistry {
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> WOOD = GOLEM_MATERIALS.register("wood", () -> new GolemMaterial(
             PrincipiaMagica.loc("textures/entity/golem/wooden_golem.png"),
-            Ingredient.of(ItemRegistry.QUICKENED_CLAY.get()),
             false,
             List.of(
                     GolemMaterial.modifier(Attributes.MAX_HEALTH, -2.0, AttributeModifier.Operation.ADD_VALUE),
@@ -30,7 +27,6 @@ public class GolemMaterialRegistry {
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> STONE = GOLEM_MATERIALS.register("stone", () -> new GolemMaterial(
             PrincipiaMagica.loc("textures/entity/golem/stone_golem.png"),
-            Ingredient.of(Items.COBBLESTONE),
             false,
             List.of(
                     GolemMaterial.modifier(Attributes.MAX_HEALTH, 4.0, AttributeModifier.Operation.ADD_VALUE),
@@ -41,7 +37,6 @@ public class GolemMaterialRegistry {
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> METAL = GOLEM_MATERIALS.register("metal", () -> new GolemMaterial(
             PrincipiaMagica.loc("textures/entity/golem/metal_golem.png"),
-            Ingredient.of(Items.IRON_INGOT),
             true,
             List.of(
                     GolemMaterial.modifier(Attributes.MAX_HEALTH, 10.0, AttributeModifier.Operation.ADD_VALUE),

@@ -10,7 +10,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.item.crafting.Ingredient;
 
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -21,13 +20,11 @@ public class GolemMaterial implements StatContributor {
     }
 
     private final Identifier texture;
-    private final Ingredient repairIngredient;
     private final boolean fireImmune;
     private final List<ModifierEntry> modifiers;
 
-    public GolemMaterial(Identifier texture, Ingredient repairIngredient, boolean fireImmune, List<ModifierEntry> modifiers) {
+    public GolemMaterial(Identifier texture, boolean fireImmune, List<ModifierEntry> modifiers) {
         this.texture = texture;
-        this.repairIngredient = repairIngredient;
         this.fireImmune = fireImmune;
         this.modifiers = modifiers;
     }
@@ -38,10 +35,6 @@ public class GolemMaterial implements StatContributor {
 
     public Identifier texture() {
         return this.texture;
-    }
-
-    public Ingredient repairIngredient() {
-        return this.repairIngredient;
     }
 
     public boolean fireImmune() {
