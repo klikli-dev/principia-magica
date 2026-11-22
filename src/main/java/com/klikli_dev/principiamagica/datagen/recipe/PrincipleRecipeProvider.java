@@ -35,7 +35,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -84,16 +83,8 @@ public class PrincipleRecipeProvider implements DataProvider {
             this.items = provider.lookupOrThrow(Registries.ITEM);
 
             Map<Identifier, Recipe<?>> recipes = new LinkedHashMap<>();
-            this.buildRecipes((id, recipe) -> {
-                if (recipes.put(id, recipe) != null) {
-                    throw new IllegalStateException("Duplicate recipe " + id);
-                }
-            });
-
-            List<CompletableFuture<?>> futures = recipes.entrySet().stream()
-                    .<CompletableFuture<?>>map(entry -> DataProvider.saveStable(output, this.encode(entry.getValue()), this.pathProvider.json(entry.getKey())))
-                    .toList();
-            return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
+            this.buildRecipes(RecipeDataWriter.collector(recipes));
+            return RecipeDataWriter.save(output, this.pathProvider, recipes, this::encode);
         });
     }
 

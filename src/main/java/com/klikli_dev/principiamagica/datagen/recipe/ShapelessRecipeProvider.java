@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Crafting table recipes without a fixed shape.
@@ -62,16 +63,8 @@ public class ShapelessRecipeProvider implements DataProvider {
             this.items = provider.lookupOrThrow(Registries.ITEM);
 
             Map<Identifier, JsonObject> recipes = new LinkedHashMap<>();
-            this.buildRecipes((id, json) -> {
-                if (recipes.put(id, json) != null) {
-                    throw new IllegalStateException("Duplicate recipe " + id);
-                }
-            });
-
-            List<CompletableFuture<?>> futures = recipes.entrySet().stream()
-                    .<CompletableFuture<?>>map(entry -> DataProvider.saveStable(output, entry.getValue(), this.pathProvider.json(entry.getKey())))
-                    .toList();
-            return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
+            this.buildRecipes(RecipeDataWriter.collector(recipes));
+            return RecipeDataWriter.save(output, this.pathProvider, recipes, Function.identity());
         });
     }
 
