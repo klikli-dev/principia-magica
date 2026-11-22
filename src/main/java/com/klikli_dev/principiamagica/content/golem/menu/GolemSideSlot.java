@@ -9,7 +9,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * A slot on the golem side of the golem menu. Only shown and usable on the golem tab, while no seal detail page is open.
+ * A slot on the golem side of the golem menu. Only shown and usable on the golem tab.
  */
 abstract class GolemSideSlot extends Slot {
     protected final GolemMenu menu;

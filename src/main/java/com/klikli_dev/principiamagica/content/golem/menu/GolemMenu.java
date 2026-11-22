@@ -32,13 +32,10 @@ import java.util.Optional;
 
 /**
  * Golem GUI. Slots: the axiom (the golem's job), the tool (main hand), its inventory (only usable slots are active), then the player inventory.
- * The golem-side slots are only active on the golem tab while no seal detail page is open. The player inventory is always active.
+ * The golem-side slots are only active on the golem tab. The player inventory is always active.
  * The slot classes are in this package: {@link AxiomSlot}, {@link ToolSlot}, {@link GolemSlot}.
  */
 public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
-
-    public static final int BUTTON_SEAL_DETAIL_OPEN = 2;
-    public static final int BUTTON_SEAL_DETAIL_CLOSE = 3;
 
     private static final int AXIOM_SLOT = 0;
     private static final int TOOL_SLOT = 1;
@@ -56,7 +53,6 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     private final Container golemInventory;
     private final MenuLayoutController layoutController = new MenuLayoutController(this);
     private GolemMenuTab activeTab = GolemMenuTab.GOLEM;
-    private boolean sealDetailOpen;
 
     public GolemMenu(int containerId, Inventory playerInventory, int golemId) {
         super(MenuRegistry.GOLEM.get(), containerId);
@@ -93,23 +89,11 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     }
 
     /**
-     * @return true while the seal detail page covers the golem tab. Synced to the server with {@link #clickMenuButton}.
-     */
-    public boolean isSealDetailOpen() {
-        return this.sealDetailOpen;
-    }
-
-    /**
-     * The client sends the tab ordinal as button id whenever the player switches tabs, and the seal detail button ids when it opens or closes
-     * the seal detail page. The server rejects unknown ids and the job tab while the golem has no axiom.
+     * The client sends the tab ordinal as button id whenever the player switches tabs. The server rejects unknown ids and the job tab
+     * while the golem has no axiom.
      */
     @Override
     public boolean clickMenuButton(Player player, int buttonId) {
-        if (buttonId == BUTTON_SEAL_DETAIL_OPEN || buttonId == BUTTON_SEAL_DETAIL_CLOSE) {
-            this.sealDetailOpen = buttonId == BUTTON_SEAL_DETAIL_OPEN;
-            return true;
-        }
-
         if (buttonId < 0 || buttonId >= GolemMenuTab.values().length) {
             return false;
         }
@@ -139,7 +123,7 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
      * @return true if the golem-side slots (axiom, tool and golem inventory) are shown and usable.
      */
     boolean isGolemSideActive() {
-        return this.activeTab() == GolemMenuTab.GOLEM && !this.sealDetailOpen;
+        return this.activeTab() == GolemMenuTab.GOLEM;
     }
 
     @Override

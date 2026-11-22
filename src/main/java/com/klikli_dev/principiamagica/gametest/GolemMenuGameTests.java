@@ -164,7 +164,7 @@ public class GolemMenuGameTests {
         helper.succeed();
     }
 
-    public static void golemSideSlotsInactiveOnJobTabAndSeals(GameTestHelper helper) {
+    public static void golemSideSlotsInactiveOnJobTab(GameTestHelper helper) {
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(AxiomItem.jobOf(harvestAxiom()).orElseThrow()));
         golem.setMode(GolemMode.WORK);
@@ -182,12 +182,7 @@ public class GolemMenuGameTests {
         helper.assertTrue(golem.getSpec().job().isPresent(), "Clicks on inactive slots should be ignored");
 
         helper.assertTrue(menu.clickMenuButton(player, GolemMenuTab.GOLEM.ordinal()), "The golem tab button should be accepted");
-        helper.assertTrue(menu.clickMenuButton(player, GolemMenu.BUTTON_SEAL_DETAIL_OPEN), "Opening the seal detail should be accepted");
-        helper.assertTrue(!menu.axiomSlot().isActive() && !menu.toolSlot().isActive(), "Golem-side slots should be inactive while a seal detail is open");
-        helper.assertTrue(playerSlot.isActive(), "Player slots should stay active while a seal detail is open");
-
-        helper.assertTrue(menu.clickMenuButton(player, GolemMenu.BUTTON_SEAL_DETAIL_CLOSE), "Closing the seal detail should be accepted");
-        helper.assertTrue(menu.axiomSlot().isActive(), "Golem-side slots should be active again after closing the seal detail");
+        helper.assertTrue(menu.axiomSlot().isActive() && menu.toolSlot().isActive(), "Golem-side slots should be active again on the golem tab");
 
         helper.succeed();
     }

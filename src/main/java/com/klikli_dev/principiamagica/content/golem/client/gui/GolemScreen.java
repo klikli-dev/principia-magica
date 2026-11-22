@@ -39,8 +39,8 @@ import java.util.function.Supplier;
  * detail pages. The player inventory backgrounds belong to the screen, so they stay drawn on both tabs.
  * <p>
  * The screen rebuilds a {@link GolemView} every tick. Tabs and pages read it through a supplier, so their widgets follow
- * the data without being rebuilt, and scroll positions survive refreshes. Tab switches and seal detail pages are sent to the
- * server as menu button clicks (see {@link #pressMenuButton}), so the server knows which slots are active.
+ * the data without being rebuilt, and scroll positions survive refreshes. Tab switches are sent to the server as menu button
+ * clicks (see {@link #pressMenuButton}), so the server knows which slots are active.
  */
 public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements GuiHost {
 
@@ -59,9 +59,6 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     @Override
     protected void init() {
         super.init();
-        if (this.menu.isSealDetailOpen()) {
-            this.pressMenuButton(GolemMenu.BUTTON_SEAL_DETAIL_CLOSE);
-        }
         this.view = this.createView();
         this.addGuiWidget(new GuiBackgroundWidget(this));
 
@@ -103,7 +100,7 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     }
 
     /**
-     * ESC pops a seal detail page first. The pop hides the page, which sends the close button to the server.
+     * ESC pops the detail page of the selected tab first, before the screen closes.
      */
     @Override
     public boolean keyPressed(KeyEvent event) {
@@ -134,7 +131,7 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
      * The preview is drawn on the golem tab's root page only, so it disappears with the golem tab's widgets.
      */
     private boolean showsGolemPreview() {
-        return this.menu.activeTab() == GolemMenuTab.GOLEM && !this.menu.isSealDetailOpen();
+        return this.menu.activeTab() == GolemMenuTab.GOLEM;
     }
 
     private void selectTab(GolemMenuTab tab) {
