@@ -6,11 +6,12 @@ package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBonemeal;
+import com.klikli_dev.principiamagica.content.golem.job.JobTargetBehaviour;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingTargets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-public class ApplyBonemeal extends FarmingBehaviour {
+public class ApplyBonemeal extends JobTargetBehaviour {
 
     @Override
     protected boolean canAct(ServerLevel level, GolemEntity golem, BlockPos pos) {

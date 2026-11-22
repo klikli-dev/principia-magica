@@ -36,6 +36,10 @@ import java.util.Set;
 public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
     public static final int UNREACHABLE_TICKS = 600;
     public static final int RESERVATION_TICKS = 200;
+    /**
+     * The duration vanilla's Behavior is constructed with. It is never enforced, see {@link #timedOut(long)}.
+     */
+    private static final int VANILLA_DURATION_TICKS = 60;
     private static final int MAX_TRAVEL_TICKS = 400;
     private static final int PATH_GRACE_TICKS = 20;
     private static final double HORIZONTAL_REACH_SQR = 2.25;
@@ -60,7 +64,7 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
     private int workDelay;
 
     protected MoveToAndInteract(Map<MemoryModuleType<?>, MemoryStatus> conditions, float speed) {
-        super(conditions, 60);
+        super(conditions, VANILLA_DURATION_TICKS);
         this.speed = speed;
     }
 
@@ -174,6 +178,10 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
         }
     }
 
+    /**
+     * Vanilla would end the behaviour after its default duration. Walks and work instead run until they finish or
+     * their target becomes invalid, so the timeout is disabled.
+     */
     @Override
     protected boolean timedOut(long timestamp) {
         return false;
@@ -196,42 +204,47 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
         }
 
         if (isInReach(golem, pos)) {
-            if (this.interactionPos == null) {
-                this.interactionPos = pos;
-                golem.getNavigation().stop();
-                golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
-                this.startInteraction(level, golem, pos);
-                this.breakPos = this.breakingPos(level, golem, pos);
-                this.workDelay = this.workDelayTicks(level, golem, pos);
-            }
+            this.tickInteraction(level, golem, pos);
+        } else {
+            this.tickTravel(golem, pos);
+        }
+    }
 
-            golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pos));
-            this.workTicks++;
-            if (this.workTicks >= this.workDelay) {
-                this.clearBreakProgress(level, golem);
-                golem.swingWorkArm();
-                this.interact(level, golem, pos);
-                this.target = null;
-            } else {
-                this.updateBreakProgress(level, golem);
-            }
-            return;
+    private void tickInteraction(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        if (this.interactionPos == null) {
+            this.beginInteraction(level, golem, pos);
         }
 
+        golem.getBrain().setMemory(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pos));
+        this.workTicks++;
+        if (this.workTicks >= this.workDelay) {
+            this.completeInteraction(level, golem, pos);
+        } else {
+            this.updateBreakProgress(level, golem);
+        }
+    }
+
+    private void beginInteraction(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        this.interactionPos = pos;
+        golem.getNavigation().stop();
+        golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+        this.startInteraction(level, golem, pos);
+        this.breakPos = this.breakingPos(level, golem, pos);
+        this.workDelay = this.workDelayTicks(level, golem, pos);
+    }
+
+    private void completeInteraction(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        this.clearBreakProgress(level, golem);
+        golem.swingWorkArm();
+        this.interact(level, golem, pos);
+        this.target = null;
+    }
+
+    private void tickTravel(GolemEntity golem, BlockPos pos) {
         this.travelTicks++;
         BlockPos stand = this.approach != null ? this.approach : pos;
-        if (this.travelTicks > MAX_TRAVEL_TICKS || (this.travelTicks > PATH_GRACE_TICKS && golem.getNavigation().isDone())) {
-            markUnreachable(golem, stand);
-            this.target = null;
-            return;
-        }
-
-        if (golem.position().distanceToSqr(this.progressPos) > STUCK_DISTANCE_SQR) {
-            this.progressPos = golem.position();
-            this.stillTicks = 0;
-        } else if (++this.stillTicks > STUCK_TICKS) {
-            markUnreachable(golem, stand);
-            this.target = null;
+        if (this.hasRunOutOfTime(golem) || this.hasStalled(golem)) {
+            this.giveUp(golem, stand);
             return;
         }
 
@@ -240,6 +253,36 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
         } else {
             BehaviorUtils.setWalkAndLookTargetMemories(golem, stand, this.speed, 0);
         }
+    }
+
+    /**
+     * @return true if the walk took too long, or the path ended without the golem reaching the target
+     */
+    private boolean hasRunOutOfTime(GolemEntity golem) {
+        return this.travelTicks > MAX_TRAVEL_TICKS || (this.travelTicks > PATH_GRACE_TICKS && golem.getNavigation().isDone());
+    }
+
+    /**
+     * Counts the ticks the golem has not moved noticeably.
+     *
+     * @return true if the golem has not moved for longer than STUCK_TICKS
+     */
+    private boolean hasStalled(GolemEntity golem) {
+        if (golem.position().distanceToSqr(this.progressPos) > STUCK_DISTANCE_SQR) {
+            this.progressPos = golem.position();
+            this.stillTicks = 0;
+            return false;
+        }
+
+        return ++this.stillTicks > STUCK_TICKS;
+    }
+
+    /**
+     * Blacklists the stand cell as unreachable and drops the target, so the next start picks another one.
+     */
+    private void giveUp(GolemEntity golem, BlockPos stand) {
+        markUnreachable(golem, stand);
+        this.target = null;
     }
 
     private void updateBreakProgress(ServerLevel level, GolemEntity golem) {

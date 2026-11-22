@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.job.JobTargetBehaviour;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingTargets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -17,7 +18,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 
-public class TillSoil extends FarmingBehaviour {
+public class TillSoil extends JobTargetBehaviour {
 
     @Override
     protected boolean canAct(ServerLevel level, GolemEntity golem, BlockPos pos) {

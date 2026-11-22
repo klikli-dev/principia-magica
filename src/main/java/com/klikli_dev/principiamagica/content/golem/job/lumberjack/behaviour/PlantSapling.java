@@ -24,11 +24,6 @@ import java.util.Optional;
  * Plants a sapling on a replant spot left by a felled tree.
  */
 public class PlantSapling extends JobTargetBehaviour {
-    private static final float WORK_SPEED = 0.6F;
-
-    public PlantSapling() {
-        super(WORK_SPEED);
-    }
 
     @Override
     protected Optional<BlockPos> findTarget(ServerLevel level, GolemEntity golem) {

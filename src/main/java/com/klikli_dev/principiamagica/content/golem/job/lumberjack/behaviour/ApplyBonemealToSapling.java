@@ -15,11 +15,6 @@ import net.minecraft.server.level.ServerLevel;
  * Applies bone meal to a sapling in the work zone so it grows into a tree faster.
  */
 public class ApplyBonemealToSapling extends JobTargetBehaviour {
-    private static final float WORK_SPEED = 0.6F;
-
-    public ApplyBonemealToSapling() {
-        super(WORK_SPEED);
-    }
 
     @Override
     protected boolean canAct(ServerLevel level, GolemEntity golem, BlockPos pos) {

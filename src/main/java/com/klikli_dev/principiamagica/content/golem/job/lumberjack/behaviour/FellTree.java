@@ -26,12 +26,7 @@ import java.util.Optional;
  * the axe loses one durability per log. Leaves are left alone, they decay on their own.
  */
 public class FellTree extends JobTargetBehaviour {
-    private static final float WORK_SPEED = 0.6F;
     private static final int MIN_FELL_TICKS = 20;
-
-    public FellTree() {
-        super(WORK_SPEED);
-    }
 
     @Override
     protected boolean canAct(ServerLevel level, GolemEntity golem, BlockPos pos) {
@@ -54,7 +49,6 @@ public class FellTree extends JobTargetBehaviour {
                 .map(TreeAccess.Plan::stand)
                 .orElse(stump);
     }
-
 
     @Override
     protected int baseWorkTicks() {

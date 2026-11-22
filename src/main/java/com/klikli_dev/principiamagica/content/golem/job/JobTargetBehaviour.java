@@ -13,14 +13,18 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Base for job actions: picks the nearest available work candidate this action can act on.
+ * Base for job actions: picks the nearest available work candidate this action can act on, and walks to it at the work speed.
  */
 public abstract class JobTargetBehaviour extends MoveToAndInteract {
+    private static final float WORK_SPEED = 0.6F;
 
-    protected JobTargetBehaviour(float speed) {
-        super(Map.of(), speed);
+    protected JobTargetBehaviour() {
+        super(Map.of(), WORK_SPEED);
     }
 
+    /**
+     * @return whether the action can act on the candidate at pos right now
+     */
     protected abstract boolean canAct(ServerLevel level, GolemEntity golem, BlockPos pos);
 
     @Override

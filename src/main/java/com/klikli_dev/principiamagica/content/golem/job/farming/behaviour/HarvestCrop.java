@@ -7,6 +7,7 @@ package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBreaking;
 import com.klikli_dev.principiamagica.content.golem.job.GolemDrops;
+import com.klikli_dev.principiamagica.content.golem.job.JobTargetBehaviour;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingTargets;
 import com.klikli_dev.principiamagica.content.golem.job.farming.crop.CropHandler;
 import com.klikli_dev.principiamagica.content.golem.job.farming.crop.CropHandlers;
@@ -19,7 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
-public class HarvestCrop extends FarmingBehaviour {
+public class HarvestCrop extends JobTargetBehaviour {
     private static final int MAX_HARVEST_TICKS = 60;
 
     @Override

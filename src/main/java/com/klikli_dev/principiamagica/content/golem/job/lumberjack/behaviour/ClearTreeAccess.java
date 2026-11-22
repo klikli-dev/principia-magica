@@ -27,14 +27,9 @@ import java.util.Optional;
  * stands on the planned stand cell while it breaks the leaf. Player-placed leaves are never broken.
  */
 public class ClearTreeAccess extends JobTargetBehaviour {
-    private static final float WORK_SPEED = 0.6F;
     private static final int MIN_CLEAR_TICKS = 10;
 
     private TreeAccess.@Nullable Plan plan;
-
-    public ClearTreeAccess() {
-        super(WORK_SPEED);
-    }
 
     @Override
     protected Optional<BlockPos> findTarget(ServerLevel level, GolemEntity golem) {
