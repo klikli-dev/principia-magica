@@ -18,8 +18,6 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -31,7 +29,7 @@ import net.minecraft.world.level.Level;
  * <p>
  * Steeping takes {@link #time()} ticks while the principles are sufficient. The time is not scaled by light.
  */
-public record SteepingRecipe(Ingredient ingredient, PrincipleContents principles, ItemStackTemplate result, int time) implements Recipe<SteepingRecipe.SteepingRecipeInput> {
+public record SteepingRecipe(Ingredient ingredient, PrincipleContents principles, ItemStackTemplate result, int time) implements PrincipleRecipe<SteepingRecipe.SteepingRecipeInput> {
 
     public static final MapCodec<SteepingRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Ingredient.CODEC.fieldOf("ingredient").forGetter(SteepingRecipe::ingredient),
@@ -59,16 +57,6 @@ public record SteepingRecipe(Ingredient ingredient, PrincipleContents principles
     }
 
     @Override
-    public boolean showNotification() {
-        return false;
-    }
-
-    @Override
-    public String group() {
-        return "";
-    }
-
-    @Override
     public RecipeSerializer<? extends Recipe<SteepingRecipeInput>> getSerializer() {
         return RecipeSerializerRegistry.STEEPING.get();
     }
@@ -81,11 +69,6 @@ public record SteepingRecipe(Ingredient ingredient, PrincipleContents principles
     @Override
     public PlacementInfo placementInfo() {
         return PlacementInfo.create(this.ingredient);
-    }
-
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     /**

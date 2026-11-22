@@ -17,8 +17,6 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -27,7 +25,7 @@ import net.minecraft.world.level.Level;
 /**
  * Dries a steeped item on the Drying Slab. The time is in ticks at full light (15).
  */
-public record DryingRecipe(Ingredient ingredient, ItemStackTemplate result, int time) implements Recipe<SingleRecipeInput> {
+public record DryingRecipe(Ingredient ingredient, ItemStackTemplate result, int time) implements PrincipleRecipe<SingleRecipeInput> {
 
     public static final MapCodec<DryingRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Ingredient.CODEC.fieldOf("ingredient").forGetter(DryingRecipe::ingredient),
@@ -53,16 +51,6 @@ public record DryingRecipe(Ingredient ingredient, ItemStackTemplate result, int 
     }
 
     @Override
-    public boolean showNotification() {
-        return false;
-    }
-
-    @Override
-    public String group() {
-        return "";
-    }
-
-    @Override
     public RecipeSerializer<? extends Recipe<SingleRecipeInput>> getSerializer() {
         return RecipeSerializerRegistry.DRYING.get();
     }
@@ -75,10 +63,5 @@ public record DryingRecipe(Ingredient ingredient, ItemStackTemplate result, int 
     @Override
     public PlacementInfo placementInfo() {
         return PlacementInfo.create(this.ingredient);
-    }
-
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategories.CRAFTING_MISC;
     }
 }

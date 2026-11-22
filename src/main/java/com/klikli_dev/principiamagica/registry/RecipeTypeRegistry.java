@@ -10,6 +10,7 @@ import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.LibationRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.SteepingRecipe;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -18,14 +19,19 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public class RecipeTypeRegistry {
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, PrincipiaMagica.MODID);
 
-    public static final DeferredHolder<RecipeType<?>, RecipeType<LibationRecipe>> LIBATION = RECIPE_TYPES.register("libation", () -> new RecipeType<LibationRecipe>() {
-    });
-    public static final DeferredHolder<RecipeType<?>, RecipeType<CuringRecipe>> CURING = RECIPE_TYPES.register("curing", () -> new RecipeType<CuringRecipe>() {
-    });
-    public static final DeferredHolder<RecipeType<?>, RecipeType<SteepingRecipe>> STEEPING = RECIPE_TYPES.register("steeping", () -> new RecipeType<SteepingRecipe>() {
-    });
-    public static final DeferredHolder<RecipeType<?>, RecipeType<DryingRecipe>> DRYING = RECIPE_TYPES.register("drying", () -> new RecipeType<DryingRecipe>() {
-    });
+    public static final DeferredHolder<RecipeType<?>, RecipeType<LibationRecipe>> LIBATION = register("libation");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<CuringRecipe>> CURING = register("curing");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<SteepingRecipe>> STEEPING = register("steeping");
+    public static final DeferredHolder<RecipeType<?>, RecipeType<DryingRecipe>> DRYING = register("drying");
+
+    /**
+     * Registers a recipe type that only needs to be identified by its class. Each call creates a distinct instance, which
+     * is what the registry expects.
+     */
+    private static <T extends Recipe<?>> DeferredHolder<RecipeType<?>, RecipeType<T>> register(String name) {
+        return RECIPE_TYPES.register(name, () -> new RecipeType<T>() {
+        });
+    }
 
     /**
      * Sends the principle recipes to clients, where they are available via {@code ClientRecipes}.

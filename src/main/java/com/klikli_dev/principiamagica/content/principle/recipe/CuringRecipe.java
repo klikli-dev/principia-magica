@@ -18,8 +18,6 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -31,7 +29,7 @@ import net.minecraft.world.level.Level;
  * The input matches when the vessel holds at least the inputs and the environment matches.
  * The result is a principle stack, not an item, so {@link #assemble} returns an empty stack.
  */
-public record CuringRecipe(PrincipleContents inputs, PrincipleStack result, CuringEnvironment environment, int time) implements Recipe<CuringRecipe.CuringRecipeInput> {
+public record CuringRecipe(PrincipleContents inputs, PrincipleStack result, CuringEnvironment environment, int time) implements PrincipleRecipe<CuringRecipe.CuringRecipeInput> {
 
     public static final MapCodec<CuringRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             PrincipleContents.CODEC.fieldOf("inputs").forGetter(CuringRecipe::inputs),
@@ -59,16 +57,6 @@ public record CuringRecipe(PrincipleContents inputs, PrincipleStack result, Curi
     }
 
     @Override
-    public boolean showNotification() {
-        return false;
-    }
-
-    @Override
-    public String group() {
-        return "";
-    }
-
-    @Override
     public RecipeSerializer<? extends Recipe<CuringRecipeInput>> getSerializer() {
         return RecipeSerializerRegistry.CURING.get();
     }
@@ -81,11 +69,6 @@ public record CuringRecipe(PrincipleContents inputs, PrincipleStack result, Curi
     @Override
     public PlacementInfo placementInfo() {
         return PlacementInfo.NOT_PLACEABLE;
-    }
-
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     /**

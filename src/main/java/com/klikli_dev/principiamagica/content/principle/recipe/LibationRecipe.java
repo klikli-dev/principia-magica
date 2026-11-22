@@ -15,8 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
-import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -25,7 +23,7 @@ import net.minecraft.world.level.Level;
 /**
  * One unit of the ingredient dissolves into principles when washed on the Libation Slab.
  */
-public record LibationRecipe(Ingredient ingredient, PrincipleContents principles) implements Recipe<SingleRecipeInput> {
+public record LibationRecipe(Ingredient ingredient, PrincipleContents principles) implements PrincipleRecipe<SingleRecipeInput> {
 
     public static final MapCodec<LibationRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
             Ingredient.CODEC.fieldOf("ingredient").forGetter(LibationRecipe::ingredient),
@@ -49,16 +47,6 @@ public record LibationRecipe(Ingredient ingredient, PrincipleContents principles
     }
 
     @Override
-    public boolean showNotification() {
-        return false;
-    }
-
-    @Override
-    public String group() {
-        return "";
-    }
-
-    @Override
     public RecipeSerializer<? extends Recipe<SingleRecipeInput>> getSerializer() {
         return RecipeSerializerRegistry.LIBATION.get();
     }
@@ -71,10 +59,5 @@ public record LibationRecipe(Ingredient ingredient, PrincipleContents principles
     @Override
     public PlacementInfo placementInfo() {
         return PlacementInfo.create(this.ingredient);
-    }
-
-    @Override
-    public RecipeBookCategory recipeBookCategory() {
-        return RecipeBookCategories.CRAFTING_MISC;
     }
 }
