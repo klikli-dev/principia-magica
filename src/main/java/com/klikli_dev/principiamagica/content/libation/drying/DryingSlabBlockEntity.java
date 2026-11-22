@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.libation.drying;
 
 import com.klikli_dev.principiamagica.content.libation.LibationFlow;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
+import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
 import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
@@ -41,20 +42,13 @@ import java.util.Optional;
  * TODO: Hopper automation is not supported.
  */
 public class DryingSlabBlockEntity extends BlockEntity {
-    public static final int SYNC_INTERVAL = 20;
 
     private ItemStack input = ItemStack.EMPTY;
     private ItemStack output = ItemStack.EMPTY;
-    private float progress;
     /**
-     * The progress per tick, the light divided by {@link LibationFlow#FULL_LIGHT}. Zero while drying is paused or stalled.
+     * The drying of the first input item. Its rate is the light divided by {@link LibationFlow#FULL_LIGHT}.
      */
-    private float rate;
-    /**
-     * The game time at which the progress and rate were saved, set on the client when the data is loaded.
-     */
-    private long syncTick;
-    private int syncCooldown;
+    private final ProgressTracker drying = new ProgressTracker(() -> LibationUtils.sync(this));
 
     public DryingSlabBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.DRYING_SLAB.get(), pos, state);
@@ -79,7 +73,7 @@ public class DryingSlabBlockEntity extends BlockEntity {
      * from the synced progress and rate so that it is smooth on the client.
      */
     public float getDisplayProgress(long gameTime, float partialTick) {
-        return LibationUtils.displayProgress(this.progress, this.rate, this.syncTick, gameTime, partialTick);
+        return this.drying.display(gameTime, partialTick);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, DryingSlabBlockEntity blockEntity) {
@@ -104,7 +98,7 @@ public class DryingSlabBlockEntity extends BlockEntity {
         if (this.input.isEmpty()) {
             int count = Math.min(held.getCount(), held.getMaxStackSize());
             this.input = held.copyWithCount(count);
-            this.progress = 0;
+            this.drying.restart();
             held.shrink(count);
         } else if (ItemStack.isSameItemSameComponents(this.input, held) && this.input.getCount() < this.input.getMaxStackSize()) {
             int count = Math.min(held.getCount(), this.input.getMaxStackSize() - this.input.getCount());
@@ -133,7 +127,7 @@ public class DryingSlabBlockEntity extends BlockEntity {
         } else if (!this.input.isEmpty()) {
             stack = this.input;
             this.input = ItemStack.EMPTY;
-            this.progress = 0;
+            this.drying.restart();
         } else {
             return InteractionResult.PASS;
         }
@@ -146,42 +140,24 @@ public class DryingSlabBlockEntity extends BlockEntity {
     private void tickDrying(Level level, BlockPos pos) {
         Optional<RecipeHolder<DryingRecipe>> recipe = this.input.isEmpty() ? Optional.empty() : LibationUtils.drying(level, this.input);
         if (recipe.isEmpty()) {
-            if (this.progress != 0 || this.rate != 0) {
-                this.progress = 0;
-                this.rate = 0;
-                LibationUtils.sync(this);
-            }
+            this.drying.stop();
             return;
         }
 
-        ItemStack result = recipe.get().value().assemble(new SingleRecipeInput(this.input.copyWithCount(1)));
+        DryingRecipe dry = recipe.get().value();
+        ItemStack result = dry.assemble(new SingleRecipeInput(this.input.copyWithCount(1)));
         int light = level.getMaxLocalRawBrightness(pos.above());
         if (light <= 0 || !this.canMergeOutput(result)) {
-            if (this.rate != 0) {
-                this.rate = 0;
-                LibationUtils.sync(this);
-            }
+            this.drying.pause();
             return;
         }
 
         float rate = light / (float) LibationFlow.FULL_LIGHT;
-        this.progress += rate;
-        if (this.progress >= recipe.get().value().time()) {
+        this.drying.advance(rate, dry.time(), () -> {
             this.input.shrink(1);
             this.output = this.output.isEmpty() ? result.copy() : this.output.copyWithCount(this.output.getCount() + result.getCount());
-            this.progress = 0;
-            this.rate = rate;
             level.playSound(null, pos, SoundRegistry.DRYING_SLAB_DRIED.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-            LibationUtils.sync(this);
-            return;
-        }
-
-        boolean rateChanged = rate != this.rate;
-        this.rate = rate;
-        if (rateChanged || ++this.syncCooldown >= SYNC_INTERVAL) {
-            this.syncCooldown = 0;
-            LibationUtils.sync(this);
-        }
+        });
     }
 
     /**
@@ -207,9 +183,7 @@ public class DryingSlabBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         this.input = input.read("input", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         this.output = input.read("output", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
-        this.progress = input.getFloatOr("progress", 0.0F);
-        this.rate = input.getFloatOr("rate", 0.0F);
-        this.syncTick = input.getLongOr("sync_tick", 0L);
+        this.drying.load(input);
     }
 
     @Override
@@ -217,9 +191,7 @@ public class DryingSlabBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         output.store("input", ItemStack.OPTIONAL_CODEC, this.input);
         output.store("output", ItemStack.OPTIONAL_CODEC, this.output);
-        output.putFloat("progress", this.progress);
-        output.putFloat("rate", this.rate);
-        output.putLong("sync_tick", this.level != null ? this.level.getGameTime() : 0L);
+        this.drying.save(output, this.level != null ? this.level.getGameTime() : 0L);
     }
 
     @Override

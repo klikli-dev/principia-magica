@@ -123,7 +123,7 @@ public final class LibationUtils {
 
     /**
      * Progress that advances at a constant rate per tick is synced only when the rate changes. Clients use this to show the
-     * progress between syncs.
+     * progress between syncs, see {@link ProgressTracker#display}.
      *
      * @param progress    the progress at the time of the sync.
      * @param rate        the progress per tick since the sync.
@@ -132,7 +132,7 @@ public final class LibationUtils {
      * @param partialTick the fraction of the current tick that has passed.
      * @return the progress to display, not clamped.
      */
-    public static float displayProgress(float progress, float rate, long syncTick, long gameTime, float partialTick) {
+    static float displayProgress(float progress, float rate, long syncTick, long gameTime, float partialTick) {
         return progress + rate * Math.max(0.0F, (gameTime - syncTick) + partialTick);
     }
 

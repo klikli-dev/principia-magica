@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.libation.trough;
 
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
+import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
 import com.klikli_dev.principiamagica.content.libation.client.LibationEffects;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
@@ -47,23 +48,13 @@ import java.util.Optional;
 public class CatchTroughBlockEntity extends BlockEntity implements PrincipleContainer {
     public static final int CAPACITY = 500;
     public static final int EVENT_STEEP = 1;
-    public static final int SYNC_INTERVAL = 20;
 
     private final PrincipleStorage principles = new PrincipleStorage(CAPACITY, () -> LibationUtils.sync(this));
+    /**
+     * The steeping of the held item. Its progress is reset whenever the item or the principles no longer match a recipe.
+     */
+    private final ProgressTracker steeping = new ProgressTracker(() -> LibationUtils.sync(this));
     private ItemStack item = ItemStack.EMPTY;
-    /**
-     * The ticks of steeping done for the held item. Reset whenever the item or the principles no longer match a recipe.
-     */
-    private float progress;
-    /**
-     * The progress per tick, one while steeping and zero otherwise.
-     */
-    private float rate;
-    /**
-     * The game time at which the progress and rate were saved, set by the update packet on the client.
-     */
-    private long syncTick;
-    private int syncCooldown;
 
     public CatchTroughBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.CATCH_TROUGH.get(), pos, state);
@@ -78,7 +69,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
      * and rate so that it is smooth on the client.
      */
     public float getDisplayProgress(long gameTime, float partialTick) {
-        return LibationUtils.displayProgress(this.progress, this.rate, this.syncTick, gameTime, partialTick);
+        return this.steeping.display(gameTime, partialTick);
     }
 
     @Override
@@ -105,7 +96,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
 
         if (this.item.isEmpty() && LibationUtils.isSteepable(this.level, held)) {
             this.item = held.copyWithCount(1);
-            this.progress = 0;
+            this.steeping.restart();
             held.shrink(1);
             LibationUtils.sync(this);
             return InteractionResult.SUCCESS;
@@ -123,7 +114,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
 
         player.getInventory().placeItemBackInInventory(this.item);
         this.item = ItemStack.EMPTY;
-        this.progress = 0;
+        this.steeping.restart();
         LibationUtils.sync(this);
         return InteractionResult.SUCCESS;
     }
@@ -144,34 +135,17 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
                 ? LibationUtils.steeping(this.level, this.item, this.principles.contents())
                 : Optional.empty();
         if (recipe.isEmpty()) {
-            if (this.progress != 0 || this.rate != 0) {
-                this.progress = 0;
-                this.rate = 0;
-                LibationUtils.sync(this);
-            }
+            this.steeping.stop();
             return;
         }
 
-        SteepingRecipe steeping = recipe.get().value();
-        this.progress += 1.0F;
-        if (this.progress >= steeping.time()) {
-            this.item = steeping.assemble(new SteepingRecipeInput(this.item, this.principles.contents()));
-            this.principles.set(this.principles.contents().subtract(steeping.principles()));
-            this.progress = 0;
-            this.rate = 1.0F;
-
+        SteepingRecipe steep = recipe.get().value();
+        this.steeping.advance(1.0F, steep.time(), () -> {
+            this.item = steep.assemble(new SteepingRecipeInput(this.item, this.principles.contents()));
+            this.principles.set(this.principles.contents().subtract(steep.principles()));
             this.level.playSound(null, this.worldPosition, SoundRegistry.CATCH_TROUGH_STEEP.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-            this.level.blockEvent(this.worldPosition, this.getBlockState().getBlock(), EVENT_STEEP, steeping.principles().blendedColor());
-            LibationUtils.sync(this);
-            return;
-        }
-
-        boolean rateChanged = this.rate != 1.0F;
-        this.rate = 1.0F;
-        if (rateChanged || ++this.syncCooldown >= SYNC_INTERVAL) {
-            this.syncCooldown = 0;
-            LibationUtils.sync(this);
-        }
+            this.level.blockEvent(this.worldPosition, this.getBlockState().getBlock(), EVENT_STEEP, steep.principles().blendedColor());
+        });
     }
 
     @Override
@@ -206,9 +180,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
         super.loadAdditional(input);
         this.item = input.read("item", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
         input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
-        this.progress = input.getFloatOr("progress", 0.0F);
-        this.rate = input.getFloatOr("rate", 0.0F);
-        this.syncTick = input.getLongOr("sync_tick", 0L);
+        this.steeping.load(input);
     }
 
     @Override
@@ -216,9 +188,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
         super.saveAdditional(output);
         output.store("item", ItemStack.OPTIONAL_CODEC, this.item);
         output.store("principles", PrincipleContents.CODEC, this.principles.contents());
-        output.putFloat("progress", this.progress);
-        output.putFloat("rate", this.rate);
-        output.putLong("sync_tick", this.level != null ? this.level.getGameTime() : 0L);
+        this.steeping.save(output, this.level != null ? this.level.getGameTime() : 0L);
     }
 
     @Override
