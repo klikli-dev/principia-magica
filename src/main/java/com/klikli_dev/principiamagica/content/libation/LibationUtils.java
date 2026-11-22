@@ -114,10 +114,11 @@ public final class LibationUtils {
     }
 
     /**
-     * @return the comparator signal of a container holding amount of its capacity, 0 when empty and 1 to 15 otherwise.
+     * @return the comparator signal of a container holding amount of its capacity, 0 when empty and 1 to
+     * {@link LibationFlow#MAX_SIGNAL} otherwise.
      */
     public static int comparatorSignal(int amount, int capacity) {
-        return amount == 0 ? 0 : 1 + amount * 14 / capacity;
+        return amount == 0 ? 0 : 1 + amount * (LibationFlow.MAX_SIGNAL - 1) / capacity;
     }
 
     /**

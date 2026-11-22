@@ -5,8 +5,9 @@
 package com.klikli_dev.principiamagica.content.libation.client;
 
 import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleOptions;
+import com.klikli_dev.principiamagica.content.libation.LiquidArea;
 import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.SteepingJarBlockEntity;
+import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe.CuringEnvironment;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -47,20 +48,19 @@ public final class VesselEffects {
             return;
         }
 
-        if (vessel instanceof SteepingJarBlockEntity) {
+        if (vessel.properties().environment() == CuringEnvironment.DARK) {
             if (random.nextFloat() < WISP_CHANCE) {
                 spawnWisp(clientLevel, random, pos, blend);
             }
         } else if (random.nextFloat() < GLINT_CHANCE) {
-            spawnGlint(clientLevel, random, pos, vessel.getPrinciples().total(), blend);
+            spawnGlint(clientLevel, random, pos, vessel.properties().liquid(), vessel.getPrinciples().total(), blend);
         }
     }
 
     /**
      * Golden glint rising from the surface of the Wabet Basin while curing in sunlight.
      */
-    private static void spawnGlint(ClientLevel level, RandomSource random, BlockPos pos, int total, int blend) {
-        LibationGeometry.Liquid liquid = LibationGeometry.BASIN;
+    private static void spawnGlint(ClientLevel level, RandomSource random, BlockPos pos, LiquidArea liquid, int total, int blend) {
         double x = pos.getX() + Mth.lerp(random.nextFloat(), liquid.minX(), liquid.maxX()) * LibationGeometry.PIXEL;
         double z = pos.getZ() + Mth.lerp(random.nextFloat(), liquid.minZ(), liquid.maxZ()) * LibationGeometry.PIXEL;
         double y = pos.getY() + liquid.surfaceY(total);

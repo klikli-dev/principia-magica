@@ -4,11 +4,12 @@
 
 package com.klikli_dev.principiamagica.content.libation.client;
 
+import com.klikli_dev.principiamagica.content.libation.LiquidArea;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 
 public class LiquidRenderState extends BlockEntityRenderState {
-    public LibationGeometry.Liquid liquid = LibationGeometry.TROUGH;
+    public LiquidArea liquid = LibationGeometry.TROUGH;
     public boolean visible;
     public float surfaceY;
     public int color;

@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.libation.client;
 
 import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleOptions;
+import com.klikli_dev.principiamagica.content.libation.LiquidArea;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDripOptions;
 import com.klikli_dev.principiamagica.content.libation.PrincipleSplashOptions;
 import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
@@ -13,9 +14,8 @@ import com.klikli_dev.principiamagica.content.libation.spout.LibationSpoutBlock;
 import com.klikli_dev.principiamagica.content.libation.spout.SpoutBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.trough.CatchTroughBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.SteepingJarBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.WabetBasinBlockEntity;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
+import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -127,7 +127,7 @@ public final class LibationEffects {
         BlockPos target = spout.below();
         float base = target.getY() - spout.getY();
         BlockEntity blockEntity = level.getBlockEntity(target);
-        LibationGeometry.Liquid liquid = liquidOf(blockEntity);
+        LiquidArea liquid = liquidOf(blockEntity);
         if (liquid != null && blockEntity instanceof PrincipleContainer container) {
             return base + liquid.surfaceY(container.getPrinciples().total());
         }
@@ -145,15 +145,12 @@ public final class LibationEffects {
         if (host instanceof CuringVesselBlockEntity vessel) {
             return vessel.getDrainColor();
         }
-        return LibationSlabBlockEntity.DEFAULT_COLOR;
+        return PrincipleContents.DEFAULT_COLOR;
     }
 
-    private static LibationGeometry.Liquid liquidOf(BlockEntity blockEntity) {
-        if (blockEntity instanceof SteepingJarBlockEntity) {
-            return LibationGeometry.JAR;
-        }
-        if (blockEntity instanceof WabetBasinBlockEntity) {
-            return LibationGeometry.BASIN;
+    private static LiquidArea liquidOf(BlockEntity blockEntity) {
+        if (blockEntity instanceof CuringVesselBlockEntity vessel) {
+            return vessel.properties().liquid();
         }
         if (blockEntity instanceof CatchTroughBlockEntity) {
             return LibationGeometry.TROUGH;

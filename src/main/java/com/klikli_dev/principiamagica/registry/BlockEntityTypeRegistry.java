@@ -10,8 +10,8 @@ import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEnt
 import com.klikli_dev.principiamagica.content.libation.spout.LibationSpoutBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.spout.VesselTapBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.trough.CatchTroughBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.SteepingJarBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.WabetBasinBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.vessel.VesselProperties;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -32,11 +32,17 @@ public class BlockEntityTypeRegistry {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CatchTroughBlockEntity>> CATCH_TROUGH = BLOCK_ENTITY_TYPES.register("catch_trough",
             () -> new BlockEntityType<>(CatchTroughBlockEntity::new, BlockRegistry.CATCH_TROUGH.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WabetBasinBlockEntity>> WABET_BASIN = BLOCK_ENTITY_TYPES.register("wabet_basin",
-            () -> new BlockEntityType<>(WabetBasinBlockEntity::new, BlockRegistry.WABET_BASIN.get()));
+    /**
+     * The vessels of both types are the same block entity, configured by their properties. The factories refer to the holders
+     * by their qualified names, which is fine because they only run once the registry is filled.
+     */
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CuringVesselBlockEntity>> WABET_BASIN = BLOCK_ENTITY_TYPES.register("wabet_basin",
+            () -> new BlockEntityType<>((pos, state) -> new CuringVesselBlockEntity(BlockEntityTypeRegistry.WABET_BASIN.get(), pos, state, VesselProperties.WABET_BASIN),
+                    BlockRegistry.WABET_BASIN.get()));
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SteepingJarBlockEntity>> STEEPING_JAR = BLOCK_ENTITY_TYPES.register("steeping_jar",
-            () -> new BlockEntityType<>(SteepingJarBlockEntity::new, BlockRegistry.STEEPING_JAR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CuringVesselBlockEntity>> STEEPING_JAR = BLOCK_ENTITY_TYPES.register("steeping_jar",
+            () -> new BlockEntityType<>((pos, state) -> new CuringVesselBlockEntity(BlockEntityTypeRegistry.STEEPING_JAR.get(), pos, state, VesselProperties.STEEPING_JAR),
+                    BlockRegistry.STEEPING_JAR.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DryingSlabBlockEntity>> DRYING_SLAB = BLOCK_ENTITY_TYPES.register("drying_slab",
             () -> new BlockEntityType<>(DryingSlabBlockEntity::new, BlockRegistry.DRYING_SLAB.get()));

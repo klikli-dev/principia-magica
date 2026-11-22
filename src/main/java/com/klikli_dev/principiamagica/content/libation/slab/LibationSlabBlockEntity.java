@@ -52,11 +52,10 @@ import java.util.Optional;
  * Water and items can be inserted from pipes and hoppers through the block capabilities. Neither can be extracted that way.
  */
 public class LibationSlabBlockEntity extends BlockEntity {
-    public static final int WATER_CAPACITY = 1000;
-    public static final int STORAGE_CAPACITY = 1000;
+    public static final int WATER_CAPACITY = LibationFlow.CAPACITY;
+    public static final int STORAGE_CAPACITY = LibationFlow.CAPACITY;
     public static final int DISSOLVE_TIME = 40;
     public static final int NO_SLOT = -1;
-    public static final int DEFAULT_COLOR = 0xFFFFFF;
 
     private final ItemStacksResourceHandler items = new ItemHandler();
     private final FluidStacksResourceHandler water = new WaterHandler();
@@ -64,10 +63,10 @@ public class LibationSlabBlockEntity extends BlockEntity {
     private final ResourceHandler<ItemResource> itemInput = new InsertOnlyResourceHandler<>(this.items);
     private int dissolveSlot = NO_SLOT;
     private int dissolveProgress;
-    private int dissolveColor = DEFAULT_COLOR;
+    private int dissolveColor = PrincipleContents.DEFAULT_COLOR;
     private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY);
     private int drainCooldown;
-    private int drainColor = DEFAULT_COLOR;
+    private int drainColor = PrincipleContents.DEFAULT_COLOR;
 
     public LibationSlabBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.LIBATION_SLAB.get(), pos, state);
@@ -332,9 +331,9 @@ public class LibationSlabBlockEntity extends BlockEntity {
         this.water.deserialize(input.childOrEmpty("water"));
         this.dissolveSlot = input.getIntOr("dissolve_slot", NO_SLOT);
         this.dissolveProgress = input.getIntOr("dissolve_progress", 0);
-        this.dissolveColor = input.getIntOr("dissolve_color", DEFAULT_COLOR);
+        this.dissolveColor = input.getIntOr("dissolve_color", PrincipleContents.DEFAULT_COLOR);
         input.read("stored", PrincipleContents.CODEC).ifPresent(this.stored::set);
-        this.drainColor = input.getIntOr("drain_color", DEFAULT_COLOR);
+        this.drainColor = input.getIntOr("drain_color", PrincipleContents.DEFAULT_COLOR);
     }
 
     @Override

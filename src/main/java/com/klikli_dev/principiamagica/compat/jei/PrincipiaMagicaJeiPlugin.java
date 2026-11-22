@@ -6,7 +6,7 @@ package com.klikli_dev.principiamagica.compat.jei;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.client.recipe.ClientRecipes;
-import com.klikli_dev.principiamagica.content.libation.vessel.WabetBasinBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.vessel.VesselProperties;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe.CuringEnvironment;
@@ -54,7 +54,7 @@ public class PrincipiaMagicaJeiPlugin implements IModPlugin {
         registration.addRecipeCategories(
                 new LibationCategory(guiHelper),
                 new CuringCategory(guiHelper, JeiRecipeTypes.WABET_CURING, Component.translatable("jei.principiamagica.wabet_curing"),
-                        ItemRegistry.WABET_BASIN.get(), Component.translatable("jei.principiamagica.curing.light_min", WabetBasinBlockEntity.MIN_LIGHT)),
+                        ItemRegistry.WABET_BASIN.get(), Component.translatable("jei.principiamagica.curing.light_min", VesselProperties.WABET_BASIN.minLight())),
                 new CuringCategory(guiHelper, JeiRecipeTypes.STEEPING_JAR_CURING, Component.translatable("jei.principiamagica.steeping_jar_curing"),
                         ItemRegistry.STEEPING_JAR.get(), null),
                 new SteepingCategory(guiHelper),

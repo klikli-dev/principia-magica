@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.libation.drying;
 
+import com.klikli_dev.principiamagica.content.libation.LibationFlow;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
@@ -40,14 +41,13 @@ import java.util.Optional;
  * TODO: Hopper automation is not supported.
  */
 public class DryingSlabBlockEntity extends BlockEntity {
-    public static final int FULL_LIGHT = 15;
     public static final int SYNC_INTERVAL = 20;
 
     private ItemStack input = ItemStack.EMPTY;
     private ItemStack output = ItemStack.EMPTY;
     private float progress;
     /**
-     * The progress per tick, the light divided by {@link #FULL_LIGHT}. Zero while drying is paused or stalled.
+     * The progress per tick, the light divided by {@link LibationFlow#FULL_LIGHT}. Zero while drying is paused or stalled.
      */
     private float rate;
     /**
@@ -164,7 +164,7 @@ public class DryingSlabBlockEntity extends BlockEntity {
             return;
         }
 
-        float rate = light / (float) FULL_LIGHT;
+        float rate = light / (float) LibationFlow.FULL_LIGHT;
         this.progress += rate;
         if (this.progress >= recipe.get().value().time()) {
             this.input.shrink(1);

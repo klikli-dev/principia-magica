@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.libation.client;
 
+import com.klikli_dev.principiamagica.content.libation.LiquidArea;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -28,7 +29,7 @@ public final class LiquidRenderer {
     private LiquidRenderer() {
     }
 
-    public static void extract(LiquidRenderState state, LibationGeometry.Liquid liquid, PrincipleContents principles) {
+    public static void extract(LiquidRenderState state, LiquidArea liquid, PrincipleContents principles) {
         state.liquid = liquid;
         state.visible = !principles.isEmpty();
         state.surfaceY = liquid.surfaceY(principles.total());
@@ -38,7 +39,7 @@ public final class LiquidRenderer {
     /**
      * Extracts plain water, tinted vanilla water blue, with its surface height scaled by the amount of water.
      */
-    public static void extractWater(LiquidRenderState state, LibationGeometry.Liquid liquid, int water) {
+    public static void extractWater(LiquidRenderState state, LiquidArea liquid, int water) {
         state.liquid = liquid;
         state.visible = water > 0;
         state.surfaceY = liquid.surfaceY(water);
@@ -51,7 +52,7 @@ public final class LiquidRenderer {
         }
 
         TextureAtlasSprite sprite = sprites.get(WATER_STILL);
-        LibationGeometry.Liquid liquid = state.liquid;
+        LiquidArea liquid = state.liquid;
         float x0 = liquid.minX() * LibationGeometry.PIXEL;
         float x1 = liquid.maxX() * LibationGeometry.PIXEL;
         float z0 = liquid.minZ() * LibationGeometry.PIXEL;

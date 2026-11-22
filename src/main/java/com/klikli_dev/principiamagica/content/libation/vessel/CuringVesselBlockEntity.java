@@ -10,7 +10,6 @@ import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
-import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe.CuringEnvironment;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
@@ -24,6 +23,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -34,44 +34,27 @@ import java.util.Optional;
 
 /**
  * Holds principles and cures them into compound principles. Drains through an open spout into the drain target below the
- * spout, at the rate of {@link LibationFlow}.
- * <p>
- * Subclasses define the curing environment and the conditions under which curing is active.
+ * spout, at the rate of {@link LibationFlow}. What the vessel is, is defined by its {@link VesselProperties}.
  */
-public abstract class CuringVesselBlockEntity extends BlockEntity implements PrincipleContainer {
+public class CuringVesselBlockEntity extends BlockEntity implements PrincipleContainer {
     public static final int SYNC_INTERVAL = 20;
 
+    private final VesselProperties vessel;
     private final PrincipleStorage principles;
     private int drainCooldown;
-    private int drainColor = PrincipleContents.EMPTY.blendedColor();
+    private int drainColor = PrincipleContents.DEFAULT_COLOR;
     private int progress;
     private boolean curing;
     private CuringRecipe activeRecipe;
 
-    protected CuringVesselBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int capacity) {
+    public CuringVesselBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, VesselProperties vessel) {
         super(type, pos, state);
-        this.principles = new PrincipleStorage(capacity);
+        this.vessel = vessel;
+        this.principles = new PrincipleStorage(vessel.capacity());
     }
 
-    /**
-     * @return the environment whose curing recipes apply to this vessel.
-     */
-    protected abstract CuringEnvironment environment();
-
-    /**
-     * @return true if curing may progress at the given light level.
-     */
-    protected abstract boolean canCure(int light);
-
-    /**
-     * @return the number of ticks until the recipe completes at the given light level.
-     */
-    protected abstract int requiredTime(CuringRecipe recipe, int light);
-
-    /**
-     * Called when curing starts or stops, so subclasses can show it in their block state.
-     */
-    protected void onCuringChanged(boolean curing) {
+    public VesselProperties properties() {
+        return this.vessel;
     }
 
     public PrincipleContents getPrinciples() {
@@ -151,12 +134,12 @@ public abstract class CuringVesselBlockEntity extends BlockEntity implements Pri
 
     private void tickCuring(Level level, BlockPos pos) {
         int light = level.getMaxLocalRawBrightness(pos);
-        if (!this.canCure(light) || this.principles.isEmpty()) {
+        if (!this.vessel.canCure(light) || this.principles.isEmpty()) {
             this.resetCuring();
             return;
         }
 
-        Optional<RecipeHolder<CuringRecipe>> found = LibationUtils.curing(level, this.principles.contents(), this.environment());
+        Optional<RecipeHolder<CuringRecipe>> found = LibationUtils.curing(level, this.principles.contents(), this.vessel.environment());
         if (found.isEmpty()) {
             this.resetCuring();
             return;
@@ -169,7 +152,7 @@ public abstract class CuringVesselBlockEntity extends BlockEntity implements Pri
         }
         this.progress++;
 
-        if (this.progress >= this.requiredTime(recipe, light)) {
+        if (this.progress >= this.vessel.requiredTime(recipe.time(), light)) {
             this.principles.set(this.principles.contents().subtract(recipe.inputs()).add(PrincipleContents.of(recipe.result())));
             this.progress = 0;
             this.activeRecipe = null;
@@ -200,7 +183,20 @@ public abstract class CuringVesselBlockEntity extends BlockEntity implements Pri
     private void setCuring(boolean curing) {
         if (this.curing != curing) {
             this.curing = curing;
-            this.onCuringChanged(curing);
+            this.updateLid();
+        }
+    }
+
+    /**
+     * Shows the lid of the vessel while it cures, if the vessel has one.
+     */
+    private void updateLid() {
+        if (this.vessel.lid() == null || this.level == null || this.level.isClientSide()) {
+            return;
+        }
+        BlockState state = this.getBlockState();
+        if (state.hasProperty(this.vessel.lid()) && state.getValue(this.vessel.lid()) != this.curing) {
+            this.level.setBlock(this.worldPosition, state.setValue(this.vessel.lid(), this.curing), Block.UPDATE_ALL);
         }
     }
 
@@ -222,7 +218,7 @@ public abstract class CuringVesselBlockEntity extends BlockEntity implements Pri
         input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
         this.progress = input.getIntOr("progress", 0);
         this.curing = input.getBooleanOr("curing", false);
-        this.drainColor = input.getIntOr("drain_color", PrincipleContents.EMPTY.blendedColor());
+        this.drainColor = input.getIntOr("drain_color", PrincipleContents.DEFAULT_COLOR);
     }
 
     @Override

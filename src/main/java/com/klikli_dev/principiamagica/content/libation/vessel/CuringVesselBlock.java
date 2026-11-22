@@ -26,9 +26,19 @@ public abstract class CuringVesselBlock extends BaseEntityBlock {
     }
 
     /**
-     * @return the block entity type of this vessel, used for the ticker.
+     * @return the block entity type of this vessel.
      */
-    protected abstract BlockEntityType<? extends CuringVesselBlockEntity> blockEntityType();
+    protected abstract BlockEntityType<CuringVesselBlockEntity> blockEntityType();
+
+    /**
+     * @return the properties that configure the vessel.
+     */
+    protected abstract VesselProperties vesselProperties();
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new CuringVesselBlockEntity(this.blockEntityType(), pos, state, this.vesselProperties());
+    }
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {

@@ -10,7 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,12 +36,12 @@ public class WabetBasinBlock extends CuringVesselBlock {
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new WabetBasinBlockEntity(pos, state);
+    protected BlockEntityType<CuringVesselBlockEntity> blockEntityType() {
+        return BlockEntityTypeRegistry.WABET_BASIN.get();
     }
 
     @Override
-    protected BlockEntityType<? extends CuringVesselBlockEntity> blockEntityType() {
-        return BlockEntityTypeRegistry.WABET_BASIN.get();
+    protected VesselProperties vesselProperties() {
+        return VesselProperties.WABET_BASIN;
     }
 }

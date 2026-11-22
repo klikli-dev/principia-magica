@@ -4,10 +4,9 @@
 
 package com.klikli_dev.principiamagica.content.libation.client;
 
+import com.klikli_dev.principiamagica.content.libation.LiquidArea;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.trough.CatchTroughBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.SteepingJarBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.WabetBasinBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.core.BlockPos;
@@ -19,6 +18,7 @@ import org.joml.Vector3f;
 
 /**
  * Model geometry of the libation blocks. Values are given in pixels (1/16 block) for the model facing north, the front at -Z.
+ * The vessels carry their liquid geometry in their properties, see {@code VesselProperties}.
  * <p>
  * Spouts and taps are blocks of their own in the cell in front of their host. Their model space is the cell of the spout, so
  * the host lies at z 16 and beyond. The rim of a slab is at z 1 to 2 of the slab cell, which is z 17 to 18 of the spout cell.
@@ -27,19 +27,7 @@ public final class LibationGeometry {
 
     public static final float PIXEL = 1.0F / 16.0F;
 
-    /**
-     * Lift of the liquid surface in blocks, so the empty level does not z-fight with the vessel.
-     */
-    private static final float LIQUID_LIFT = 0.01F;
-
-    /**
-     * Minimum height of the liquid film in pixels for any non-zero amount.
-     */
-    private static final float MIN_FILM = 0.5F;
-
-    public static final Liquid TROUGH = new Liquid(2.0F, 14.0F, 2.0F, 14.0F, 1.0F, 6.5F, CatchTroughBlockEntity.CAPACITY);
-    public static final Liquid BASIN = new Liquid(3.0F, 13.0F, 3.0F, 13.0F, 3.0F, 11.5F, WabetBasinBlockEntity.CAPACITY);
-    public static final Liquid JAR = new Liquid(5.0F, 11.0F, 5.0F, 11.0F, 2.0F, 13.5F, SteepingJarBlockEntity.CAPACITY);
+    public static final LiquidArea TROUGH = new LiquidArea(2.0F, 14.0F, 2.0F, 14.0F, 1.0F, 6.5F, CatchTroughBlockEntity.CAPACITY);
 
     public static final float SLAB_SURFACE_Y = 11.0F;
     public static final float DRYING_SURFACE_Y = 3.5F;
@@ -51,7 +39,7 @@ public final class LibationGeometry {
     /**
      * Water film on the libation slab. Items lie on or just above it, lifted by {@link #ITEM_LIFT} to avoid z-fighting.
      */
-    public static final Liquid SLAB_WATER = new Liquid(2.0F, 14.0F, 2.0F, 14.0F, SLAB_SURFACE_Y, 11.8F, LibationSlabBlockEntity.WATER_CAPACITY);
+    public static final LiquidArea SLAB_WATER = new LiquidArea(2.0F, 14.0F, 2.0F, 14.0F, SLAB_SURFACE_Y, 11.8F, LibationSlabBlockEntity.WATER_CAPACITY);
     public static final float ITEM_LIFT = 0.01F;
 
     /**
@@ -167,31 +155,5 @@ public final class LibationGeometry {
      * Pixel position of a point, used for spout and tap tips.
      */
     public record Point(float x, float y, float z) {
-    }
-
-    /**
-     * Liquid area of a vessel in pixels. The surface rises from bottom to top with the amount of principles.
-     *
-     * @param minX     the minimum x of the area.
-     * @param maxX     the maximum x of the area.
-     * @param minZ     the minimum z of the area.
-     * @param maxZ     the maximum z of the area.
-     * @param bottom   the surface height when empty.
-     * @param top      the surface height when full.
-     * @param capacity the total amount of principles in mB that fill the vessel.
-     */
-    public record Liquid(float minX, float maxX, float minZ, float maxZ, float bottom, float top, int capacity) {
-
-        /**
-         * @return the surface height in blocks for the given total amount of principles.
-         */
-        public float surfaceY(int total) {
-            float fraction = Mth.clamp(total / (float) this.capacity, 0.0F, 1.0F);
-            float level = this.bottom + fraction * (this.top - this.bottom);
-            if (total > 0) {
-                level = Math.max(level, this.bottom + MIN_FILM);
-            }
-            return level * PIXEL + LIQUID_LIFT;
-        }
     }
 }

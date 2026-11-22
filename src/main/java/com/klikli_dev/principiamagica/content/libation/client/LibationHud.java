@@ -13,8 +13,7 @@ import com.klikli_dev.principiamagica.content.libation.spout.SpoutBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.spout.VesselTapBlock;
 import com.klikli_dev.principiamagica.content.libation.trough.CatchTroughBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.SteepingJarBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.WabetBasinBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.vessel.VesselProperties;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
@@ -425,20 +424,17 @@ public class LibationHud {
             return Optional.empty();
         }
 
-        boolean jar = vessel instanceof SteepingJarBlockEntity;
-        Optional<CuringRecipe> recipe = LibationRecipes.curing(vessel.getPrinciples(), jar ? CuringEnvironment.DARK : CuringEnvironment.LIGHT);
+        VesselProperties properties = vessel.properties();
+        Optional<CuringRecipe> recipe = LibationRecipes.curing(vessel.getPrinciples(), properties.environment());
         if (recipe.isEmpty()) {
             return Optional.empty();
         }
 
-        int time = recipe.get().time();
-        if (!jar) {
-            int light = level.getMaxLocalRawBrightness(pos);
-            if (light < WabetBasinBlockEntity.MIN_LIGHT) {
-                return Optional.empty();
-            }
-            time = WabetBasinBlockEntity.requiredTime(time, light);
+        int light = level.getMaxLocalRawBrightness(pos);
+        if (!properties.canCure(light)) {
+            return Optional.empty();
         }
+        int time = properties.requiredTime(recipe.get().time(), light);
         if (time <= 0) {
             return Optional.empty();
         }
@@ -485,11 +481,12 @@ public class LibationHud {
             statuses.add(new Status(Component.translatable("hud.principiamagica.libation.status.curing"), CURING_COLOR));
         }
         statuses.add(spoutStatus(level, pos));
-        if (vessel instanceof SteepingJarBlockEntity) {
-            if (!vessel.getPrinciples().isEmpty() && LibationRecipes.curing(vessel.getPrinciples(), CuringEnvironment.DARK).isEmpty()) {
+        VesselProperties properties = vessel.properties();
+        if (properties.environment() == CuringEnvironment.DARK) {
+            if (!vessel.getPrinciples().isEmpty() && LibationRecipes.curing(vessel.getPrinciples(), properties.environment()).isEmpty()) {
                 statuses.add(new Status(Component.translatable("hud.principiamagica.libation.status.no_recipe"), PROBLEM_COLOR));
             }
-        } else if (level.getMaxLocalRawBrightness(pos) < WabetBasinBlockEntity.MIN_LIGHT) {
+        } else if (!properties.canCure(level.getMaxLocalRawBrightness(pos))) {
             statuses.add(new Status(Component.translatable("hud.principiamagica.libation.status.too_dark"), PROBLEM_COLOR));
         }
         return statuses;

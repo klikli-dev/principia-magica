@@ -5,7 +5,6 @@
 package com.klikli_dev.principiamagica.content.libation.client;
 
 import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.SteepingJarBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -17,9 +16,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Renders the liquid of the Wabet Basin and the Steeping Jar.
+ * Renders the liquid of a curing vessel. The area of the liquid comes from the properties of the vessel.
  */
-public class CuringVesselRenderer<T extends CuringVesselBlockEntity> implements BlockEntityRenderer<T, LiquidRenderState> {
+public class CuringVesselRenderer implements BlockEntityRenderer<CuringVesselBlockEntity, LiquidRenderState> {
 
     private final SpriteGetter sprites;
 
@@ -33,10 +32,9 @@ public class CuringVesselRenderer<T extends CuringVesselBlockEntity> implements 
     }
 
     @Override
-    public void extractRenderState(T blockEntity, LiquidRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+    public void extractRenderState(CuringVesselBlockEntity blockEntity, LiquidRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
-        boolean jar = blockEntity instanceof SteepingJarBlockEntity;
-        LiquidRenderer.extract(state, jar ? LibationGeometry.JAR : LibationGeometry.BASIN, blockEntity.getPrinciples());
+        LiquidRenderer.extract(state, blockEntity.properties().liquid(), blockEntity.getPrinciples());
     }
 
     @Override

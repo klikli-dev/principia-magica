@@ -29,6 +29,11 @@ import java.util.function.Consumer;
  */
 public final class PrincipleContents implements TooltipProvider {
 
+    /**
+     * The colour of nothing: white. Used as the blended colour of empty contents.
+     */
+    public static final int DEFAULT_COLOR = 0xFFFFFF;
+
     public static final PrincipleContents EMPTY = new PrincipleContents(List.of());
 
     public static final Codec<PrincipleContents> CODEC = PrincipleStack.CODEC.listOf().xmap(PrincipleContents::of, PrincipleContents::stacks);
@@ -139,7 +144,7 @@ public final class PrincipleContents implements TooltipProvider {
 
         int total = this.total();
         if (total == 0) {
-            return 0xFFFFFF;
+            return DEFAULT_COLOR;
         }
 
         return (int) (red / total) << 16 | (int) (green / total) << 8 | (int) (blue / total);
