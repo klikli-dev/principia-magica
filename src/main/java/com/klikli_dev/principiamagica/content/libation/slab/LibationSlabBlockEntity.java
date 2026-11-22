@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationFlow;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
+import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.recipe.LibationRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
@@ -56,7 +57,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     private final ResourceHandler<FluidResource> waterInput = new InsertOnlyResourceHandler<>(this.water);
     private final ResourceHandler<ItemResource> itemInput = new InsertOnlyResourceHandler<>(this.items);
     private int dissolveSlot = NO_SLOT;
-    private int dissolveProgress;
+    private final ProgressTracker dissolve = new ProgressTracker(() -> LibationUtils.sync(this));
     private int dissolveColor = PrincipleContents.DEFAULT_COLOR;
     private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY, () -> LibationUtils.sync(this));
     private final PrincipleDrain drain = new PrincipleDrain(this.stored);
@@ -96,8 +97,12 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         return this.dissolveSlot != NO_SLOT;
     }
 
-    public int getDissolveProgress() {
-        return this.dissolveProgress;
+    /**
+     * @return the progress of the dissolving item in ticks, interpolated from the synced progress so that it is smooth on the client.
+     * @see ProgressTracker#display
+     */
+    public float getDissolveProgress(long gameTime, float partialTick) {
+        return this.dissolve.display(gameTime, partialTick);
     }
 
     /**
@@ -219,12 +224,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
             return;
         }
 
-        this.dissolveProgress++;
-        if (this.dissolveProgress >= DISSOLVE_TIME) {
-            this.finishDissolve();
-        } else {
-            LibationUtils.sync(this);
-        }
+        this.dissolve.advance(1.0F, DISSOLVE_TIME, this::finishDissolve);
     }
 
     private void tryStartDissolve() {
@@ -238,13 +238,14 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
             return;
         }
         this.dissolveSlot = 0;
-        this.dissolveProgress = 0;
+        this.dissolve.restart();
         this.dissolveColor = recipe.get().value().principles().blendedColor();
         LibationUtils.sync(this);
     }
 
     /**
      * Completes the dissolving item. Its principles go into the internal storage, from where they drain through a spout.
+     * Runs as the completion of the dissolve progress, which syncs the result afterwards.
      */
     private void finishDissolve() {
         ItemStack stack = this.getStack();
@@ -252,8 +253,6 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
 
         if (stack.isEmpty() || recipe.isEmpty() || !this.canDissolve(recipe.get().value().principles())) {
             this.dissolveSlot = NO_SLOT;
-            this.dissolveProgress = 0;
-            LibationUtils.sync(this);
             return;
         }
 
@@ -266,10 +265,8 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         this.stored.insert(principles, false);
         this.dissolveColor = principles.blendedColor();
         this.dissolveSlot = NO_SLOT;
-        this.dissolveProgress = 0;
 
         this.level.playSound(null, this.worldPosition, SoundRegistry.LIBATION_SLAB_DISSOLVE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-        LibationUtils.sync(this);
     }
 
     /**
@@ -297,7 +294,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         this.items.deserialize(input.childOrEmpty("items"));
         this.water.deserialize(input.childOrEmpty("water"));
         this.dissolveSlot = input.getIntOr("dissolve_slot", NO_SLOT);
-        this.dissolveProgress = input.getIntOr("dissolve_progress", 0);
+        this.dissolve.load(input);
         this.dissolveColor = input.getIntOr("dissolve_color", PrincipleContents.DEFAULT_COLOR);
         input.read("stored", PrincipleContents.CODEC).ifPresent(this.stored::set);
         this.drain.load(input);
@@ -309,7 +306,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         this.items.serialize(output.child("items"));
         this.water.serialize(output.child("water"));
         output.putInt("dissolve_slot", this.dissolveSlot);
-        output.putInt("dissolve_progress", this.dissolveProgress);
+        this.dissolve.save(output, this.level != null ? this.level.getGameTime() : 0L);
         output.putInt("dissolve_color", this.dissolveColor);
         output.store("stored", PrincipleContents.CODEC, this.stored.contents());
         this.drain.save(output);

@@ -45,8 +45,9 @@ public class LibationSlabRenderer implements BlockEntityRenderer<LibationSlabBlo
         state.spoutSide = blockEntity.getBlockState().getValue(LibationSlabBlock.SPOUT).direction();
         state.items = FlatItems.extract(this.itemModelResolver, blockEntity.getLevel(), single(blockEntity.getStack()), blockEntity.getBlockPos());
         state.dissolvingSlot = blockEntity.getDissolveSlot();
+        long gameTime = blockEntity.getLevel() != null ? blockEntity.getLevel().getGameTime() : 0L;
         state.dissolveScale = blockEntity.isDissolving()
-                ? Mth.clamp(1.0F - (blockEntity.getDissolveProgress() + partialTicks) / LibationSlabBlockEntity.DISSOLVE_TIME, MIN_DISSOLVE_SCALE, 1.0F)
+                ? Mth.clamp(1.0F - blockEntity.getDissolveProgress(gameTime, partialTicks) / LibationSlabBlockEntity.DISSOLVE_TIME, MIN_DISSOLVE_SCALE, 1.0F)
                 : 1.0F;
         LiquidRenderer.extractWater(state.water, LibationGeometry.SLAB_WATER, blockEntity.getWater());
     }

@@ -88,7 +88,7 @@ public class LibationHud {
         if (level.getBlockEntity(pos) instanceof DryingSlabBlockEntity drying) {
             renderDrying(graphics, minecraft.font, level, drying, partialTick, x, y);
         } else if (level.getBlockEntity(pos) instanceof LibationSlabBlockEntity slab) {
-            renderSlab(graphics, minecraft.font, level, pos, slab, x, y);
+            renderSlab(graphics, minecraft.font, level, pos, slab, partialTick, x, y);
         } else if (level.getBlockEntity(pos) instanceof SpoutBlockEntity) {
             renderSpout(graphics, minecraft.font, level, pos, x, y);
         } else if (level.getBlockEntity(pos) instanceof CatchTroughBlockEntity trough) {
@@ -140,13 +140,13 @@ public class LibationHud {
      * Lists the water of the libation slab, the state of its spout, the principles stored in it by type and amount and, while an
      * item dissolves, its progress.
      */
-    private static void renderSlab(GuiGraphicsExtractor graphics, Font font, ClientLevel level, BlockPos pos, LibationSlabBlockEntity slab, int x, int y) {
+    private static void renderSlab(GuiGraphicsExtractor graphics, Font font, ClientLevel level, BlockPos pos, LibationSlabBlockEntity slab, float partialTick, int x, int y) {
         Component water = Component.translatable("hud.principiamagica.libation.water", slab.getWater(), LibationSlabBlockEntity.WATER_CAPACITY);
         Status spout = LibationHudStatus.hostSpout(level, pos);
         List<PrincipleStack> stacks = slab.getStored().stacks();
         boolean dissolving = slab.isDissolving();
         Component status = Component.translatable("hud.principiamagica.libation.status.dissolving");
-        float progress = Mth.clamp(slab.getDissolveProgress() / (float) LibationSlabBlockEntity.DISSOLVE_TIME, 0.0F, 1.0F);
+        float progress = Mth.clamp(slab.getDissolveProgress(level.getGameTime(), partialTick) / (float) LibationSlabBlockEntity.DISSOLVE_TIME, 0.0F, 1.0F);
 
         int width = Math.max(font.width(water), font.width(spout.text()));
         int rowsHeight = stacks.isEmpty() ? LINE_HEIGHT : stacks.size() * ROW_HEIGHT;
