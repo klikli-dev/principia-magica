@@ -24,7 +24,6 @@ import java.util.Optional;
  * Plants a sapling on a replant spot left by a felled tree.
  */
 public class PlantSapling extends JobTargetBehaviour {
-
     @Override
     protected Optional<BlockPos> findTarget(ServerLevel level, GolemEntity golem) {
         LumberjackTargets.pruneItemMemory(level, golem);

@@ -19,13 +19,6 @@ import java.util.Optional;
  */
 public record WorkTargetFinder(TargetCheck check, BlockedCheck blockedCheck) {
 
-    /**
-     * @return a finder that never reports a blocked reason
-     */
-    public static WorkTargetFinder of(TargetCheck check) {
-        return new WorkTargetFinder(check, (level, golem, pos) -> Optional.empty());
-    }
-
     public boolean isTarget(ServerLevel level, GolemEntity golem, BlockPos pos) {
         return this.check.test(level, golem, pos);
     }
