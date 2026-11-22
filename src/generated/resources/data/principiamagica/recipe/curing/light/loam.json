@@ -1,0 +1,19 @@
+{
+  "type": "principiamagica:curing",
+  "environment": "light",
+  "inputs": [
+    {
+      "amount": 25,
+      "principle": "principiamagica:silt"
+    },
+    {
+      "amount": 25,
+      "principle": "principiamagica:sap"
+    }
+  ],
+  "result": {
+    "amount": 25,
+    "principle": "principiamagica:loam"
+  },
+  "time": 100
+}
