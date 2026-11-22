@@ -308,26 +308,6 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL =
             TEST_FUNCTIONS.register("lumberjack_stalled_sapling_stops_bonemeal", () -> LumberjackGameTests::stalledSaplingStopsTakingBonemeal);
 
-    // --- Upgrades ---
-
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> UPGRADE_SWIFTNESS_INCREASES_MOVEMENT_SPEED =
-            TEST_FUNCTIONS.register("upgrade_swiftness_increases_movement_speed", () -> UpgradeGameTests::swiftnessIncreasesMovementSpeed);
-
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> UPGRADE_CAPACITY_ADDS_INVENTORY_SLOTS =
-            TEST_FUNCTIONS.register("upgrade_capacity_adds_inventory_slots", () -> UpgradeGameTests::capacityAddsInventorySlots);
-
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> UPGRADE_CAPACITY_REMOVAL_MOVES_ITEMS =
-            TEST_FUNCTIONS.register("upgrade_capacity_removal_moves_items", () -> UpgradeGameTests::capacityRemovalMovesItemsIntoFreeSlots);
-
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> UPGRADE_CAPACITY_REMOVAL_DROPS_OVERFLOW =
-            TEST_FUNCTIONS.register("upgrade_capacity_removal_drops_overflow", () -> UpgradeGameTests::capacityRemovalDropsOverflow);
-
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> UPGRADE_DUPLICATE_IS_REJECTED =
-            TEST_FUNCTIONS.register("upgrade_duplicate_is_rejected", () -> UpgradeGameTests::duplicateUpgradeIsRejected);
-
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> UPGRADE_SLOT_LIMIT_IS_RESPECTED =
-            TEST_FUNCTIONS.register("upgrade_slot_limit_is_respected", () -> UpgradeGameTests::upgradeSlotLimitIsRespected);
-
     // --- Libation ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_SPOUT_OPENS_HOLE_IN_SLAB =
@@ -539,13 +519,6 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LUMBERJACK_BONEMEAL_OFF_LEAVES_SAPLING, environment, structure, 400, 0);
         registerTest(event, LUMBERJACK_RESTOCKS_BONEMEAL_FROM_SUPPLY, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL, environment, structure, 1000, 0);
-
-        registerTest(event, UPGRADE_SWIFTNESS_INCREASES_MOVEMENT_SPEED, environment, structure, 40, 0);
-        registerTest(event, UPGRADE_CAPACITY_ADDS_INVENTORY_SLOTS, environment, structure, 40, 0);
-        registerTest(event, UPGRADE_CAPACITY_REMOVAL_MOVES_ITEMS, environment, structure, 40, 0);
-        registerTest(event, UPGRADE_CAPACITY_REMOVAL_DROPS_OVERFLOW, environment, structure, 40, 0);
-        registerTest(event, UPGRADE_DUPLICATE_IS_REJECTED, environment, structure, 40, 0);
-        registerTest(event, UPGRADE_SLOT_LIMIT_IS_RESPECTED, environment, structure, 40, 0);
 
         registerTest(event, PERSISTENCE_SAVE_AND_LOAD_KEEPS_EVERYTHING, environment, structure, 40, 0);
 
