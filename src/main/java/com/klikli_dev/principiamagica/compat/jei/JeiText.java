@@ -22,7 +22,22 @@ public final class JeiText {
      */
     public static final int SECOND_INPUT_SHIFT = 3;
 
+    /**
+     * Layout of the standard recipe categories: the row of slots, the first input, the arrow and the first output.
+     */
+    public static final int SLOT_Y = 1;
+    public static final int INPUT_X = 1;
+    public static final int ARROW_X = 53;
+    public static final int OUTPUT_X = 81;
+
     private JeiText() {
+    }
+
+    /**
+     * Draws the recipe arrow at x, centred on the row of slots.
+     */
+    public static void drawArrow(GuiGraphicsExtractor graphics, IDrawableStatic arrow, int x) {
+        arrow.draw(graphics, x, SLOT_Y + (SLOT_SIZE - arrow.getHeight()) / 2);
     }
 
     /**

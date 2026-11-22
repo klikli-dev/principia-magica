@@ -28,11 +28,7 @@ public class LibationCategory extends AbstractRecipeCategory<RecipeHolder<Libati
     public static final int WIDTH = 140;
     public static final int HEIGHT = 32;
 
-    private static final int SLOT_Y = 1;
-    private static final int INPUT_X = 1;
-    private static final int WATER_X = JeiText.inputX(INPUT_X, 1);
-    private static final int ARROW_X = 53;
-    private static final int OUTPUT_X = 81;
+    private static final int WATER_X = JeiText.inputX(JeiText.INPUT_X, 1);
 
     private final IDrawableStatic plus;
     private final IDrawableStatic arrow;
@@ -46,20 +42,20 @@ public class LibationCategory extends AbstractRecipeCategory<RecipeHolder<Libati
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<LibationRecipe> recipe, IFocusGroup focuses) {
-        builder.addInputSlot(INPUT_X, SLOT_Y).add(recipe.value().ingredient());
-        builder.addInputSlot(WATER_X, SLOT_Y).add(NeoForgeTypes.FLUID_STACK,
+        builder.addInputSlot(JeiText.INPUT_X, JeiText.SLOT_Y).add(recipe.value().ingredient());
+        builder.addInputSlot(WATER_X, JeiText.SLOT_Y).add(NeoForgeTypes.FLUID_STACK,
                 new FluidStack(Fluids.WATER, LibationSlabBlockEntity.waterCost(recipe.value().principles())));
 
         List<PrincipleStack> principles = recipe.value().principles().stacks();
         for (int i = 0; i < principles.size(); i++) {
-            PrincipleIngredientRenderer.addRecipeSlot(builder.addOutputSlot(OUTPUT_X + i * JeiText.SLOT_PITCH, SLOT_Y), principles.get(i));
+            PrincipleIngredientRenderer.addRecipeSlot(builder.addOutputSlot(JeiText.OUTPUT_X + i * JeiText.SLOT_PITCH, JeiText.SLOT_Y), principles.get(i));
         }
     }
 
     @Override
     public void draw(RecipeHolder<LibationRecipe> recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
-        JeiText.drawPlus(guiGraphics, this.plus, INPUT_X, WATER_X, SLOT_Y);
-        this.arrow.draw(guiGraphics, ARROW_X, SLOT_Y + (JeiText.SLOT_SIZE - this.arrow.getHeight()) / 2);
+        JeiText.drawPlus(guiGraphics, this.plus, JeiText.INPUT_X, WATER_X, JeiText.SLOT_Y);
+        JeiText.drawArrow(guiGraphics, this.arrow, JeiText.ARROW_X);
     }
 }
 

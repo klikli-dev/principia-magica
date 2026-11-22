@@ -23,9 +23,9 @@ public class DryingCategory extends AbstractRecipeCategory<RecipeHolder<DryingRe
     public static final int WIDTH = 100;
     public static final int HEIGHT = 33;
 
-    private static final int SLOT_SIZE = 18;
-    private static final int SLOT_Y = 1;
-    private static final int INPUT_X = 1;
+    /**
+     * Drying has no second input, so its arrow and output sit closer to the input than in the standard layout.
+     */
     private static final int ARROW_X = 24;
     private static final int OUTPUT_X = 52;
     private static final int TIME_Y = 23;
@@ -40,15 +40,15 @@ public class DryingCategory extends AbstractRecipeCategory<RecipeHolder<DryingRe
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<DryingRecipe> recipe, IFocusGroup focuses) {
-        builder.addInputSlot(INPUT_X, SLOT_Y).add(recipe.value().ingredient());
-        builder.addOutputSlot(OUTPUT_X, SLOT_Y).add(recipe.value().result());
+        builder.addInputSlot(JeiText.INPUT_X, JeiText.SLOT_Y).add(recipe.value().ingredient());
+        builder.addOutputSlot(OUTPUT_X, JeiText.SLOT_Y).add(recipe.value().result());
     }
 
     @Override
     public void draw(RecipeHolder<DryingRecipe> recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         Font font = Minecraft.getInstance().font;
 
-        this.arrow.draw(guiGraphics, ARROW_X, SLOT_Y + (SLOT_SIZE - this.arrow.getHeight()) / 2);
+        JeiText.drawArrow(guiGraphics, this.arrow, ARROW_X);
         JeiText.drawCentered(guiGraphics, font, JeiText.timeAtFullLight(recipe.value().time()), WIDTH, TIME_Y);
     }
 }

@@ -28,11 +28,6 @@ public class SteepingCategory extends AbstractRecipeCategory<RecipeHolder<Steepi
     public static final int WIDTH = 100;
     public static final int HEIGHT = 33;
 
-    private static final int SLOT_SIZE = JeiText.SLOT_SIZE;
-    private static final int SLOT_Y = 1;
-    private static final int INPUT_X = 1;
-    private static final int ARROW_X = 53;
-    private static final int OUTPUT_X = 81;
     private static final int TIME_Y = 23;
 
     private final IDrawableStatic plus;
@@ -47,24 +42,24 @@ public class SteepingCategory extends AbstractRecipeCategory<RecipeHolder<Steepi
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<SteepingRecipe> recipe, IFocusGroup focuses) {
-        builder.addInputSlot(INPUT_X, SLOT_Y).add(recipe.value().ingredient());
+        builder.addInputSlot(JeiText.INPUT_X, JeiText.SLOT_Y).add(recipe.value().ingredient());
 
         List<PrincipleStack> principles = recipe.value().principles().stacks();
         for (int i = 0; i < principles.size(); i++) {
-            PrincipleIngredientRenderer.addRecipeSlot(builder.addInputSlot(JeiText.inputX(INPUT_X, i + 1), SLOT_Y), principles.get(i));
+            PrincipleIngredientRenderer.addRecipeSlot(builder.addInputSlot(JeiText.inputX(JeiText.INPUT_X, i + 1), JeiText.SLOT_Y), principles.get(i));
         }
 
         ItemStack output = recipe.value().assemble(new SteepingRecipeInput(ItemStack.EMPTY, PrincipleContents.EMPTY));
-        builder.addOutputSlot(OUTPUT_X, SLOT_Y).add(output);
+        builder.addOutputSlot(JeiText.OUTPUT_X, JeiText.SLOT_Y).add(output);
     }
 
     @Override
     public void draw(RecipeHolder<SteepingRecipe> recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         for (int i = 0; i < recipe.value().principles().stacks().size(); i++) {
-            JeiText.drawPlus(guiGraphics, this.plus, JeiText.inputX(INPUT_X, i), JeiText.inputX(INPUT_X, i + 1), SLOT_Y);
+            JeiText.drawPlus(guiGraphics, this.plus, JeiText.inputX(JeiText.INPUT_X, i), JeiText.inputX(JeiText.INPUT_X, i + 1), JeiText.SLOT_Y);
         }
 
-        this.arrow.draw(guiGraphics, ARROW_X, SLOT_Y + (SLOT_SIZE - this.arrow.getHeight()) / 2);
+        JeiText.drawArrow(guiGraphics, this.arrow, JeiText.ARROW_X);
         JeiText.drawCentered(guiGraphics, Minecraft.getInstance().font, JeiText.time(recipe.value().time()), WIDTH, TIME_Y);
     }
 }
