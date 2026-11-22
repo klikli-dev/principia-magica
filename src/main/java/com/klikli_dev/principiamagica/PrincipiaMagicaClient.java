@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica;
 
+import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.GolemRenderer;
 import com.klikli_dev.principiamagica.content.golem.client.gui.GolemScreen;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.StylusHud;
@@ -54,6 +55,8 @@ public class PrincipiaMagicaClient {
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onInteractionKeyMapping);
         NeoForge.EVENT_BUS.addListener(ClientRecipes::onRecipesReceived);
         NeoForge.EVENT_BUS.addListener(ClientRecipes::onLoggingOut);
+        NeoForge.EVENT_BUS.addListener(ClientGolemWorkplaceCache::onLoggingOut);
+        NeoForge.EVENT_BUS.addListener(ClientGolemWorkplaceCache::onEntityLeaveLevel);
         NeoForge.EVENT_BUS.addListener(PrincipleTooltips::onItemTooltip);
     }
 
