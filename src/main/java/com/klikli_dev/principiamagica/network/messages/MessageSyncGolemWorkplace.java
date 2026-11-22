@@ -5,17 +5,14 @@
 package com.klikli_dev.principiamagica.network.messages;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
-import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Message;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -39,11 +36,6 @@ public record MessageSyncGolemWorkplace(
             MessageSyncGolemWorkplace::currentTarget,
             MessageSyncGolemWorkplace::new
     );
-
-    @Override
-    public void onClientReceived(Minecraft minecraft, Player player) {
-        ClientGolemWorkplaceCache.accept(this);
-    }
 
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() {

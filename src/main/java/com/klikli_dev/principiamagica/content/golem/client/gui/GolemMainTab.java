@@ -10,11 +10,11 @@ import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
 import com.klikli_dev.principiamagica.client.gui.widget.SegmentedControl;
 import com.klikli_dev.principiamagica.client.gui.widget.StatusBadge;
 import com.klikli_dev.principiamagica.client.gui.widget.TabIcon;
+import com.klikli_dev.principiamagica.client.network.ClientNetworking;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemMenu;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemMenuLayout;
-import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSetGolemMode;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.network.chat.Component;
@@ -77,7 +77,7 @@ final class GolemMainTab extends GolemTab {
         this.add(new SegmentedControl<GolemMode>(bounds.x() + GolemMenuLayout.MODE_X, bounds.y() + GolemMenuLayout.MODE_Y, MODE_WIDTH, 18,
                 List.of(GolemMode.values()), GolemGuiText::modeName,
                 () -> this.view().mode(),
-                mode -> Networking.sendToServer(new MessageSetGolemMode(this.golemId(), mode)))
+                mode -> ClientNetworking.sendToServer(new MessageSetGolemMode(this.golemId(), mode)))
                 .withEnabled(mode -> mode != GolemMode.WORK || this.view().job().isPresent())
                 .withTooltip(this::modeTooltip));
 

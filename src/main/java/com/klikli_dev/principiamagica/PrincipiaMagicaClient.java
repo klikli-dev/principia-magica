@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceC
 import com.klikli_dev.principiamagica.content.golem.client.GolemRenderer;
 import com.klikli_dev.principiamagica.content.golem.client.gui.GolemScreen;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.StylusHud;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceInput;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceOverlayRenderer;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceRenderTypes;
 import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
@@ -54,8 +55,8 @@ public class PrincipiaMagicaClient {
         modEventBus.addListener(libationHud::onRegisterGuiLayers);
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onRenderLevelStage);
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onClientTick);
-        NeoForge.EVENT_BUS.addListener(workplaceOverlay::onMouseScrolling);
-        NeoForge.EVENT_BUS.addListener(workplaceOverlay::onInteractionKeyMapping);
+        NeoForge.EVENT_BUS.addListener(WorkplaceInput::onMouseScrolling);
+        NeoForge.EVENT_BUS.addListener(WorkplaceInput::onInteractionKeyMapping);
         NeoForge.EVENT_BUS.addListener(ClientRecipes::onRecipesReceived);
         NeoForge.EVENT_BUS.addListener(ClientRecipes::onLoggingOut);
         NeoForge.EVENT_BUS.addListener(ClientGolemWorkplaceCache::onLoggingOut);

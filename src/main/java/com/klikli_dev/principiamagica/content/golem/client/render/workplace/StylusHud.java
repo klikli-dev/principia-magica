@@ -60,7 +60,7 @@ public class StylusHud {
             return;
         }
 
-        ItemStack stylus = WorkplaceOverlayRenderer.heldStylus(player);
+        ItemStack stylus = WorkplaceTargeting.heldStylus(player);
         if (stylus == null) {
             return;
         }
@@ -94,7 +94,7 @@ public class StylusHud {
      */
     private static List<Component> workplaceHints(Minecraft minecraft, ItemStack stylus, ClientLevel level) {
         List<Component> hints = new ArrayList<>();
-        PendingGlyph pending = WorkplaceOverlayRenderer.pendingGlyph(stylus, level);
+        PendingGlyph pending = WorkplaceTargeting.pendingGlyph(stylus, level);
         if (pending != null) {
             boolean pickedUp = !pending.restore().isEmpty();
             hints.add(Component.translatable(pickedUp ? "hud.principiamagica.stylus.picked_up" : "hud.principiamagica.stylus.pending_corner"));
@@ -105,19 +105,19 @@ public class StylusHud {
         }
 
         UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
-        GolemEntity golem = WorkplaceOverlayRenderer.findGolem(level, selected);
+        GolemEntity golem = WorkplaceTargeting.findGolem(level, selected);
         if (golem == null) {
             return hints;
         }
 
-        if (WorkplaceOverlayRenderer.targetedGlyph(minecraft) != null) {
+        if (WorkplaceTargeting.targetedGlyph(minecraft) != null) {
             hints.add(Component.translatable("hud.principiamagica.stylus.hint.lift_corner"));
             hints.add(Component.translatable("hud.principiamagica.stylus.hint.pick_up"));
             hints.add(Component.translatable("hud.principiamagica.stylus.hint.erase"));
             return hints;
         }
 
-        BlockPos hovered = WorkplaceOverlayRenderer.hoveredBlock(minecraft);
+        BlockPos hovered = WorkplaceTargeting.hoveredBlock(minecraft);
         if (hovered != null && ClientGolemWorkplaceCache.latest(golem.getId())
                 .map(entry -> entry.workplace().footprintIndexAt(hovered) >= 0)
                 .orElse(false)) {
@@ -141,7 +141,7 @@ public class StylusHud {
      */
     private static Optional<ContainerRole> linkRole(ItemStack stylus, ClientLevel level, BlockPos pos) {
         UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
-        GolemEntity golem = WorkplaceOverlayRenderer.findGolem(level, selected);
+        GolemEntity golem = WorkplaceTargeting.findGolem(level, selected);
         if (golem == null) {
             return Optional.empty();
         }
