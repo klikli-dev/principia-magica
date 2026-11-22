@@ -2,13 +2,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-package com.klikli_dev.principiamagica.content.libation.client;
-
-import com.klikli_dev.principiamagica.content.libation.LibationFlow;
+package com.klikli_dev.principiamagica.content.libation;
 
 /**
  * Spaces the drips of a transferred portion evenly over the transfer interval: one drip per {@link LibationFlow#MB_PER_DRIP} mB,
- * and the rest carries over to the next portion. Client-side only, driven by the block event of the server.
+ * and the rest carries over to the next portion. Only the clients use it, driven by the block event of the server.
  */
 public final class DripEmitter {
 

@@ -4,8 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.libation.spout;
 
+import com.klikli_dev.principiamagica.content.libation.DripEmitter;
 import com.klikli_dev.principiamagica.content.libation.LibationFlow;
-import com.klikli_dev.principiamagica.content.libation.client.DripEmitter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
