@@ -13,6 +13,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.LevelEvent;
 
 public final class GolemBonemeal {
+    /**
+     * Event data for the plant growth particles and sound.
+     */
+    private static final int GROWTH_EVENT_DATA = 15;
 
     private GolemBonemeal() {
     }
@@ -37,7 +41,7 @@ public final class GolemBonemeal {
         }
 
         if (boneMeal != null && BoneMealItem.growCrop(boneMeal, level, pos)) {
-            level.levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, pos, 15);
+            level.levelEvent(LevelEvent.PARTICLES_AND_SOUND_PLANT_GROWTH, pos, GROWTH_EVENT_DATA);
             return true;
         }
 

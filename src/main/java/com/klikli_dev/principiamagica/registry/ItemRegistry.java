@@ -24,6 +24,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public class ItemRegistry {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(PrincipiaMagica.MODID);
 
+    private static final int UNFIRED_AXIOM_STACK_SIZE = 16;
+    private static final int MATERIAL_STACK_SIZE = 64;
+
     public static final DeferredItem<PrincipiaItem> PRINCIPIA = ITEMS.registerItem("principia", p -> new PrincipiaItem(p.stacksTo(1)));
 
     public static final DeferredItem<GolemItem> GOLEM = ITEMS.registerItem("golem", p -> new GolemItem(p.stacksTo(16)));
@@ -45,21 +48,28 @@ public class ItemRegistry {
 
     public static final DeferredItem<BlockItem> DRYING_SLAB = ITEMS.registerSimpleBlockItem("drying_slab", BlockRegistry.DRYING_SLAB);
 
-    public static final DeferredItem<Item> AXIOM_TABLET = ITEMS.registerItem("axiom_tablet", p -> new Item(p.stacksTo(64)));
+    public static final DeferredItem<Item> AXIOM_TABLET = registerStackable("axiom_tablet", MATERIAL_STACK_SIZE);
 
-    public static final DeferredItem<Item> QUICKENED_CLAY = ITEMS.registerItem("quickened_clay", p -> new Item(p.stacksTo(64)));
+    public static final DeferredItem<Item> QUICKENED_CLAY = registerStackable("quickened_clay", MATERIAL_STACK_SIZE);
 
-    public static final DeferredItem<Item> AXIOM_OF_HARVEST_UNFIRED = ITEMS.registerItem("axiom_of_harvest_unfired", p -> new Item(p.stacksTo(16)));
+    public static final DeferredItem<Item> AXIOM_OF_HARVEST_UNFIRED = registerStackable("axiom_of_harvest_unfired", UNFIRED_AXIOM_STACK_SIZE);
 
-    public static final DeferredItem<Item> AXIOM_OF_FELLING_UNFIRED = ITEMS.registerItem("axiom_of_felling_unfired", p -> new Item(p.stacksTo(16)));
+    public static final DeferredItem<Item> AXIOM_OF_FELLING_UNFIRED = registerStackable("axiom_of_felling_unfired", UNFIRED_AXIOM_STACK_SIZE);
 
-    public static final DeferredItem<Item> AXIOM_OF_HARVEST_UNFIRED_STEEPED = ITEMS.registerItem("axiom_of_harvest_unfired_steeped", p -> new Item(p.stacksTo(16)));
+    public static final DeferredItem<Item> AXIOM_OF_HARVEST_UNFIRED_STEEPED = registerStackable("axiom_of_harvest_unfired_steeped", UNFIRED_AXIOM_STACK_SIZE);
 
-    public static final DeferredItem<Item> AXIOM_OF_FELLING_UNFIRED_STEEPED = ITEMS.registerItem("axiom_of_felling_unfired_steeped", p -> new Item(p.stacksTo(16)));
+    public static final DeferredItem<Item> AXIOM_OF_FELLING_UNFIRED_STEEPED = registerStackable("axiom_of_felling_unfired_steeped", UNFIRED_AXIOM_STACK_SIZE);
 
     public static final DeferredItem<AxiomItem> AXIOM_OF_HARVEST = ITEMS.registerItem("axiom_of_harvest", p -> new AxiomItem(p.stacksTo(1), FarmingJob.KEY));
 
     public static final DeferredItem<AxiomItem> AXIOM_OF_FELLING = ITEMS.registerItem("axiom_of_felling", p -> new AxiomItem(p.stacksTo(1), LumberjackJob.KEY));
+
+    /**
+     * A plain item with the given maximum stack size.
+     */
+    private static DeferredItem<Item> registerStackable(String name, int maxStackSize) {
+        return ITEMS.registerItem(name, p -> new Item(p.stacksTo(maxStackSize)));
+    }
 
     /**
      * Crafting remainder that returns the item itself. The item is not bound yet while its properties are built, so the holder is resolved lazily.

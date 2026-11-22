@@ -47,6 +47,27 @@ import java.util.Set;
 public class GolemAi {
     private static final Set<MemoryModuleType<?>> MOVEMENT_MEMORIES = Set.of(MemoryModuleType.WALK_TARGET);
 
+    private static final float SWIM_SPEED = 0.8F;
+    private static final int LOOK_AROUND_MIN_TICKS = 45;
+    private static final int LOOK_AROUND_MAX_TICKS = 90;
+
+    private static final float IDLE_SPEED = 0.6F;
+    private static final int ANCHOR_CLOSE_RANGE = 2;
+    private static final int ANCHOR_MAX_RANGE = 8;
+    private static final int STROLL_HORIZONTAL_RANGE = 4;
+    private static final int STROLL_VERTICAL_RANGE = 2;
+    private static final int STROLL_WEIGHT = 2;
+    private static final int PAUSE_WEIGHT = 1;
+    private static final int PAUSE_MIN_TICKS = 30;
+    private static final int PAUSE_MAX_TICKS = 60;
+
+    private static final float FOLLOW_SPEED = 1.0F;
+    private static final int OWNER_CLOSE_RANGE = 2;
+    private static final int OWNER_MAX_RANGE = 6;
+
+    private static final float PLAYER_LOOK_RANGE = 6.0F;
+    private static final UniformInt PLAYER_LOOK_INTERVAL_TICKS = UniformInt.of(40, 80);
+
     @SuppressWarnings("deprecation")
     public static Brain<GolemEntity> createBrain(GolemEntity body, Brain.Packed packed) {
         return Brain.provider(
@@ -102,8 +123,8 @@ public class GolemAi {
         List<ActivityData<GolemEntity>> activities = new ArrayList<>();
 
         activities.add(ActivityData.create(Activity.CORE, 0, ImmutableList.of(
-                new Swim<>(0.8F),
-                new LookAtTargetSink(45, 90),
+                new Swim<>(SWIM_SPEED),
+                new LookAtTargetSink(LOOK_AROUND_MIN_TICKS, LOOK_AROUND_MAX_TICKS),
                 new MoveToTargetSink(),
                 InteractWithDoor.create(),
                 new CountDownCooldownTicks(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value()),
@@ -112,27 +133,34 @@ public class GolemAi {
         )));
 
         activities.add(activity(Activity.IDLE, Set.of(), List.of(
-                StayCloseToTarget.create(GolemAi::anchorTracker, entity -> true, 2, 8, 0.6F),
-                SetEntityLookTargetSometimes.create(EntityType.PLAYER, 6.0F, UniformInt.of(40, 80)),
+                StayCloseToTarget.create(GolemAi::anchorTracker, entity -> true, ANCHOR_CLOSE_RANGE, ANCHOR_MAX_RANGE, IDLE_SPEED),
+                lookAtPlayers(),
                 new RunOne<GolemEntity>(Map.of(MemoryModuleType.WALK_TARGET, MemoryStatus.VALUE_ABSENT), List.of(
-                        Pair.of(RandomStroll.stroll(0.6F, 4, 2), 2),
-                        Pair.of(new DoNothing(30, 60), 1)
+                        Pair.of(RandomStroll.stroll(IDLE_SPEED, STROLL_HORIZONTAL_RANGE, STROLL_VERTICAL_RANGE), STROLL_WEIGHT),
+                        Pair.of(new DoNothing(PAUSE_MIN_TICKS, PAUSE_MAX_TICKS), PAUSE_WEIGHT)
                 ))
         )));
 
         activities.add(activity(ActivityRegistry.FOLLOW.value(), Set.of(), List.of(
-                StayCloseToTarget.create(GolemAi::ownerTracker, entity -> true, 2, 6, 1.0F),
-                SetEntityLookTargetSometimes.create(EntityType.PLAYER, 6.0F, UniformInt.of(40, 80))
+                StayCloseToTarget.create(GolemAi::ownerTracker, entity -> true, OWNER_CLOSE_RANGE, OWNER_MAX_RANGE, FOLLOW_SPEED),
+                lookAtPlayers()
         )));
 
         activities.add(activity(ActivityRegistry.STAY.value(), Set.of(), List.of(
-                SetEntityLookTargetSometimes.create(EntityType.PLAYER, 6.0F, UniformInt.of(40, 80)),
-                new DoNothing(30, 60)
+                lookAtPlayers(),
+                new DoNothing(PAUSE_MIN_TICKS, PAUSE_MAX_TICKS)
         )));
 
         body.getSpec().job().ifPresent(job -> activities.add(createWorkActivity(job.value())));
 
         return activities;
+    }
+
+    /**
+     * Glances at nearby players now and then, in every activity.
+     */
+    private static BehaviorControl<? super GolemEntity> lookAtPlayers() {
+        return SetEntityLookTargetSometimes.create(EntityType.PLAYER, PLAYER_LOOK_RANGE, PLAYER_LOOK_INTERVAL_TICKS);
     }
 
     private static ActivityData<GolemEntity> createWorkActivity(GolemJob job) {
