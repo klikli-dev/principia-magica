@@ -1,0 +1,70 @@
+[
+  {
+    "fact_id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/copper_stylus",
+    "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/copper_stylus_hook",
+    "trigger_target": {
+      "id": "principiamagica:copper_stylus"
+    },
+    "trigger_type": "modonomicon:item_crafted"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/axiom_tablet",
+    "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/axiom_tablet_hook",
+    "trigger_target": {
+      "id": "principiamagica:axiom_tablet"
+    },
+    "trigger_type": "modonomicon:item_crafted"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/quickened_clay",
+    "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/quickened_clay_hook",
+    "trigger_target": {
+      "id": "principiamagica:quickened_clay"
+    },
+    "trigger_type": "modonomicon:item_crafted"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh",
+    "id": "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh_hook",
+    "trigger_target": {
+      "id": "minecraft:rotten_flesh"
+    },
+    "trigger_type": "modonomicon:item_acquired"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia_hook",
+    "trigger_target": "principiamagica:the_wet_clay/principia",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_stylus",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_stylus_hook",
+    "trigger_target": "principiamagica:the_wet_clay/the_stylus",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_wet_clay",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_wet_clay_hook",
+    "trigger_target": "principiamagica:the_wet_clay/wet_clay",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_flesh_and_clay",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_flesh_and_clay_hook",
+    "trigger_target": "principiamagica:the_wet_clay/flesh_and_clay",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_body",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_body_hook",
+    "trigger_target": "principiamagica:the_wet_clay/the_body",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose_hook",
+    "trigger_target": "principiamagica:the_wet_clay/purpose",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  }
+]

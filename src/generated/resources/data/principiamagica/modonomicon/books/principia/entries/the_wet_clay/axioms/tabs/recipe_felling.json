@@ -1,0 +1,19 @@
+{
+  "anchor": "notebook",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "recipe_felling",
+  "page": {
+    "type": "modonomicon:crafting_recipe",
+    "condition": {
+      "type": "modonomicon:none"
+    },
+    "id": "recipe_felling",
+    "recipe_id_1": "principiamagica:axiom_of_felling_unfired"
+  },
+  "sort_number": 1,
+  "title": {
+    "translate": "book.principiamagica.principia.the_wet_clay.axioms.tab.recipe_felling.title"
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "display": {
+      "description": {
+        "translate": "research_fact.principiamagica.golem_placed.description"
+      },
+      "group": "modonomicon:knowledge",
+      "icon": {
+        "id": "principiamagica:golem"
+      },
+      "title": {
+        "translate": "research_fact.principiamagica.golem_placed"
+      }
+    },
+    "id": "principiamagica:golem_placed"
+  },
+  {
+    "display": {
+      "description": {
+        "translate": "research_fact.principiamagica.golem_given_axiom.description"
+      },
+      "group": "modonomicon:knowledge",
+      "icon": {
+        "id": "principiamagica:axiom_of_harvest"
+      },
+      "title": {
+        "translate": "research_fact.principiamagica.golem_given_axiom"
+      }
+    },
+    "id": "principiamagica:golem_given_axiom"
+  }
+]
