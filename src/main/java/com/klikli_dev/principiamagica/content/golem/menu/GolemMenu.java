@@ -139,7 +139,7 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
      * @return true if the golem-side slots (axiom, tool and golem inventory) are shown and usable.
      */
     boolean isGolemSideActive() {
-        return this.activeTab == GolemMenuTab.GOLEM && !this.sealDetailOpen;
+        return this.activeTab() == GolemMenuTab.GOLEM && !this.sealDetailOpen;
     }
 
     @Override

@@ -479,6 +479,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, TOOL_SLOT_REJECTS_WITHOUT_JOB, environment, structure, 40, 0);
         registerTest(event, GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB_AND_SEALS, environment, structure, 40, 0);
         registerTest(event, SHIFT_CLICK_ON_JOB_TAB_DOES_NOT_ENTER_GOLEM_INVENTORY, environment, structure, 40, 0);
+        registerTest(event, JOB_TAB_NEEDS_AXIOM, environment, structure, 40, 0);
     }
 
     private static void registerAxiomTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
