@@ -87,7 +87,6 @@ public class ENUSProvider extends LanguageProvider {
         this.add("golem_material.principiamagica.metal", "Metal");
 
         this.add("attribute.principiamagica.golem_work_speed", "Golem Work Speed");
-        this.add("attribute.principiamagica.golem_work_range", "Golem Work Range");
         this.add("attribute.principiamagica.golem_inventory_slots", "Golem Inventory Slots");
 
         this.add("entity.principiamagica.golem", "Golem");

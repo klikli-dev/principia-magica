@@ -101,7 +101,6 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
                 .add(Attributes.MAX_HEALTH, 10.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.25)
                 .add(AttributeRegistry.GOLEM_WORK_SPEED)
-                .add(AttributeRegistry.GOLEM_WORK_RANGE)
                 .add(AttributeRegistry.GOLEM_INVENTORY_SLOTS);
     }
 
