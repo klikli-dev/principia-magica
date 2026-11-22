@@ -49,7 +49,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
     public static final int EVENT_STEEP = 1;
     public static final int SYNC_INTERVAL = 20;
 
-    private final PrincipleStorage principles = new PrincipleStorage(CAPACITY);
+    private final PrincipleStorage principles = new PrincipleStorage(CAPACITY, () -> LibationUtils.sync(this));
     private ItemStack item = ItemStack.EMPTY;
     /**
      * The ticks of steeping done for the held item. Reset whenever the item or the principles no longer match a recipe.
@@ -92,11 +92,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
 
     @Override
     public PrincipleContents insert(PrincipleContents offered, boolean simulate) {
-        PrincipleContents leftover = this.principles.insert(offered, simulate);
-        if (!simulate) {
-            LibationUtils.sync(this);
-        }
-        return leftover;
+        return this.principles.insert(offered, simulate);
     }
 
     public InteractionResult useItemOn(ItemStack held, Player player, InteractionHand hand) {

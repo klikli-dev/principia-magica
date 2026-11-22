@@ -11,21 +11,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Principles held by a block entity with a fixed total capacity.
+ * Principles held by a block entity with a fixed total capacity. The change callback runs whenever principles are inserted,
+ * so the owning block entity can sync itself to the clients.
  */
 public class PrincipleStorage {
 
     private final int capacity;
+    private final Runnable onInsert;
     private PrincipleContents contents = PrincipleContents.EMPTY;
 
-    public PrincipleStorage(int capacity) {
+    /**
+     * @param capacity the total amount of principles in mB.
+     * @param onInsert runs after every insertion that is not simulated.
+     */
+    public PrincipleStorage(int capacity, Runnable onInsert) {
         this.capacity = capacity;
+        this.onInsert = onInsert;
     }
 
     public PrincipleContents contents() {
         return this.contents;
     }
 
+    /**
+     * Replaces the contents without notifying the owner, for loading and for moves the owner syncs itself.
+     */
     public void set(PrincipleContents contents) {
         this.contents = contents;
     }
@@ -51,6 +61,7 @@ public class PrincipleStorage {
         PrincipleContents accepted = takeUpTo(offered, space);
         if (!simulate) {
             this.contents = this.contents.add(accepted);
+            this.onInsert.run();
         }
         return offered.subtract(accepted);
     }

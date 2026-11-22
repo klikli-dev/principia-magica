@@ -6,8 +6,8 @@ package com.klikli_dev.principiamagica.content.libation.slab;
 
 import com.klikli_dev.principiamagica.content.libation.LibationFlow;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
+import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
-import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.recipe.LibationRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
@@ -64,9 +64,8 @@ public class LibationSlabBlockEntity extends BlockEntity {
     private int dissolveSlot = NO_SLOT;
     private int dissolveProgress;
     private int dissolveColor = PrincipleContents.DEFAULT_COLOR;
-    private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY);
-    private int drainCooldown;
-    private int drainColor = PrincipleContents.DEFAULT_COLOR;
+    private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY, () -> LibationUtils.sync(this));
+    private final PrincipleDrain drain = new PrincipleDrain(this.stored);
 
     public LibationSlabBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.LIBATION_SLAB.get(), pos, state);
@@ -124,14 +123,14 @@ public class LibationSlabBlockEntity extends BlockEntity {
      * @return the blended color of the principles drained last, for the drip visuals.
      */
     public int getDrainColor() {
-        return this.drainColor;
+        return this.drain.color();
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, LibationSlabBlockEntity blockEntity) {
         if (level.isClientSide()) {
             return;
         }
-        blockEntity.tickDrain();
+        blockEntity.drain.tick(blockEntity);
         blockEntity.tickDissolve();
     }
 
@@ -208,36 +207,6 @@ public class LibationSlabBlockEntity extends BlockEntity {
         }
         player.getInventory().placeItemBackInInventory(taken);
         return InteractionResult.SUCCESS;
-    }
-
-    /**
-     * Moves the stored principles through the open spout into its drain target at the rate of {@link LibationFlow}. Waits while
-     * the spout is closed or the target does not accept them.
-     */
-    private void tickDrain() {
-        if (this.stored.isEmpty()) {
-            this.drainCooldown = 0;
-            return;
-        }
-        if (++this.drainCooldown < LibationFlow.DRAIN_INTERVAL) {
-            return;
-        }
-        this.drainCooldown = 0;
-
-        BlockPos spout = LibationUtils.openSpout(this.level, this.worldPosition);
-        PrincipleContainer target = spout == null ? null : LibationUtils.drainTarget(this.level, spout);
-        if (target == null) {
-            return;
-        }
-        PrincipleContents portion = PrincipleStorage.takeUpTo(this.stored.contents(), LibationFlow.DRAIN_AMOUNT);
-        PrincipleContents accepted = portion.subtract(target.insert(portion, false));
-        if (accepted.isEmpty()) {
-            return;
-        }
-        this.stored.set(this.stored.contents().subtract(accepted));
-        this.drainColor = accepted.blendedColor();
-        LibationUtils.sync(this);
-        this.level.blockEvent(spout, this.level.getBlockState(spout).getBlock(), LibationFlow.EVENT_DRIP, accepted.total());
     }
 
     /**
@@ -333,7 +302,7 @@ public class LibationSlabBlockEntity extends BlockEntity {
         this.dissolveProgress = input.getIntOr("dissolve_progress", 0);
         this.dissolveColor = input.getIntOr("dissolve_color", PrincipleContents.DEFAULT_COLOR);
         input.read("stored", PrincipleContents.CODEC).ifPresent(this.stored::set);
-        this.drainColor = input.getIntOr("drain_color", PrincipleContents.DEFAULT_COLOR);
+        this.drain.load(input);
     }
 
     @Override
@@ -345,7 +314,7 @@ public class LibationSlabBlockEntity extends BlockEntity {
         output.putInt("dissolve_progress", this.dissolveProgress);
         output.putInt("dissolve_color", this.dissolveColor);
         output.store("stored", PrincipleContents.CODEC, this.stored.contents());
-        output.putInt("drain_color", this.drainColor);
+        this.drain.save(output);
     }
 
     @Override
