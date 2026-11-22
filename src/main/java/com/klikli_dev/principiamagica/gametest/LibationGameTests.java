@@ -252,7 +252,7 @@ public class LibationGameTests {
 
         helper.runAfterDelay(time + 10, () -> {
             helper.assertTrue(be.getOutput().is(ItemRegistry.AXIOM_OF_HARVEST.get()) && be.getOutput().getCount() == 1, "The first item should be dried into one axiom, output is " + be.getOutput());
-            be.useItemOn(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()));
+            be.useItemOn(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()), helper.makeMockServerPlayerInLevel(), InteractionHand.MAIN_HAND);
 
             helper.runAfterDelay(time + 10, () -> {
                 helper.assertTrue(be.getInput().getCount() == 1, "The second item should not be consumed while the output is full, input is " + be.getInput());
@@ -287,7 +287,7 @@ public class LibationGameTests {
         helper.setBlock(pos, BlockRegistry.DRYING_SLAB.get().defaultBlockState());
         helper.setBlock(pos.above(), Blocks.GLOWSTONE);
         DryingSlabBlockEntity slab = (DryingSlabBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(pos));
-        slab.useItemOn(input);
+        slab.useItemOn(input, helper.makeMockServerPlayerInLevel(), InteractionHand.MAIN_HAND);
         return slab;
     }
 

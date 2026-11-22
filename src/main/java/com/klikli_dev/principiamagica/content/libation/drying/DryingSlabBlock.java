@@ -4,7 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.libation.drying;
 
-import com.klikli_dev.principiamagica.content.libation.client.LibationEffects;
+import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
+import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -51,25 +52,16 @@ public class DryingSlabBlock extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide()) {
-            return createTickerHelper(type, BlockEntityTypeRegistry.DRYING_SLAB.get(), LibationEffects::tickDrying);
-        }
-        return createTickerHelper(type, BlockEntityTypeRegistry.DRYING_SLAB.get(), DryingSlabBlockEntity::tick);
+        return LibationUtils.ticker(level, type, BlockEntityTypeRegistry.DRYING_SLAB.get(), DryingSlabBlockEntity::tick, LibationClientEffects.get()::tickDrying);
     }
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (level.getBlockEntity(pos) instanceof DryingSlabBlockEntity slab) {
-            return slab.useItemOn(stack);
-        }
-        return InteractionResult.PASS;
+        return LibationUtils.useItemOn(level, pos, stack, player, hand);
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.getBlockEntity(pos) instanceof DryingSlabBlockEntity slab) {
-            return slab.useWithoutItem(player);
-        }
-        return InteractionResult.PASS;
+        return LibationUtils.useWithoutItem(level, pos, player);
     }
 }

@@ -4,10 +4,11 @@
 
 package com.klikli_dev.principiamagica.content.libation.trough;
 
+import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
-import com.klikli_dev.principiamagica.content.libation.client.LibationEffects;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.recipe.SteepingRecipe;
@@ -16,22 +17,15 @@ import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -45,7 +39,7 @@ import java.util.Optional;
  * recipe, and resets otherwise. Clients interpolate the progress between syncs, see {@link #getDisplayProgress}.
  * Completed steeping is notified to clients via {@link #EVENT_STEEP} through {@code level.blockEvent}, see {@link #triggerEvent}.
  */
-public class CatchTroughBlockEntity extends BlockEntity implements PrincipleContainer {
+public class CatchTroughBlockEntity extends LibationBlockEntity implements PrincipleContainer {
     public static final int CAPACITY = 500;
     public static final int EVENT_STEEP = 1;
 
@@ -77,6 +71,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
         return this.principles.contents();
     }
 
+    @Override
     public int comparatorSignal() {
         return this.principles.comparatorSignal();
     }
@@ -86,6 +81,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
         return this.principles.insert(offered, simulate);
     }
 
+    @Override
     public InteractionResult useItemOn(ItemStack held, Player player, InteractionHand hand) {
         if (held.isEmpty()) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -104,6 +100,7 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
         return InteractionResult.PASS;
     }
 
+    @Override
     public InteractionResult useWithoutItem(Player player) {
         if (!player.getMainHandItem().isEmpty() || this.item.isEmpty()) {
             return InteractionResult.PASS;
@@ -151,16 +148,14 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
     @Override
     public boolean triggerEvent(int id, int param) {
         if (id == EVENT_STEEP && this.level != null && this.level.isClientSide()) {
-            LibationEffects.onTroughSteep(this.level, this.worldPosition, param);
+            LibationClientEffects.get().onTroughSteep(this.level, this.worldPosition, param);
         }
         return id == EVENT_STEEP;
     }
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        if (this.level != null && !this.item.isEmpty()) {
-            Containers.dropItemStack(this.level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, this.item);
-        }
+        this.dropItem(this.item);
     }
 
     @Override
@@ -191,13 +186,4 @@ public class CatchTroughBlockEntity extends BlockEntity implements PrincipleCont
         this.steeping.save(output, this.level != null ? this.level.getGameTime() : 0L);
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return this.saveWithoutMetadata(registries);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
 }

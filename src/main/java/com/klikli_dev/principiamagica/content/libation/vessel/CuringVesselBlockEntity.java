@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.libation.vessel;
 
+import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
@@ -13,18 +14,12 @@ import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -36,7 +31,7 @@ import java.util.Optional;
  * Holds principles and cures them into compound principles. Drains through an open spout into the drain target below the
  * spout, at the rate of {@link LibationFlow}. What the vessel is, is defined by its {@link VesselProperties}.
  */
-public class CuringVesselBlockEntity extends BlockEntity implements PrincipleContainer {
+public class CuringVesselBlockEntity extends LibationBlockEntity implements PrincipleContainer {
     public static final int SYNC_INTERVAL = 20;
 
     private final VesselProperties vessel;
@@ -61,6 +56,7 @@ public class CuringVesselBlockEntity extends BlockEntity implements PrincipleCon
         return this.principles.contents();
     }
 
+    @Override
     public int comparatorSignal() {
         return this.principles.comparatorSignal();
     }
@@ -192,15 +188,5 @@ public class CuringVesselBlockEntity extends BlockEntity implements PrincipleCon
         output.putInt("progress", this.progress);
         output.putBoolean("curing", this.curing);
         this.drain.save(output);
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return this.saveWithoutMetadata(registries);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
     }
 }

@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.libation.trough;
 
+import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
@@ -46,7 +47,7 @@ public class CatchTroughBlock extends BaseEntityBlock {
 
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        return level.getBlockEntity(pos) instanceof CatchTroughBlockEntity trough ? trough.comparatorSignal() : 0;
+        return LibationUtils.comparatorSignal(level, pos);
     }
 
     @Override
@@ -61,25 +62,16 @@ public class CatchTroughBlock extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide()) {
-            return null;
-        }
-        return createTickerHelper(type, BlockEntityTypeRegistry.CATCH_TROUGH.get(), CatchTroughBlockEntity::tick);
+        return LibationUtils.ticker(level, type, BlockEntityTypeRegistry.CATCH_TROUGH.get(), CatchTroughBlockEntity::tick, null);
     }
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (level.getBlockEntity(pos) instanceof CatchTroughBlockEntity trough) {
-            return trough.useItemOn(stack, player, hand);
-        }
-        return InteractionResult.PASS;
+        return LibationUtils.useItemOn(level, pos, stack, player, hand);
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.getBlockEntity(pos) instanceof CatchTroughBlockEntity trough) {
-            return trough.useWithoutItem(player);
-        }
-        return InteractionResult.PASS;
+        return LibationUtils.useWithoutItem(level, pos, player);
     }
 }

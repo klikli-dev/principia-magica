@@ -4,7 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.libation.vessel;
 
-import com.klikli_dev.principiamagica.content.libation.client.VesselEffects;
+import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
+import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -42,10 +43,7 @@ public abstract class CuringVesselBlock extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide()) {
-            return createTickerHelper(type, this.blockEntityType(), VesselEffects::tick);
-        }
-        return createTickerHelper(type, this.blockEntityType(), CuringVesselBlockEntity::tick);
+        return LibationUtils.ticker(level, type, this.blockEntityType(), CuringVesselBlockEntity::tick, LibationClientEffects.get()::tickVessel);
     }
 
     @Override
@@ -55,6 +53,7 @@ public abstract class CuringVesselBlock extends BaseEntityBlock {
 
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        return level.getBlockEntity(pos) instanceof CuringVesselBlockEntity vessel ? vessel.comparatorSignal() : 0;
+        return LibationUtils.comparatorSignal(level, pos);
     }
+
 }

@@ -4,8 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.libation.spout;
 
+import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
-import com.klikli_dev.principiamagica.content.libation.client.LibationEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -168,11 +168,11 @@ public abstract class SpoutBlock extends BaseEntityBlock {
         return InteractionResult.SUCCESS;
     }
 
+    /**
+     * Spouts only tick on the client, to drip. Their host drains through them on the server.
+     */
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide()) {
-            return createTickerHelper(type, this.blockEntityType(), LibationEffects::tickSpout);
-        }
-        return null;
+        return LibationUtils.ticker(level, type, this.blockEntityType(), null, LibationClientEffects.get()::tickSpout);
     }
 }

@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.libation.client;
 
 import com.klikli_dev.magicparticleslib.premade.particle.glow.GlowParticleOptions;
+import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
 import com.klikli_dev.principiamagica.content.libation.LiquidArea;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDripOptions;
 import com.klikli_dev.principiamagica.content.libation.PrincipleSplashOptions;
@@ -34,7 +35,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Client-only particles of the libation slab, drying slab, catch trough and spouts. Driven by the synced block entity state.
  */
-public final class LibationEffects {
+public final class LibationEffects implements LibationClientEffects.Handler {
 
     private static final float FIZZ_CHANCE = 0.5F;
     private static final float FIZZ_SIZE = 0.05F;
@@ -45,10 +46,8 @@ public final class LibationEffects {
     private static final int BURST_AGE = 24;
     private static final int BURST_SPLASH_COUNT = 8;
 
-    private LibationEffects() {
-    }
-
-    public static void tickSlab(Level level, BlockPos pos, BlockState state, LibationSlabBlockEntity slab) {
+    @Override
+    public void tickSlab(Level level, BlockPos pos, BlockState state, LibationSlabBlockEntity slab) {
         if (!(level instanceof ClientLevel clientLevel)) {
             return;
         }
@@ -62,7 +61,8 @@ public final class LibationEffects {
     /**
      * Drips from an open spout or the tap of a vessel. Each drip hangs from the nozzle and falls straight down into the cell below.
      */
-    public static void tickSpout(Level level, BlockPos pos, BlockState state, SpoutBlockEntity spout) {
+    @Override
+    public void tickSpout(Level level, BlockPos pos, BlockState state, SpoutBlockEntity spout) {
         if (!(level instanceof ClientLevel clientLevel) || !spout.getDrips().tick()) {
             return;
         }
@@ -72,7 +72,13 @@ public final class LibationEffects {
         spawnDrip(clientLevel, pos, facing, drip, hostColor(level, pos, facing));
     }
 
-    public static void tickDrying(Level level, BlockPos pos, BlockState state, DryingSlabBlockEntity drying) {
+    @Override
+    public void tickVessel(Level level, BlockPos pos, BlockState state, CuringVesselBlockEntity vessel) {
+        VesselEffects.tick(level, pos, state, vessel);
+    }
+
+    @Override
+    public void tickDrying(Level level, BlockPos pos, BlockState state, DryingSlabBlockEntity drying) {
         if (!(level instanceof ClientLevel clientLevel) || level.getMaxLocalRawBrightness(pos.above()) <= 0) {
             return;
         }
@@ -91,7 +97,8 @@ public final class LibationEffects {
      *
      * @param color the blended colour of the principles used for the steeping.
      */
-    public static void onTroughSteep(Level level, BlockPos pos, int color) {
+    @Override
+    public void onTroughSteep(Level level, BlockPos pos, int color) {
         if (!(level instanceof ClientLevel clientLevel)) {
             return;
         }

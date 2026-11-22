@@ -4,8 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.libation.slab;
 
+import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
-import com.klikli_dev.principiamagica.content.libation.client.LibationEffects;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import com.mojang.serialization.MapCodec;
@@ -90,10 +90,7 @@ public class LibationSlabBlock extends BaseEntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide()) {
-            return createTickerHelper(type, BlockEntityTypeRegistry.LIBATION_SLAB.get(), LibationEffects::tickSlab);
-        }
-        return createTickerHelper(type, BlockEntityTypeRegistry.LIBATION_SLAB.get(), LibationSlabBlockEntity::tick);
+        return LibationUtils.ticker(level, type, BlockEntityTypeRegistry.LIBATION_SLAB.get(), LibationSlabBlockEntity::tick, LibationClientEffects.get()::tickSlab);
     }
 
     @Override
@@ -103,7 +100,7 @@ public class LibationSlabBlock extends BaseEntityBlock {
 
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        return level.getBlockEntity(pos) instanceof LibationSlabBlockEntity slab ? slab.comparatorSignal() : 0;
+        return LibationUtils.comparatorSignal(level, pos);
     }
 
     @Override
@@ -112,17 +109,11 @@ public class LibationSlabBlock extends BaseEntityBlock {
             // Let the spout be placed on the side of the slab instead of being treated as a washable item.
             return InteractionResult.PASS;
         }
-        if (level.getBlockEntity(pos) instanceof LibationSlabBlockEntity slab) {
-            return slab.useItemOn(stack, player, hand);
-        }
-        return InteractionResult.PASS;
+        return LibationUtils.useItemOn(level, pos, stack, player, hand);
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.getBlockEntity(pos) instanceof LibationSlabBlockEntity slab) {
-            return slab.useWithoutItem(player);
-        }
-        return InteractionResult.PASS;
+        return LibationUtils.useWithoutItem(level, pos, player);
     }
 }

@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.libation.slab;
 
+import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.LibationFlow;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
@@ -13,20 +14,13 @@ import com.klikli_dev.principiamagica.content.principle.recipe.LibationRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
@@ -51,7 +45,7 @@ import java.util.Optional;
  * <p>
  * Water and items can be inserted from pipes and hoppers through the block capabilities. Neither can be extracted that way.
  */
-public class LibationSlabBlockEntity extends BlockEntity {
+public class LibationSlabBlockEntity extends LibationBlockEntity {
     public static final int WATER_CAPACITY = LibationFlow.CAPACITY;
     public static final int STORAGE_CAPACITY = LibationFlow.CAPACITY;
     public static final int DISSOLVE_TIME = 40;
@@ -89,6 +83,7 @@ public class LibationSlabBlockEntity extends BlockEntity {
     /**
      * @return the comparator signal of the stored water relative to its capacity.
      */
+    @Override
     public int comparatorSignal() {
         return LibationUtils.comparatorSignal(this.getWater(), WATER_CAPACITY);
     }
@@ -139,6 +134,7 @@ public class LibationSlabBlockEntity extends BlockEntity {
         event.registerBlockEntity(Capabilities.Item.BLOCK, BlockEntityTypeRegistry.LIBATION_SLAB.get(), (slab, side) -> slab.itemInput);
     }
 
+    @Override
     public InteractionResult useItemOn(ItemStack held, Player player, InteractionHand hand) {
         if (held.isEmpty()) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -184,6 +180,7 @@ public class LibationSlabBlockEntity extends BlockEntity {
         return InteractionResult.SUCCESS;
     }
 
+    @Override
     public InteractionResult useWithoutItem(Player player) {
         if (!player.getMainHandItem().isEmpty()) {
             return InteractionResult.PASS;
@@ -287,10 +284,7 @@ public class LibationSlabBlockEntity extends BlockEntity {
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        ItemStack stack = this.getStack();
-        if (this.level != null && !stack.isEmpty()) {
-            Containers.dropItemStack(this.level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, stack);
-        }
+        this.dropItem(this.getStack());
     }
 
     @Override
@@ -315,16 +309,6 @@ public class LibationSlabBlockEntity extends BlockEntity {
         output.putInt("dissolve_color", this.dissolveColor);
         output.store("stored", PrincipleContents.CODEC, this.stored.contents());
         this.drain.save(output);
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return this.saveWithoutMetadata(registries);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
     }
 
     /**

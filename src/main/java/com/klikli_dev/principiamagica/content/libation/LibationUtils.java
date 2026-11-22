@@ -19,6 +19,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -27,6 +29,8 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jspecify.annotations.Nullable;
@@ -134,6 +138,47 @@ public final class LibationUtils {
      */
     static float displayProgress(float progress, float rate, long syncTick, long gameTime, float partialTick) {
         return progress + rate * Math.max(0.0F, (gameTime - syncTick) + partialTick);
+    }
+
+    /**
+     * @return the comparator signal of the libation block entity at the position, 0 if there is none.
+     */
+    public static int comparatorSignal(BlockGetter level, BlockPos pos) {
+        return level.getBlockEntity(pos) instanceof LibationBlockEntity blockEntity ? blockEntity.comparatorSignal() : 0;
+    }
+
+    /**
+     * Forwards a use with an item in hand to the libation block entity at the position.
+     */
+    public static InteractionResult useItemOn(Level level, BlockPos pos, ItemStack held, Player player, InteractionHand hand) {
+        return level.getBlockEntity(pos) instanceof LibationBlockEntity blockEntity ? blockEntity.useItemOn(held, player, hand) : InteractionResult.PASS;
+    }
+
+    /**
+     * Forwards a use with an empty hand to the libation block entity at the position.
+     */
+    public static InteractionResult useWithoutItem(Level level, BlockPos pos, Player player) {
+        return level.getBlockEntity(pos) instanceof LibationBlockEntity blockEntity ? blockEntity.useWithoutItem(player) : InteractionResult.PASS;
+    }
+
+    /**
+     * Builds the ticker of a libation block: the server ticker on the server and the client ticker on the client. Either may be
+     * null, for blocks that only tick on one side. The ticker is only built for the block entity type of the block.
+     *
+     * @param level      the level the block is in.
+     * @param type       the type the block asks a ticker for.
+     * @param expected   the type of the block entity that the tickers are for.
+     * @param serverTick ticks the block entity on the server, or null.
+     * @param clientTick ticks the block entity on the client, or null.
+     * @return the ticker, or null if the type is not the expected one or the side has no ticker.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends BlockEntity, E extends BlockEntity> @Nullable BlockEntityTicker<T> ticker(Level level, BlockEntityType<T> type,
+                                                                                                    BlockEntityType<E> expected,
+                                                                                                    @Nullable BlockEntityTicker<E> serverTick,
+                                                                                                    @Nullable BlockEntityTicker<E> clientTick) {
+        BlockEntityTicker<E> ticker = level.isClientSide() ? clientTick : serverTick;
+        return type == expected ? (BlockEntityTicker<T>) ticker : null;
     }
 
     /**
