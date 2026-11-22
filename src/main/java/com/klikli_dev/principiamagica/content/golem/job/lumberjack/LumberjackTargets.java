@@ -37,8 +37,6 @@ import java.util.stream.Collectors;
  * empty spot where a sapling should be replanted.
  */
 public final class LumberjackTargets {
-    public static final int KEEP_AMOUNT = 64;
-
     public static final JobOption REPLANT = new JobOption("replant_saplings", true);
     public static final JobOption BONEMEAL = new JobOption("bonemeal_saplings", false);
     public static final JobOption CLEAR_LEAVES = new JobOption("clear_leaves", true);

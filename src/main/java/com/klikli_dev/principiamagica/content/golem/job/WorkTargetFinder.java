@@ -11,19 +11,40 @@ import net.minecraft.server.level.ServerLevel;
 
 import java.util.Optional;
 
-@FunctionalInterface
-public interface WorkTargetFinder {
+/**
+ * Decides which blocks in a job's zones are work targets, and why a block that is not one is blocked.
+ *
+ * @param check         whether the block at a position is currently a work target for the golem's job
+ * @param blockedCheck  the status that keeps the block from being a target if the job would work on it otherwise
+ */
+public record WorkTargetFinder(TargetCheck check, BlockedCheck blockedCheck) {
 
     /**
-     * @return true if the block at pos is currently a valid work target for the golem's job.
+     * @return a finder that never reports a blocked reason
      */
-    boolean isTarget(ServerLevel level, GolemEntity golem, BlockPos pos);
+    public static WorkTargetFinder of(TargetCheck check) {
+        return new WorkTargetFinder(check, (level, golem, pos) -> Optional.empty());
+    }
+
+    public boolean isTarget(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        return this.check.test(level, golem, pos);
+    }
 
     /**
-     * @return the status that keeps the block from being a target, if the job would work on it otherwise (e.g. a missing
-     * tool or missing supplies). Empty if there is nothing the golem could do about it.
+     * @return the status that keeps the block from being a target, e.g. a missing tool or missing supplies. Empty if
+     * there is nothing the golem could do about it.
      */
-    default Optional<GolemStatus> blockedReason(ServerLevel level, GolemEntity golem, BlockPos pos) {
-        return Optional.empty();
+    public Optional<GolemStatus> blockedReason(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        return this.blockedCheck.find(level, golem, pos);
+    }
+
+    @FunctionalInterface
+    public interface TargetCheck {
+        boolean test(ServerLevel level, GolemEntity golem, BlockPos pos);
+    }
+
+    @FunctionalInterface
+    public interface BlockedCheck {
+        Optional<GolemStatus> find(ServerLevel level, GolemEntity golem, BlockPos pos);
     }
 }

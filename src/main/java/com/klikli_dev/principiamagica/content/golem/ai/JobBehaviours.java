@@ -32,23 +32,32 @@ public final class JobBehaviours {
     }
 
     public static ImmutableList<Pair<Integer, BehaviorControl<? super GolemEntity>>> compose(GolemJob job) {
-        List<Pair<? extends BehaviorControl<? super GolemEntity>, Integer>> ordered = new ArrayList<>();
-        ordered.add(Pair.of(new DepositItems(job, DepositItems.Mode.WHEN_FULL), 1));
-        ordered.add(Pair.of(new RestockItems(job), 1));
-        for (BehaviorControl<? super GolemEntity> behaviour : job.createJobBehaviours()) {
-            ordered.add(Pair.of(behaviour, 1));
-        }
-        ordered.add(Pair.of(new PickUpStrayItems(job), 1));
-        ordered.add(Pair.of(new DepositItems(job, DepositItems.Mode.LEFTOVER), 1));
+        List<BehaviorControl<? super GolemEntity>> ordered = new ArrayList<>();
+        ordered.add(new DepositItems(job, DepositItems.Mode.WHEN_FULL));
+        ordered.add(new RestockItems(job));
+        ordered.addAll(job.createJobBehaviours());
+        ordered.add(new PickUpStrayItems(job));
+        ordered.add(new DepositItems(job, DepositItems.Mode.LEFTOVER));
 
-        GateBehavior<GolemEntity> work = new GateBehavior<>(
+        return ImmutableList.of(Pair.of(0, gate(ordered)));
+    }
+
+    /**
+     * Runs the behaviours one at a time, in the given order: the first one whose entry conditions pass runs until it
+     * stops, then the next start is attempted from the beginning of the list.
+     */
+    public static GateBehavior<GolemEntity> gate(List<? extends BehaviorControl<? super GolemEntity>> behaviours) {
+        List<Pair<? extends BehaviorControl<? super GolemEntity>, Integer>> weighted = new ArrayList<>();
+        for (BehaviorControl<? super GolemEntity> behaviour : behaviours) {
+            weighted.add(Pair.of(behaviour, 1));
+        }
+
+        return new GateBehavior<>(
                 Map.of(),
                 Set.of(),
                 GateBehavior.OrderPolicy.ORDERED,
                 GateBehavior.RunningPolicy.RUN_ONE,
-                ordered
+                weighted
         );
-
-        return ImmutableList.of(Pair.of(0, work));
     }
 }

@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
  * the plant for harvest and bonemeal, the soil for planting and the dirt for tilling.
  */
 public final class FarmingTargets {
-    public static final int KEEP_AMOUNT = 64;
     private static final int WATER_RANGE = 4;
 
     public static final JobOption REPLANT = new JobOption("replant", true);
