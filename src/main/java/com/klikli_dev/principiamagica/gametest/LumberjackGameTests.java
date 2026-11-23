@@ -150,6 +150,17 @@ public class LumberjackGameTests {
         return !logsGone(helper, height);
     }
 
+    private static int countLogs(GameTestHelper helper, int height) {
+        int count = 0;
+        for (int i = 0; i < height; i++) {
+            if (helper.getBlockState(TREE.above(i)).is(BlockTags.LOGS)) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
     private static ContainerLink link(GameTestHelper helper, BlockPos rel, ContainerRole role) {
         return new ContainerLink(helper.absolutePos(rel), Direction.UP, role);
     }
@@ -212,6 +223,39 @@ public class LumberjackGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(logsGone(helper, 5), "The tree walled in by natural leaves should be felled, leaves left at BASE_Y: " + countLowLeaves(helper, Blocks.OAK_LEAVES));
             helper.assertTrue(golem.getInventory().countItem(Items.OAK_LOG) >= 5, "Golem should carry the logs, has " + golem.getInventory().countItem(Items.OAK_LOG));
+        });
+    }
+
+    /**
+     * Each felled log costs the axe one use, so an axe with one use left breaks on the first log. The golem must stop
+     * there, the rest of the tree stays standing for a later job.
+     */
+    public static void axeBreakingStopsFelling(GameTestHelper helper) {
+        buildGround(helper);
+        buildTree(helper, List.of(TREE), 5, Blocks.OAK_LOG, naturalLeaves(Blocks.OAK_LEAVES));
+        GolemEntity golem = spawnLumberjack(helper, List.of(), true);
+        ItemStack axe = new ItemStack(Items.IRON_AXE);
+        axe.setDamageValue(axe.getMaxDamage() - 1);
+        golem.setItemSlot(EquipmentSlot.MAINHAND, axe);
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(golem.getMainHandItem().isEmpty(), "The axe should break on the first log, got " + golem.getMainHandItem());
+            helper.assertTrue(countLogs(helper, 5) == 4, "Only the first log should be felled with the broken axe, logs left " + countLogs(helper, 5));
+            helper.assertTrue(golem.getInventory().countItem(Items.OAK_LOG) == 1, "Golem should carry the one felled log, has " + golem.getInventory().countItem(Items.OAK_LOG));
+        });
+    }
+
+    /**
+     * The axe loses exactly one use per felled log.
+     */
+    public static void fellingChargesOneUsePerLog(GameTestHelper helper) {
+        buildGround(helper);
+        buildTree(helper, List.of(TREE), 5, Blocks.OAK_LOG, naturalLeaves(Blocks.OAK_LEAVES));
+        GolemEntity golem = spawnLumberjack(helper, List.of(), true);
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(logsGone(helper, 5), "All logs of the natural tree should be felled");
+            helper.assertTrue(golem.getItemBySlot(EquipmentSlot.MAINHAND).getDamageValue() == 5, "The axe should lose one use per log, damage is " + golem.getItemBySlot(EquipmentSlot.MAINHAND).getDamageValue());
         });
     }
 

@@ -233,6 +233,12 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLS_NATURAL_TREE =
             TEST_FUNCTIONS.register("lumberjack_fells_natural_tree", () -> LumberjackGameTests::fellsNaturalTree);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_AXE_BREAKING_STOPS_FELLING =
+            TEST_FUNCTIONS.register("lumberjack_axe_breaking_stops_felling", () -> LumberjackGameTests::axeBreakingStopsFelling);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_FELLING_CHARGES_ONE_USE_PER_LOG =
+            TEST_FUNCTIONS.register("lumberjack_felling_charges_one_use_per_log", () -> LumberjackGameTests::fellingChargesOneUsePerLog);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_REPLANTS_SAPLING =
             TEST_FUNCTIONS.register("lumberjack_replants_sapling", () -> LumberjackGameTests::replantsSapling);
 
@@ -536,6 +542,8 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
 
     private static void registerLumberjackTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, LUMBERJACK_FELLS_NATURAL_TREE, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_AXE_BREAKING_STOPS_FELLING, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_FELLING_CHARGES_ONE_USE_PER_LOG, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_REPLANTS_SAPLING, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_IGNORES_PLAYER_LEAVES, environment, structure, 400, 0);
         registerTest(event, LUMBERJACK_IGNORES_BARE_LOG_PILLAR, environment, structure, 400, 0);

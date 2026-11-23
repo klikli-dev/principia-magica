@@ -23,7 +23,7 @@ import java.util.Optional;
 
 /**
  * Fells a natural tree from its stump, top down. Each log is broken and its drops go into the golem's inventory, and
- * the axe loses one durability per log. Leaves are left alone, they decay on their own.
+ * the axe loses one durability per log. Felling stops when the axe breaks. Leaves are left alone, they decay on their own.
  */
 public class FellTree extends JobTargetBehaviour {
     private static final int MIN_FELL_TICKS = 20;
@@ -80,6 +80,11 @@ public class FellTree extends JobTargetBehaviour {
         TreeDetector.Tree tree = found.get();
         LumberjackTargets.rememberReplants(level, golem, tree);
         for (BlockPos log : tree.logs()) {
+            // The axe breaks when its last use is spent. The logs left over stay standing for a later interaction.
+            if (!LumberjackTargets.holdsAxe(golem)) {
+                break;
+            }
+
             BlockState state = level.getBlockState(log);
             if (!TreeDetector.isLog(state)) {
                 continue;
