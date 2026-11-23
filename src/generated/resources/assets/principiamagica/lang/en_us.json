@@ -147,6 +147,7 @@
   "gui.principiamagica.golem.deposit.title": "Deposit",
   "gui.principiamagica.golem.hand.tooltip": "Hand: the golem's tool while it works, or an item it carries",
   "gui.principiamagica.golem.health": "Health: %s / %s",
+  "gui.principiamagica.golem.missing_container": "Missing container",
   "gui.principiamagica.golem.mode.follow.tooltip": "The golem follows you",
   "gui.principiamagica.golem.mode.stay.tooltip": "The golem stays where it is",
   "gui.principiamagica.golem.mode.work.disabled": "Work needs an axiom",

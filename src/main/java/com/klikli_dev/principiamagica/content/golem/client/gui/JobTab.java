@@ -29,6 +29,7 @@ import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -66,6 +67,7 @@ final class JobTab extends GolemTab {
     private static final int LIST_COLOR = 0xFFF6E2B8;
     private static final int EXPLANATION_COLOR = 0xFFB0A89A;
     private static final int HINT_COLOR = 0xFF3FA59A;
+    private static final int MISSING_COLOR = 0xFFFF5555;
 
     private final StyleContext style = WidgetParts.defaultStyle();
     private ScrollList<JobOption> optionList;
@@ -214,10 +216,14 @@ final class JobTab extends GolemTab {
         List<Component> names = new ArrayList<>();
         for (ContainerLink link : this.view().workplace().links()) {
             if (role.test(link.role())) {
-                Component name = level.getBlockState(link.pos()).getBlock().getName();
+                boolean missing = isMissing(level, link.pos());
+                Component name = missing
+                        ? Component.translatable("gui.principiamagica.golem.missing_container").withStyle(Style.EMPTY.withColor(MISSING_COLOR))
+                        : level.getBlockState(link.pos()).getBlock().getName();
                 if (withPositions) {
+                    int color = missing ? MISSING_COLOR : EXPLANATION_COLOR;
                     MutableComponent at = Component.translatable("gui.principiamagica.golem.task_at", GolemGuiText.formatPos(link.pos()));
-                    names.add(name.copy().append(" ").append(at.withStyle(Style.EMPTY.withColor(EXPLANATION_COLOR))));
+                    names.add(name.copy().append(" ").append(at.withStyle(Style.EMPTY.withColor(color))));
                 } else {
                     names.add(name);
                 }
@@ -225,6 +231,17 @@ final class JobTab extends GolemTab {
         }
 
         return names;
+    }
+
+    /**
+     * The client cannot reliably query item capabilities, so a link counts as missing when its chunk is loaded and there is no block entity
+     * at its position. A broken container leaves air, and whatever replaced it usually has no block entity. Positions in unloaded chunks are
+     * never judged missing. Mods with containers that have no block entity would show as missing here, though the server still uses them.
+     *
+     * @return whether the linked position is loaded and has no block entity
+     */
+    static boolean isMissing(Level level, BlockPos pos) {
+        return level.isLoaded(pos) && level.getBlockEntity(pos) == null;
     }
 
     /**
