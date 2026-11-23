@@ -355,6 +355,12 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_STEEPING_WAITS_FOR_PRINCIPLES =
             TEST_FUNCTIONS.register("libation_steeping_waits_for_principles", () -> LibationGameTests::steepingWaitsForPrinciples);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_CURING_SURVIVES_RELOAD =
+            TEST_FUNCTIONS.register("libation_curing_survives_reload", () -> LibationGameTests::curingSurvivesReload);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_STEEPING_SURVIVES_RELOAD =
+            TEST_FUNCTIONS.register("libation_steeping_survives_reload", () -> LibationGameTests::steepingSurvivesReload);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_STEEPING_RESETS_WHEN_ITEM_IS_REMOVED =
             TEST_FUNCTIONS.register("libation_steeping_resets_when_item_is_removed", () -> LibationGameTests::steepingResetsWhenItemIsRemoved);
 
@@ -586,6 +592,8 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LIBATION_STEEPING_MAKES_QUICKENED_CLAY, environment, structure, 300, 0);
         registerTest(event, LIBATION_STEEPING_COMPLETES_AFTER_RECIPE_TIME, environment, structure, 300, 0);
         registerTest(event, LIBATION_STEEPING_WAITS_FOR_PRINCIPLES, environment, structure, 400, 0);
+        registerTest(event, LIBATION_CURING_SURVIVES_RELOAD, environment, structure, 300, 0);
+        registerTest(event, LIBATION_STEEPING_SURVIVES_RELOAD, environment, structure, 300, 0);
         registerTest(event, LIBATION_STEEPING_RESETS_WHEN_ITEM_IS_REMOVED, environment, structure, 300, 0);
         registerTest(event, LIBATION_DRYING_SLAB_DRIES_INTO_OUTPUT, environment, structure, 600, 0);
         registerTest(event, LIBATION_DRYING_SLAB_STALLS_WHEN_OUTPUT_IS_FULL, environment, structure, 1000, 0);

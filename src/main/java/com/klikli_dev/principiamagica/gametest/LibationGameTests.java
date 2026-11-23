@@ -12,6 +12,7 @@ import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlock;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.slab.SpoutSide;
 import com.klikli_dev.principiamagica.content.libation.trough.CatchTroughBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
@@ -27,13 +28,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class LibationGameTests {
@@ -233,6 +237,50 @@ public class LibationGameTests {
     }
 
     /**
+     * A Wabet Basin that reloads while curing keeps its progress. Curing must not restart from zero because the recipe
+     * was not remembered across the reload.
+     */
+    public static void curingSurvivesReload(GameTestHelper helper) {
+        BlockPos basin = new BlockPos(3, 2, 3);
+        helper.setBlock(basin.above(), Blocks.GLOWSTONE);
+        helper.setBlock(basin, BlockRegistry.WABET_BASIN.get().defaultBlockState());
+        CuringVesselBlockEntity be = (CuringVesselBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(basin));
+        be.insert(PrincipleContents.of(new PrincipleStack(PrincipleRegistry.SILT, 25), new PrincipleStack(PrincipleRegistry.SAP, 25)), false);
+
+        helper.runAfterDelay(50, () -> {
+            int progress = be.getProgress();
+            helper.assertTrue(progress >= 40, "The basin should be curing before the reload, progress is " + progress);
+
+            CuringVesselBlockEntity reloaded = (CuringVesselBlockEntity) reloadedCopy(helper, be);
+            helper.assertTrue(reloaded.getProgress() == progress, "The reloaded basin should load its progress, got " + reloaded.getProgress());
+            for (int tick = 0; tick < 5; tick++) {
+                CuringVesselBlockEntity.tick(helper.getLevel(), be.getBlockPos(), be.getBlockState(), reloaded);
+            }
+            helper.assertTrue(reloaded.getProgress() == progress + 5, "The reloaded basin should continue curing, progress is " + reloaded.getProgress() + " after " + progress);
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A catch trough that reloads while steeping keeps the steeping progress, so the item completes at the recipe time.
+     */
+    public static void steepingSurvivesReload(GameTestHelper helper) {
+        int time = steepingTime(helper, "steeping/axiom_of_harvest_unfired");
+        BlockPos trough = new BlockPos(3, 1, 3);
+        CatchTroughBlockEntity be = troughWithUnfiredAxiom(helper, trough, STEEPING_PRINCIPLES);
+
+        helper.runAfterDelay(time / 2, () -> {
+            CatchTroughBlockEntity reloaded = (CatchTroughBlockEntity) reloadedCopy(helper, be);
+            for (int tick = 0; tick < time - time / 2 + 5; tick++) {
+                CatchTroughBlockEntity.tick(helper.getLevel(), be.getBlockPos(), be.getBlockState(), reloaded);
+            }
+            helper.assertTrue(reloaded.getItem().is(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()),
+                    "The reloaded trough should finish steeping at the recipe time, got " + reloaded.getItem());
+            helper.succeed();
+        });
+    }
+
+    /**
      * The drying slab dries its input into the output, which needs light above the slab.
      */
     public static void dryingSlabDriesIntoOutput(GameTestHelper helper) {
@@ -414,6 +462,19 @@ public class LibationGameTests {
         DryingSlabBlockEntity slab = (DryingSlabBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(pos));
         slab.useItemOn(input, helper.makeMockServerPlayerInLevel(), InteractionHand.MAIN_HAND);
         return slab;
+    }
+
+    /**
+     * Simulates a reload: the block entity is saved and loaded into a new instance, the way a chunk load does it. The copy
+     * is not placed in the world, the test ticks it.
+     */
+    private static BlockEntity reloadedCopy(GameTestHelper helper, BlockEntity be) {
+        ServerLevel level = helper.getLevel();
+        CompoundTag saved = be.saveWithFullMetadata(level.registryAccess());
+        BlockEntity copy = BlockEntity.loadStatic(be.getBlockPos(), be.getBlockState(), saved, level.registryAccess());
+        helper.assertTrue(copy != null, "The saved block entity should load again");
+        copy.setLevel(level);
+        return copy;
     }
 
     /**

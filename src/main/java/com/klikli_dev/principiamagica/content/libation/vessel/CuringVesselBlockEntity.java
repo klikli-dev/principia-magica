@@ -15,10 +15,14 @@ import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -26,6 +30,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -34,6 +39,8 @@ import java.util.Optional;
  * spout, at the rate of {@link LibationFlow}. What the vessel is, is defined by its {@link VesselProperties}.
  */
 public class CuringVesselBlockEntity extends LibationBlockEntity implements PrincipleContainer {
+
+    private static final Codec<ResourceKey<Recipe<?>>> RECIPE_ID_CODEC = ResourceKey.codec(Registries.RECIPE);
 
     private final SyncThrottle sync = new SyncThrottle(this);
     private final VesselProperties vessel;
@@ -45,7 +52,10 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     private final AmountSmoother displayedPrinciples = new AmountSmoother();
     private int progress;
     private boolean curing;
-    private CuringRecipe activeRecipe;
+    /**
+     * The id of the recipe the progress belongs to. Saved with the progress, so that a reload does not reset it.
+     */
+    private @Nullable ResourceKey<Recipe<?>> activeRecipe;
 
     public CuringVesselBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, VesselProperties vessel) {
         super(type, pos, state);
@@ -121,9 +131,10 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
             return;
         }
 
-        CuringRecipe recipe = found.get().value();
-        if (!recipe.equals(this.activeRecipe)) {
-            this.activeRecipe = recipe;
+        RecipeHolder<CuringRecipe> holder = found.get();
+        CuringRecipe recipe = holder.value();
+        if (!holder.id().equals(this.activeRecipe)) {
+            this.activeRecipe = holder.id();
             this.progress = 0;
         }
         this.progress++;
@@ -193,6 +204,7 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
         super.loadAdditional(input);
         input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
         this.progress = input.getIntOr("progress", 0);
+        this.activeRecipe = input.read("active_recipe", RECIPE_ID_CODEC).orElse(null);
         this.curing = input.getBooleanOr("curing", false);
         this.drain.load(input);
     }
@@ -202,6 +214,9 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
         super.saveAdditional(output);
         output.store("principles", PrincipleContents.CODEC, this.principles.contents());
         output.putInt("progress", this.progress);
+        if (this.activeRecipe != null) {
+            output.store("active_recipe", RECIPE_ID_CODEC, this.activeRecipe);
+        }
         output.putBoolean("curing", this.curing);
         this.drain.save(output);
     }
