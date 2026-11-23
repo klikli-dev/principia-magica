@@ -654,6 +654,21 @@ public class LumberjackGameTests {
         });
     }
 
+    public static void restocksBonemealWithAxe(GameTestHelper helper) {
+        buildGround(helper);
+        helper.setBlock(TREE, Blocks.OAK_SAPLING);
+        ContainerLink supply = link(helper, CHEST_POS, ContainerRole.SUPPLY);
+        fillChest(helper, CHEST_POS, new ItemStack(Items.BONE_MEAL, 16));
+        spawnLumberjack(helper, List.of(supply), true, bonemealOn());
+
+        helper.succeedWhen(() -> {
+            BlockState state = helper.getBlockState(TREE);
+            boolean grown = !state.is(Blocks.OAK_SAPLING) || state.getValue(SaplingBlock.STAGE) > 0;
+            helper.assertTrue(grown, "A lumberjack holding an axe should stow it to restock bone meal and advance the sapling, got " + state);
+            helper.assertTrue(ContainerAccess.containerAt(helper.getLevel(), helper.absolutePos(CHEST_POS)).getItem(0).getCount() < 16, "The supply chest should have given up bone meal");
+        });
+    }
+
     public static void stalledSaplingStopsTakingBonemeal(GameTestHelper helper) {
         buildGround(helper);
         helper.setBlock(TREE, Blocks.OAK_SAPLING);

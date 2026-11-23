@@ -204,6 +204,18 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_RESTOCK_AND_PLANT =
             TEST_FUNCTIONS.register("farming_restock_and_plant", () -> FarmingGameTests::restockAndPlant);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_RESTOCK_AND_PLANT_WITH_HOE =
+            TEST_FUNCTIONS.register("farming_restock_and_plant_with_hoe", () -> FarmingGameTests::restockAndPlantWithHoe);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_TILLS_THEN_RESTOCKS_AND_PLANTS =
+            TEST_FUNCTIONS.register("farming_tills_then_restocks_and_plants", () -> FarmingGameTests::tillsThenRestocksAndPlants);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_CLEARS_GRASS_THEN_TILLS_AND_PLANTS =
+            TEST_FUNCTIONS.register("farming_clears_grass_then_tills_and_plants", () -> FarmingGameTests::clearsGrassThenTillsAndPlants);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_ENABLING_TILL_AFTER_IDLE_STARTS_TILLING =
+            TEST_FUNCTIONS.register("farming_enabling_till_after_idle_starts_tilling", () -> FarmingGameTests::enablingTillAfterIdleStartsTilling);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_STACKED_PLANT_KEEPS_BASE =
             TEST_FUNCTIONS.register("farming_stacked_plant_keeps_base", () -> FarmingGameTests::stackedPlantKeepsBase);
 
@@ -332,6 +344,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
             TEST_FUNCTIONS.register("lumberjack_bonemeal_off_leaves_sapling", () -> LumberjackGameTests::bonemealOffLeavesSapling);
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_RESTOCKS_BONEMEAL_FROM_SUPPLY =
             TEST_FUNCTIONS.register("lumberjack_restocks_bonemeal_from_supply", () -> LumberjackGameTests::restocksBonemealFromSupply);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_RESTOCKS_BONEMEAL_WITH_AXE =
+            TEST_FUNCTIONS.register("lumberjack_restocks_bonemeal_with_axe", () -> LumberjackGameTests::restocksBonemealWithAxe);
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL =
             TEST_FUNCTIONS.register("lumberjack_stalled_sapling_stops_bonemeal", () -> LumberjackGameTests::stalledSaplingStopsTakingBonemeal);
 
@@ -554,6 +569,10 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, FARMING_DEPOSIT_FULL_INVENTORY, environment, structure, 800, 0);
         registerTest(event, FARMING_DEPOSIT_SKIPS_FULL_CHEST, environment, structure, 800, 0);
         registerTest(event, FARMING_RESTOCK_AND_PLANT, environment, structure, 800, 0);
+        registerTest(event, FARMING_RESTOCK_AND_PLANT_WITH_HOE, environment, structure, 800, 0);
+        registerTest(event, FARMING_TILLS_THEN_RESTOCKS_AND_PLANTS, environment, structure, 1200, 0);
+        registerTest(event, FARMING_CLEARS_GRASS_THEN_TILLS_AND_PLANTS, environment, structure, 1200, 0);
+        registerTest(event, FARMING_ENABLING_TILL_AFTER_IDLE_STARTS_TILLING, environment, structure, 1200, 0);
         registerTest(event, FARMING_STACKED_PLANT_KEEPS_BASE, environment, structure, 800, 0);
         registerTest(event, FARMING_GOURD_HARVEST_KEEPS_STEM, environment, structure, 800, 0);
         registerTest(event, FARMING_BERRY_BUSH_RESETS, environment, structure, 800, 0);
@@ -600,6 +619,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LUMBERJACK_BONEMEAL_GROWS_SAPLING, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_BONEMEAL_OFF_LEAVES_SAPLING, environment, structure, 400, 0);
         registerTest(event, LUMBERJACK_RESTOCKS_BONEMEAL_FROM_SUPPLY, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_RESTOCKS_BONEMEAL_WITH_AXE, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL, environment, structure, 1000, 0);
     }
 

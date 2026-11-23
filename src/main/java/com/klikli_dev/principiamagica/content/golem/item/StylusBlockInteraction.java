@@ -107,6 +107,14 @@ final class StylusBlockInteraction {
      * The first corner is set on the stylus, the second corner carves the footprint between them.
      */
     private static void placeCorner(ServerLevel level, ServerPlayer player, ItemStack stack, GolemEntity golem, Workplace workplace, BlockPos pos, Direction face) {
+        if (level.getBlockState(pos).canBeReplaced()) {
+            BlockPos below = pos.below();
+            if (!level.getBlockState(below).isAir() && !level.getBlockState(below).canBeReplaced()) {
+                pos = below;
+                face = Direction.UP;
+            }
+        }
+
         Optional<PendingGlyph> pending = Optional.ofNullable(stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()))
                 .filter(glyph -> glyph.pos().dimension().equals(level.dimension()));
         if (pending.isEmpty()) {

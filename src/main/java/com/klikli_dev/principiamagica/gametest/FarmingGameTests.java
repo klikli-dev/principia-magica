@@ -213,6 +213,83 @@ public class FarmingGameTests {
         });
     }
 
+    public static void restockAndPlantWithHoe(GameTestHelper helper) {
+        buildFarmland(helper);
+        ContainerLink supply = link(helper, CHEST_POS, ContainerRole.SUPPLY);
+        fillChest(helper, CHEST_POS, new ItemStack(Items.WHEAT_SEEDS, 16));
+        GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(supply), JobOptionValues.EMPTY);
+        golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_HOE));
+
+        helper.succeedWhen(() -> {
+            long planted = farmSpots().stream().filter(spot -> helper.getBlockState(spot).is(Blocks.WHEAT)).count();
+            helper.assertTrue(planted >= 9, "Farmer holding a hoe should stow it to restock and plant all spots, planted " + planted);
+        });
+    }
+
+    public static void tillsThenRestocksAndPlants(GameTestHelper helper) {
+        buildFloor(helper);
+        BlockPos dirtA = new BlockPos(2, 1, 2);
+        BlockPos dirtB = new BlockPos(3, 1, 2);
+        helper.setBlock(dirtA, Blocks.DIRT);
+        helper.setBlock(dirtB, Blocks.DIRT);
+        helper.setBlock(new BlockPos(4, 1, 2), Blocks.WATER);
+        ContainerLink both = link(helper, CHEST_POS, ContainerRole.BOTH);
+        fillChest(helper, CHEST_POS, new ItemStack(Items.WHEAT_SEEDS, 16));
+        GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(both), JobOptionValues.EMPTY.with(FarmingTargets.TILL, true));
+        golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_HOE));
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(helper.getBlockState(dirtA).is(Blocks.FARMLAND) && helper.getBlockState(dirtB).is(Blocks.FARMLAND),
+                    "Both dirt spots should be tilled into farmland");
+            helper.assertTrue(helper.getBlockState(dirtA.above()).is(Blocks.WHEAT) && helper.getBlockState(dirtB.above()).is(Blocks.WHEAT),
+                    "Farmer should restock seeds after tilling and plant both spots");
+        });
+    }
+
+    public static void clearsGrassThenTillsAndPlants(GameTestHelper helper) {
+        buildFloor(helper);
+        BlockPos dirtA = new BlockPos(2, 1, 2);
+        BlockPos dirtB = new BlockPos(3, 1, 2);
+        helper.setBlock(dirtA, Blocks.GRASS_BLOCK);
+        helper.setBlock(dirtB, Blocks.GRASS_BLOCK);
+        helper.setBlock(dirtA.above(), Blocks.SHORT_GRASS);
+        helper.setBlock(dirtB.above(), Blocks.SHORT_GRASS);
+        helper.setBlock(new BlockPos(4, 1, 2), Blocks.WATER);
+        ContainerLink both = link(helper, CHEST_POS, ContainerRole.BOTH);
+        fillChest(helper, CHEST_POS, new ItemStack(Items.WHEAT_SEEDS, 16));
+        GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(both), JobOptionValues.EMPTY.with(FarmingTargets.TILL, true));
+        golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_HOE));
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(helper.getBlockState(dirtA).is(Blocks.FARMLAND) && helper.getBlockState(dirtB).is(Blocks.FARMLAND),
+                    "Both grass spots should be cleared and tilled into farmland");
+            helper.assertTrue(helper.getBlockState(dirtA.above()).is(Blocks.WHEAT) && helper.getBlockState(dirtB.above()).is(Blocks.WHEAT),
+                    "Farmer should restock seeds after clearing and tilling, then plant both spots");
+        });
+    }
+
+    public static void enablingTillAfterIdleStartsTilling(GameTestHelper helper) {
+        buildFloor(helper);
+        BlockPos dirt = new BlockPos(2, 1, 2);
+        helper.setBlock(dirt, Blocks.GRASS_BLOCK);
+        ContainerLink both = link(helper, CHEST_POS, ContainerRole.BOTH);
+        fillChest(helper, CHEST_POS, new ItemStack(Items.WHEAT_SEEDS, 16));
+        GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(both), JobOptionValues.EMPTY);
+        golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_HOE));
+
+        helper.runAfterDelay(60, () -> {
+            helper.setBlock(new BlockPos(4, 1, 2), Blocks.WATER);
+            golem.updateWorkplace(workplace -> workplace.withOptions(workplace.options().with(FarmingTargets.TILL, true)));
+        });
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(helper.getBlockState(dirt).is(Blocks.FARMLAND),
+                    "Farmer should start tilling once water is placed and till is enabled");
+            helper.assertTrue(helper.getBlockState(dirt.above()).is(Blocks.WHEAT),
+                    "Farmer should restock seeds and plant after tilling");
+        });
+    }
+
     public static void stackedPlantKeepsBase(GameTestHelper helper) {
         buildFloor(helper);
         helper.setBlock(new BlockPos(2, 1, 2), Blocks.SAND);
