@@ -4,7 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
-import com.klikli_dev.principiamagica.client.network.ClientNetworking;
+import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.Targeted;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -49,9 +49,9 @@ public class WorkplaceInput {
         event.setSwingHand(true);
         CarvedGlyph glyph = target.hit().glyph();
         if (minecraft.player != null && minecraft.player.isShiftKeyDown()) {
-            ClientNetworking.sendToServer(new MessageEraseGlyph(target.golemId(), glyph.pos(), glyph.face()));
+            Networking.sendToServer(new MessageEraseGlyph(target.golemId(), glyph.pos(), glyph.face()));
         } else {
-            ClientNetworking.sendToServer(new MessagePickUpGlyph(target.golemId(), glyph.pos(), glyph.face()));
+            Networking.sendToServer(new MessagePickUpGlyph(target.golemId(), glyph.pos(), glyph.face()));
         }
     }
 
@@ -75,7 +75,7 @@ public class WorkplaceInput {
         int delta = event.getScrollDeltaY() > 0 ? 1 : -1;
         if (WorkplaceTargeting.pendingGlyph(stylus, level) != null) {
             event.setCanceled(true);
-            ClientNetworking.sendToServer(new MessageLiftPending(delta));
+            Networking.sendToServer(new MessageLiftPending(delta));
             return;
         }
 
@@ -89,7 +89,7 @@ public class WorkplaceInput {
         if (target != null) {
             CarvedGlyph glyph = target.hit().glyph();
             event.setCanceled(true);
-            ClientNetworking.sendToServer(new MessageLiftCorner(golem.getId(), glyph.pos(), glyph.face(), delta));
+            Networking.sendToServer(new MessageLiftCorner(golem.getId(), glyph.pos(), glyph.face(), delta));
             return;
         }
 
@@ -106,6 +106,6 @@ public class WorkplaceInput {
         }
 
         event.setCanceled(true);
-        ClientNetworking.sendToServer(new MessageShiftZone(golem.getId(), index, delta));
+        Networking.sendToServer(new MessageShiftZone(golem.getId(), index, delta));
     }
 }

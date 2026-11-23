@@ -8,7 +8,7 @@ import com.klikli_dev.principiamagica.client.gui.ContentRect;
 import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
 import com.klikli_dev.principiamagica.client.gui.widget.TabIcon;
 import com.klikli_dev.principiamagica.client.gui.widget.ToggleRow;
-import com.klikli_dev.principiamagica.client.network.ClientNetworking;
+import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemMenuLayout;
@@ -88,7 +88,7 @@ final class JobTab extends GolemTab {
     private ToggleRow createRow(JobOption option, int y) {
         return new ToggleRow(this.rowX, y, this.rowWidth, ROW_HEIGHT, Component.translatable(option.translationKey()),
                 () -> this.view().workplace().options().get(option),
-                () -> ClientNetworking.sendToServer(new MessageSetJobOption(this.golemId(), option.key(), !this.view().workplace().options().get(option))))
+                () -> Networking.sendToServer(new MessageSetJobOption(this.golemId(), option.key(), !this.view().workplace().options().get(option))))
                 .withDescription(Component.translatable(option.descriptionKey()));
     }
 }

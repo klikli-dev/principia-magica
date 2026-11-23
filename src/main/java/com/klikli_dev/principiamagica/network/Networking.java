@@ -5,7 +5,6 @@
 package com.klikli_dev.principiamagica.network;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
-import com.klikli_dev.principiamagica.client.network.ClientNetworking;
 import com.klikli_dev.principiamagica.network.messages.MessageEraseGlyph;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftCorner;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftPending;
@@ -15,6 +14,7 @@ import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
 import com.klikli_dev.principiamagica.network.messages.MessageShiftZone;
 import com.klikli_dev.principiamagica.network.messages.MessageSyncGolemWorkplace;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
@@ -24,9 +24,7 @@ public class Networking {
         var registrar = event.registrar(PrincipiaMagica.MODID);
 
         //to client
-        //the lambda only references the client class when invoked, so the server never loads client code.
-        registrar.playToClient(MessageSyncGolemWorkplace.TYPE, MessageSyncGolemWorkplace.STREAM_CODEC,
-                (message, ctx) -> ClientNetworking.handleSyncGolemWorkplace(message, ctx));
+        registrar.playToClient(MessageSyncGolemWorkplace.TYPE, MessageSyncGolemWorkplace.STREAM_CODEC, MessageHandler::handle);
 
         //to server
         registrar.playToServer(MessageSetGolemMode.TYPE, MessageSetGolemMode.STREAM_CODEC, MessageHandler::handle);
@@ -40,5 +38,9 @@ public class Networking {
 
     public static <T extends Message> void sendTo(ServerPlayer player, T message) {
         PacketDistributor.sendToPlayer(player, message);
+    }
+
+    public static <T extends Message> void sendToServer(T message) {
+        ClientPacketDistributor.sendToServer(message);
     }
 }
