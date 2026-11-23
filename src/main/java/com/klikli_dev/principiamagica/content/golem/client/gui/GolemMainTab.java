@@ -20,8 +20,8 @@ import com.klikli_dev.principiamagica.client.gui.widget.WidgetParts;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemMenu;
-import com.klikli_dev.principiamagica.content.golem.menu.GolemMenuLayout;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSetGolemMode;
 import net.minecraft.client.gui.components.Tooltip;
@@ -35,14 +35,14 @@ import java.util.function.Supplier;
 
 /**
  * The golem tab: the portrait and health on the left, the axiom with the job, the hand and back slots, the mode buttons and the status
- * tablet on the right. The portrait itself is drawn by {@link GolemScreen}, which knows the entity and its clip rectangle.
+ * tablet on the right. The portrait is a {@link GolemPortrait} widget.
  * <p>
  * Slots belong to {@link GolemMenu}. This tab only draws their sprites, ghosts and hints.
  */
 final class GolemMainTab extends GolemTab {
 
     /**
-     * Frame-relative positions of the widgets. The golem panel's content starts at its top left corner.
+     * Content-relative positions of the widgets. The content is the golem panel's rectangle inside its border.
      */
     static final int PORTRAIT_X = 8;
     static final int PORTRAIT_Y = 26;
@@ -58,6 +58,8 @@ final class GolemMainTab extends GolemTab {
     static final int STATUS_Y = 82;
     static final int STATUS_WIDTH = 122;
     static final int STATUS_HEIGHT = 35;
+    static final int STATUS_TEXT_OFFSET = 23;
+    static final int STATUS_ITEM_WIDTH = 18;
     static final int MODE_Y = 56;
     static final int MODE_SIZE = 24;
     static final int MODE_SPACING = 26;
@@ -67,15 +69,17 @@ final class GolemMainTab extends GolemTab {
     private final ContentRect screen;
     private final StyleContext style = WidgetParts.defaultStyle();
     private final Map<GolemMode, IconToggleButton> modes = new EnumMap<>(GolemMode.class);
+    private ContentRect bounds;
     private ProgressBar health;
     private SpriteWidget axiomGhost;
     private TooltipArea axiomHint;
     private SpriteWidget handGhost;
     private TooltipArea handHint;
     private TooltipArea backHint;
-    private LabelWidget taskLabel;
-    private LabelWidget taskLabelWithItem;
-    private ItemIcon taskItem;
+    private ItemIcon statusItem;
+    private LabelWidget headlineLabel;
+    private LabelWidget hintLabel;
+    private TooltipArea statusTooltip;
 
     /**
      * @param viewSupplier the golem view of the screen
@@ -100,6 +104,7 @@ final class GolemMainTab extends GolemTab {
 
     @Override
     protected void build(ContentRect bounds) {
+        this.bounds = bounds;
         this.add(new SpriteWidget(bounds.x() + PORTRAIT_X, bounds.y() + PORTRAIT_Y, 58, 80, this.sprite("portrait_frame")));
         // The niche interior is 4 px in from the frame's left and 10 px down from its top.
         this.add(new GolemPortrait(bounds.x() + PORTRAIT_X + 4, bounds.y() + PORTRAIT_Y + 10, PORTRAIT_WIDTH, PORTRAIT_HEIGHT, PORTRAIT_SCALE,
@@ -148,20 +153,22 @@ final class GolemMainTab extends GolemTab {
         }
     }
 
+    /**
+     * The status tablet: the status icon, then two lines. Line one is the status headline, or the task while the golem works. Line two is the
+     * hint on what to do, or the work target. Both lines share an x, which moves right when the task's item is shown. The whole tablet has a
+     * tooltip with the full text, so nothing is lost to the ellipsis.
+     */
     private void buildStatusTablet(ContentRect bounds) {
         this.add(new SpriteWidget(bounds.x() + STATUS_X, bounds.y() + STATUS_Y, STATUS_WIDTH, STATUS_HEIGHT, this.sprite("inset")));
         this.add(new SpriteWidget(bounds.x() + STATUS_X + 3, bounds.y() + STATUS_Y + 3, 16, 16,
                 () -> this.sprite(GolemGuiText.statusIcon(this.view().status()))));
 
-        int taskX = bounds.x() + STATUS_X + 23;
-        int taskY = bounds.y() + STATUS_Y + 3;
-        int taskWidth = bounds.x() + STATUS_X + STATUS_WIDTH - 3 - taskX;
-
-        this.taskItem = this.add(new ItemIcon(taskX, taskY, this::taskDisplay));
-        this.taskLabel = this.add(new LabelWidget(taskX, taskY, taskWidth, this::taskText).withStyle(this.style).withMaxLines(1));
-        this.taskLabelWithItem = this.add(new LabelWidget(taskX + 18, taskY, taskWidth - 18, this::taskText).withStyle(this.style).withMaxLines(1));
-        this.add(new LabelWidget(taskX, taskY + 11, taskWidth, this::detailLine)
-                .withStyle(this.style).withColor(GuiStyles.TEXT_SECONDARY).withMaxLines(2));
+        this.statusItem = this.add(new ItemIcon(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 3, this::taskDisplay));
+        this.headlineLabel = this.add(new LabelWidget(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 3, 96, this::headline)
+                .withStyle(this.style).withMaxLines(1));
+        this.hintLabel = this.add(new LabelWidget(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 14, 96, this::hintLine)
+                .withStyle(this.style).withColor(GuiStyles.TEXT_SECONDARY).withMaxLines(1));
+        this.statusTooltip = this.add(new TooltipArea(bounds.x() + STATUS_X, bounds.y() + STATUS_Y, STATUS_WIDTH, STATUS_HEIGHT, Component.empty()));
     }
 
     @Override
@@ -188,9 +195,22 @@ final class GolemMainTab extends GolemTab {
             button.setTooltipText(this.modeTooltip(entry.getKey(), hasAxiom));
         }
 
-        boolean hasDisplay = !this.taskDisplay().isEmpty();
-        this.taskLabel.visible = !hasDisplay;
-        this.taskLabelWithItem.visible = hasDisplay;
+        this.updateStatusTablet(view.status(), this.task());
+    }
+
+    /**
+     * Places the status text and its item. A problem replaces the task, so the item of the task is only shown while the golem is OK.
+     */
+    private void updateStatusTablet(GolemStatus status, GolemTask task) {
+        boolean showItem = status == GolemStatus.OK && !task.display().isEmpty();
+        this.statusItem.visible = showItem;
+
+        int textX = this.bounds.x() + STATUS_X + STATUS_TEXT_OFFSET + (showItem ? STATUS_ITEM_WIDTH : 0);
+        int textRight = this.bounds.x() + STATUS_X + STATUS_WIDTH - 3;
+        this.headlineLabel.place(textX, textRight - textX);
+        this.hintLabel.place(textX, textRight - textX);
+
+        this.statusTooltip.setText(GolemGuiText.tooltip(status, task));
     }
 
     private void updateHealthTooltip(GolemEntity golem) {
@@ -218,20 +238,21 @@ final class GolemMainTab extends GolemTab {
                 : Component.translatable(GolemStatus.NO_PURPOSE.translationKey());
     }
 
+    private GolemTask task() {
+        GolemEntity golem = this.view().golem();
+        return golem != null ? golem.getTask() : GolemTask.IDLE;
+    }
+
     private ItemStack taskDisplay() {
-        GolemEntity golem = this.view().golem();
-        return golem != null ? golem.getTask().display() : ItemStack.EMPTY;
+        return this.task().display();
     }
 
-    private Component taskText() {
-        GolemEntity golem = this.view().golem();
-        return golem != null ? golem.getTask().describe() : Component.empty();
+    private Component headline() {
+        return GolemGuiText.headline(this.view().status(), this.task());
     }
 
-    private Component detailLine() {
-        GolemEntity golem = this.view().golem();
-        GolemStatus status = this.view().status();
-        return golem != null ? GolemGuiText.detailLine(status, golem.getTask()) : Component.empty();
+    private Component hintLine() {
+        return GolemGuiText.hintLine(this.view().status(), this.task());
     }
 
     private Component modeTooltip(GolemMode mode, boolean hasAxiom) {

@@ -63,6 +63,18 @@ public class LabelWidget extends AbstractWidget {
     }
 
     /**
+     * Moves the label and sets the width it wraps at. The text is wrapped again on the next frame, so the label can follow a layout that changes.
+     *
+     * @param x the new left edge
+     * @param width the new wrap width
+     */
+    public void place(int x, int width) {
+        this.setX(x);
+        this.setWidth(Math.max(1, width));
+        this.wrappedFor = Component.empty();
+    }
+
+    /**
      * Limits the label to a number of lines. If the text needs more, the last line is cut and ends with an ellipsis, so the text never
      * spills out of its inset.
      *

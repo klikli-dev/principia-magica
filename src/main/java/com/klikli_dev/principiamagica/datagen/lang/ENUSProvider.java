@@ -163,6 +163,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("gui.principiamagica.golem.no_supply", "No supply");
         this.add("gui.principiamagica.golem.workplace.tooltip", "Edit with the Stylus");
         this.add("gui.principiamagica.golem.none_linked", "None linked");
+        this.add("gui.principiamagica.golem.status.currently", "Currently: %s");
         this.add("gui.principiamagica.golem.zones.title", "Work zones: %s");
         this.add("gui.principiamagica.golem.zones.description", "Areas carved with the Stylus where this golem works");
         this.add("gui.principiamagica.golem.deposit.title", "Deposit");

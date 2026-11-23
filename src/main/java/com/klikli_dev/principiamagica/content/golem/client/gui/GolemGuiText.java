@@ -9,6 +9,8 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 
 import java.util.Locale;
 
@@ -16,6 +18,10 @@ import java.util.Locale;
  * Text and state helpers shared by the golem GUI tabs and pages.
  */
 final class GolemGuiText {
+
+    private static final int TEXT_COLOR = 0xFF3B0F13;
+    private static final int WARNING_COLOR = 0xFF8A5A0E;
+    private static final int PROBLEM_COLOR = 0xFFA03A22;
 
     private GolemGuiText() {
     }
@@ -59,10 +65,23 @@ final class GolemGuiText {
     }
 
     /**
-     * @return the second line of the status tablet: the short hint of the status if it is not OK, otherwise the position of the work target.
-     * The hints are short enough for two lines of the tablet, the status descriptions are not.
+     * The first line of the status tablet. A status that is not OK wins over the task: the golem is not working on it while it is blocked.
+     *
+     * @return the status headline, e.g. "No deposit container", coloured by severity. The task while the golem works.
      */
-    static Component detailLine(GolemStatus status, GolemTask task) {
+    static Component headline(GolemStatus status, GolemTask task) {
+        if (status == GolemStatus.OK) {
+            return task.describe();
+        }
+
+        return Component.translatable(status.translationKey()).withStyle(Style.EMPTY.withColor(headlineColor(status)));
+    }
+
+    /**
+     * The second line of the status tablet: the short hint of the status, what to do about it, or the position of the work target while the
+     * golem works.
+     */
+    static Component hintLine(GolemStatus status, GolemTask task) {
         if (status != GolemStatus.OK) {
             return Component.translatable("gui.principiamagica.golem.status_hint." + status.name().toLowerCase(Locale.ROOT));
         }
@@ -70,6 +89,31 @@ final class GolemGuiText {
         return task.target()
                 .map(pos -> Component.translatable("gui.principiamagica.golem.task_at", formatPos(pos)))
                 .orElse(Component.empty());
+    }
+
+    /**
+     * The tooltip of the whole status tablet: the full status and what to do about it, and the current task, so nothing is lost to ellipsis.
+     */
+    static Component tooltip(GolemStatus status, GolemTask task) {
+        if (status == GolemStatus.OK) {
+            MutableComponent text = Component.empty().append(task.describe());
+            return task.target()
+                    .map(pos -> text.append("\n").append(Component.translatable("gui.principiamagica.golem.task_at", formatPos(pos))))
+                    .orElse(text);
+        }
+
+        return Component.empty()
+                .append(Component.translatable(status.translationKey()).withStyle(Style.EMPTY.withColor(headlineColor(status))))
+                .append("\n").append(status.description())
+                .append("\n").append(Component.translatable("gui.principiamagica.golem.status.currently", task.describe()));
+    }
+
+    private static int headlineColor(GolemStatus status) {
+        return switch (status) {
+            case OK, NO_PURPOSE -> TEXT_COLOR;
+            case MISSING_TOOL, NEEDS_SUPPLIES -> WARNING_COLOR;
+            case NO_ZONE, NO_DEPOSIT, DEPOSIT_FULL -> PROBLEM_COLOR;
+        };
     }
 
     static String formatPos(BlockPos pos) {
