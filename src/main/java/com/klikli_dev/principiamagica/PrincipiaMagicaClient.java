@@ -78,6 +78,7 @@ public class PrincipiaMagicaClient {
         NeoForge.EVENT_BUS.addListener(WorkplaceInput::onMouseScrolling);
         NeoForge.EVENT_BUS.addListener(WorkplaceInput::onInteractionKeyMapping);
         NeoForge.EVENT_BUS.addListener(LibationInput::onMouseScrolling);
+        NeoForge.EVENT_BUS.addListener(LibationInput::onInteractionKeyMapping);
         NeoForge.EVENT_BUS.addListener(LibationInput::onLoggingOut);
         NeoForge.EVENT_BUS.addListener(ClientRecipes::onRecipesReceived);
         NeoForge.EVENT_BUS.addListener(ClientRecipes::onLoggingOut);

@@ -59,6 +59,7 @@ public final class LibationInput {
 
     /**
      * @return the currently highlighted principle for {@code pos} among {@code stacks}, or the first stack if none is tracked yet.
+     * Whenever the highlighted principle changes, the selection is synced to the server.
      */
     public static @Nullable Holder<Principle> selectedFor(BlockPos pos, List<PrincipleStack> stacks) {
         if (stacks.isEmpty()) {
@@ -71,9 +72,50 @@ public final class LibationInput {
                 }
             }
         }
-        selectedPos = pos;
-        selectedPrinciple = stacks.getFirst().principle();
+        select(pos, stacks.getFirst().principle());
         return selectedPrinciple;
+    }
+
+    /**
+     * Sets the tracked selection and tells the server, but only if the principle differs from the one the server has.
+     * The server selection is per player, so moving to another container with the same principle needs no packet.
+     */
+    private static void select(BlockPos pos, Holder<Principle> principle) {
+        boolean changed = selectedPrinciple == null || !selectedPrinciple.value().equals(principle.value());
+        selectedPos = pos;
+        selectedPrinciple = principle;
+        if (changed) {
+            Networking.sendToServer(new MessageSelectPrinciple(Optional.of(principle)));
+        }
+    }
+
+    /**
+     * Syncs the selection right before a use click, so the server never acts on a selection the HUD has not shown,
+     * e.g. while the HUD is hidden with F1.
+     */
+    public static void onInteractionKeyMapping(InputEvent.InteractionKeyMappingTriggered event) {
+        if (!event.isUseItem()) {
+            return;
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        Player player = minecraft.player;
+        ClientLevel level = minecraft.level;
+        if (player == null || level == null || minecraft.screen != null || !isSelectingTool(player)) {
+            return;
+        }
+        if (!(minecraft.hitResult instanceof BlockHitResult hit) || hit.getType() != HitResult.Type.BLOCK) {
+            return;
+        }
+
+        BlockPos pos = hit.getBlockPos();
+        ResourceHandler<FluidResource> handler = level.getCapability(Capabilities.Fluid.BLOCK, pos, hit.getDirection());
+        if (handler == null) {
+            return;
+        }
+        List<PrincipleStack> stacks = snapshotPrinciples(handler);
+        if (!stacks.isEmpty()) {
+            selectedFor(pos, stacks);
+        }
     }
 
     public static void onMouseScrolling(InputEvent.MouseScrollingEvent event) {
@@ -112,9 +154,7 @@ public final class LibationInput {
         }
         int step = event.getScrollDeltaY() > 0 ? -1 : 1;
         int nextIndex = Math.floorMod(currentIndex + step, stacks.size());
-        selectedPos = pos;
-        selectedPrinciple = stacks.get(nextIndex).principle();
-        Networking.sendToServer(new MessageSelectPrinciple(Optional.of(selectedPrinciple)));
+        select(pos, stacks.get(nextIndex).principle());
     }
 
     private static List<PrincipleStack> snapshotPrinciples(ResourceHandler<FluidResource> handler) {
