@@ -4,6 +4,12 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 
+import net.minecraft.world.entity.item.ItemEntity;
+
+import net.minecraft.world.item.Items;
+
+import net.minecraft.world.item.ItemStack;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -27,6 +33,11 @@ public class PlantSeed extends JobTargetBehaviour {
     @Override
     protected GolemTask.TaskType taskType() {
         return GolemTask.TaskType.PLANT;
+    }
+
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return golem.getWorkplace(level).flatMap(workplace -> FarmingTargets.seedToPlant(level, golem, workplace, target)).map(ItemStack::new).orElse(ItemStack.EMPTY);
     }
 
     @Override

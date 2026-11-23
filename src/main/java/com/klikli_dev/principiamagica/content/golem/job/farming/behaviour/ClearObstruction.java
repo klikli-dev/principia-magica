@@ -4,6 +4,10 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 
+import net.minecraft.world.entity.item.ItemEntity;
+
+import net.minecraft.world.item.Items;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -28,6 +32,11 @@ public class ClearObstruction extends JobTargetBehaviour {
     @Override
     protected GolemTask.TaskType taskType() {
         return GolemTask.TaskType.CLEAR;
+    }
+
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return blockItem(level, target);
     }
     private static final int MAX_CLEAR_TICKS = 60;
 

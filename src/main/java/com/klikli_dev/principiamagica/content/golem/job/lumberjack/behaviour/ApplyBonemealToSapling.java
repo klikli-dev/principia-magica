@@ -4,6 +4,12 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.lumberjack.behaviour;
 
+import net.minecraft.world.entity.item.ItemEntity;
+
+import net.minecraft.world.item.Items;
+
+import net.minecraft.world.item.ItemStack;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -21,6 +27,11 @@ public class ApplyBonemealToSapling extends JobTargetBehaviour {
     @Override
     protected GolemTask.TaskType taskType() {
         return GolemTask.TaskType.BONEMEAL;
+    }
+
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return new ItemStack(Items.BONE_MEAL);
     }
     @Override
     protected boolean canAct(ServerLevel level, GolemEntity golem, BlockPos pos) {

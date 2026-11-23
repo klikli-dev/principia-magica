@@ -16,6 +16,7 @@ import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.behavior.BlockPosTracker;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -92,7 +93,21 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
      * @return the task the golem shows while it walks to or works on target. Behaviours can override it to name the work.
      */
     protected GolemTask currentTask(ServerLevel level, GolemEntity golem, BlockPos target) {
-        return GolemTask.of(this.taskType(), Optional.of(target));
+        return new GolemTask(this.taskType(), Optional.of(target), this.displayItem(level, golem, target));
+    }
+
+    /**
+     * @return the item that names the work at target for the GUI, e.g. the crop, the seed or the container. Empty if there is none.
+     */
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return ItemStack.EMPTY;
+    }
+
+    /**
+     * @return the item of the block at pos, e.g. the crop or the container. Empty for blocks without an item.
+     */
+    protected static ItemStack blockItem(ServerLevel level, BlockPos pos) {
+        return new ItemStack(level.getBlockState(pos).getBlock().asItem());
     }
 
     protected void onNoTarget(ServerLevel level, GolemEntity golem) {

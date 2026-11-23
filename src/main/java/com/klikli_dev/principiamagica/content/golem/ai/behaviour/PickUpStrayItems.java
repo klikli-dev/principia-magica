@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
+import net.minecraft.world.item.Items;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -31,6 +33,11 @@ public class PickUpStrayItems extends MoveToAndInteract {
     @Override
     protected GolemTask.TaskType taskType() {
         return GolemTask.TaskType.PICKUP;
+    }
+
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return level.getEntitiesOfClass(ItemEntity.class, pickupArea(target)).stream().findFirst().map(item -> item.getItem().copyWithCount(1)).orElse(ItemStack.EMPTY);
     }
     private static final int COOLDOWN_TICKS = 100;
 
