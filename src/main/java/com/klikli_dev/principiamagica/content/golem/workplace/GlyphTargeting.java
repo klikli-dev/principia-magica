@@ -6,8 +6,11 @@ package com.klikli_dev.principiamagica.content.golem.workplace;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,8 +35,20 @@ public final class GlyphTargeting {
     private static final double HIT_THICKNESS = 0.125;
     private static final double HIT_INFLATE = 0.0625;
     private static final double BLOCK_EPSILON = 1.0E-3;
+    private static final double CORNER_BLOCK_INFLATE = 0.0625;
 
     private GlyphTargeting() {
+    }
+
+    /**
+     * @param footprintIndex the index of the footprint in the workplace
+     * @param footprint      the footprint the corner belongs to
+     * @param cornerIndex    the box corner index (0..7)
+     * @param vertex         the 3D vertex position of the corner
+     * @param block          the block coordinate of the corner
+     * @param distance       the distance from the ray origin to the entry point of the corner's hit box
+     */
+    public record CornerHit(int footprintIndex, WorkFootprint footprint, int cornerIndex, Vec3 vertex, BlockPos block, double distance) {
     }
 
     /**
@@ -107,11 +122,18 @@ public final class GlyphTargeting {
      * Falls back to the smallest footprint containing {@code from} if no external box face was hit.
      */
     public static Optional<ZoneHit> pickZone(Vec3 from, Vec3 to, List<WorkFootprint> footprints, double blockDistance) {
+        return pickZone(from, to, footprints, blockDistance, null);
+    }
+
+    public static Optional<ZoneHit> pickZone(Vec3 from, Vec3 to, List<WorkFootprint> footprints, double blockDistance, @Nullable ResourceKey<Level> dimension) {
         ZoneHit nearest = null;
         int nearestVolume = Integer.MAX_VALUE;
 
         for (int i = 0; i < footprints.size(); i++) {
             WorkFootprint footprint = footprints.get(i);
+            if (dimension != null && !footprint.isInDimension(dimension)) {
+                continue;
+            }
             AABB box = footprint.zone(0, 0).aabb();
             if (box.contains(from)) {
                 continue;
@@ -143,6 +165,9 @@ public final class GlyphTargeting {
         int containingVolume = Integer.MAX_VALUE;
         for (int i = 0; i < footprints.size(); i++) {
             WorkFootprint footprint = footprints.get(i);
+            if (dimension != null && !footprint.isInDimension(dimension)) {
+                continue;
+            }
             if (!footprint.zone(0, 0).aabb().contains(from)) {
                 continue;
             }
@@ -155,6 +180,75 @@ public final class GlyphTargeting {
         }
 
         return Optional.ofNullable(containing);
+    }
+
+    /**
+     * @return the virtual 1x1x1 block hit box around one of the 8 box corner blocks, slightly inflated so it wins
+     * over a solid block occupying that same coordinate
+     */
+    public static AABB cornerHitBox(WorkFootprint footprint, int cornerIndex) {
+        return new AABB(footprint.cornerBlock(cornerIndex)).inflate(CORNER_BLOCK_INFLATE);
+    }
+
+    /**
+     * Picks the nearest of the 8 virtual corner blocks of all footprints hit by the ray. Corners are not occluded by terrain,
+     * as their glyphs are drawn through terrain too, so corners below ground can be targeted.
+     */
+    public static Optional<CornerHit> pickCorner(Vec3 from, Vec3 to, List<WorkFootprint> footprints, @Nullable ResourceKey<Level> dimension) {
+        CornerHit nearest = null;
+        for (int footprintIndex = 0; footprintIndex < footprints.size(); footprintIndex++) {
+            WorkFootprint footprint = footprints.get(footprintIndex);
+            if (dimension != null && !footprint.isInDimension(dimension)) {
+                continue;
+            }
+            for (int cornerIndex = 7; cornerIndex >= 0; cornerIndex--) {
+                AABB box = cornerHitBox(footprint, cornerIndex);
+                double distance;
+                if (box.contains(from)) {
+                    distance = 0.0;
+                } else {
+                    Optional<Vec3> entry = box.clip(from, to);
+                    if (entry.isEmpty()) {
+                        continue;
+                    }
+                    distance = from.distanceTo(entry.get());
+                }
+
+                if (nearest == null || distance < nearest.distance()) {
+                    BlockPos block = footprint.cornerBlock(cornerIndex);
+                    nearest = new CornerHit(
+                            footprintIndex,
+                            footprint,
+                            cornerIndex,
+                            Vec3.atCenterOf(block),
+                            block,
+                            distance
+                    );
+                }
+            }
+        }
+        return Optional.ofNullable(nearest);
+    }
+
+    /**
+     * @return whether the eye is close enough to the footprint (or its vertical column) for the server to accept corner edits
+     */
+    public static boolean isCornerEditable(Vec3 eye, WorkFootprint footprint) {
+        AABB box = footprint.zone(0, 0).aabb();
+        if (isBoxInReach(eye, box)) {
+            return true;
+        }
+        double reach = MAX_RANGE + REACH_MARGIN;
+        double closestX = Math.clamp(eye.x, box.minX, box.maxX);
+        double closestZ = Math.clamp(eye.z, box.minZ, box.maxZ);
+        double dx = eye.x - closestX;
+        double dz = eye.z - closestZ;
+        if (dx * dx + dz * dz > reach * reach) {
+            return false;
+        }
+        double closestY = Math.clamp(eye.y, box.minY, box.maxY);
+        double dy = Math.abs(eye.y - closestY);
+        return dy <= reach + WorkFootprint.MAX_SIZE;
     }
 
     /**

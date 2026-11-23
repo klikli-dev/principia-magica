@@ -7,16 +7,21 @@ package com.klikli_dev.principiamagica.content.golem.item;
 import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
+import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -94,6 +99,116 @@ public final class StylusActions {
     }
 
     /**
+     * Places a box footprint spanned between any two block corners, enforcing world height bounds and maximum dimensions.
+     */
+    public static EditResult placeFootprint(Workplace workplace, BlockPos firstCorner, BlockPos secondCorner) {
+        return placeFootprint(workplace, WorkFootprint.ofBox(firstCorner, secondCorner));
+    }
+
+    public static EditResult placeFootprint(Workplace workplace, ResourceKey<Level> dimension, BlockPos firstCorner, BlockPos secondCorner) {
+        return placeFootprint(workplace, WorkFootprint.ofBox(firstCorner, secondCorner, dimension));
+    }
+
+    private static EditResult placeFootprint(Workplace workplace, WorkFootprint footprint) {
+        if (footprint.isOutOfBounds()) {
+            return EditResult.fail(EditFailure.OUT_OF_BOUNDS);
+        }
+
+        if (footprint.isTooLarge()) {
+            return EditResult.fail(EditFailure.TOO_LARGE);
+        }
+
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.add(footprint);
+        return EditResult.ok(workplace.withFootprints(footprints).markInitialized());
+    }
+
+    /**
+     * Restores a previously removed footprint (e.g. when cancelling a corner move).
+     */
+    public static Workplace restoreFootprint(Workplace workplace, WorkFootprint footprint) {
+        return restoreFootprint(workplace, footprint, Map.of());
+    }
+
+    /**
+     * Restores a previously removed footprint together with the item memory that was dropped when it was picked up.
+     * Memory entries that do not lie inside the restored footprint are dropped.
+     */
+    public static Workplace restoreFootprint(Workplace workplace, WorkFootprint footprint, Map<BlockPos, Holder<Item>> memory) {
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.add(footprint);
+        return workplace.withFootprints(footprints).withRestoredMemory(memory).markInitialized();
+    }
+
+    /**
+     * Resizes the footprint at {@code footprintIndex} vertically by moving one of its 8 corners.
+     */
+    public static EditResult resizeCornerY(Workplace workplace, int footprintIndex, int cornerIndex, int delta) {
+        if (footprintIndex < 0 || footprintIndex >= workplace.footprints().size() || !WorkFootprint.isValidCorner(cornerIndex)) {
+            return EditResult.fail(EditFailure.NOT_FOUND);
+        }
+
+        WorkFootprint footprint = workplace.footprints().get(footprintIndex);
+        WorkFootprint updated = footprint.resizeCornerY(cornerIndex, delta);
+        if (updated.isOutOfBounds()) {
+            return EditResult.fail(EditFailure.OUT_OF_BOUNDS);
+        }
+
+        if (updated.isTooLarge()) {
+            return EditResult.fail(EditFailure.TOO_LARGE);
+        }
+
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.set(footprintIndex, updated);
+        return EditResult.ok(workplace.withFootprints(footprints).markInitialized());
+    }
+
+    public record PickUpResult(Workplace workplace, PendingGlyph pending) {
+    }
+
+    /**
+     * Picks up one of the 8 corners of the footprint at {@code footprintIndex}, removing the footprint and returning
+     * a pending state anchored at the opposite diagonal corner with {@code original} preserved for cancellation.
+     */
+    public static Optional<PickUpResult> pickUpCorner(Workplace workplace, ResourceKey<Level> dimension, int footprintIndex, int cornerIndex) {
+        if (footprintIndex < 0 || footprintIndex >= workplace.footprints().size() || !WorkFootprint.isValidCorner(cornerIndex)) {
+            return Optional.empty();
+        }
+
+        WorkFootprint original = workplace.footprints().get(footprintIndex);
+        BlockPos fixedCorner = original.cornerBlock(WorkFootprint.oppositeCorner(cornerIndex));
+        int initialGhostLift = WorkFootprint.isTopCorner(cornerIndex) ? (original.maxY() - original.minY()) : 0;
+
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.remove(footprintIndex);
+        Workplace updated = workplace.withFootprints(footprints).markInitialized();
+
+        // The memory inside the picked up footprint is dropped by withFootprints, keep it on the pending move
+        Map<BlockPos, Holder<Item>> droppedMemory = new HashMap<>();
+        workplace.itemMemory().forEach((pos, item) -> {
+            if (!updated.itemMemory().containsKey(pos)) {
+                droppedMemory.put(pos, item);
+            }
+        });
+
+        PendingGlyph pending = PendingGlyph.moving(GlobalPos.of(dimension, fixedCorner), initialGhostLift, original, droppedMemory);
+        return Optional.of(new PickUpResult(updated, pending));
+    }
+
+    /**
+     * Places the moved footprint of a pending corner move, spanned between the fixed corner and secondCorner. The item memory
+     * that was dropped when the corner was picked up is restored where it still lies inside the new footprint.
+     */
+    public static EditResult completeMove(Workplace workplace, PendingGlyph pending, ResourceKey<Level> dimension, BlockPos secondCorner) {
+        EditResult result = placeFootprint(workplace, dimension, pending.pos().pos(), secondCorner);
+        if (!result.isSuccess()) {
+            return result;
+        }
+
+        return EditResult.ok(result.workplace().withRestoredMemory(pending.originalMemory()));
+    }
+
+    /**
      * Carves the second glyph of a footprint, spanned between the two glyphs, enforcing unique 3D corner blocks,
      * world height bounds, and maximum dimensions.
      */
@@ -132,10 +247,16 @@ public final class StylusActions {
      * @return the workplace without the footprint, or empty if no footprint is at pos
      */
     public static Optional<Workplace> removeFootprintAt(Workplace workplace, BlockPos pos, int below, int above) {
+        return removeFootprintAt(workplace, null, pos, below, above);
+    }
+
+    public static Optional<Workplace> removeFootprintAt(Workplace workplace, @Nullable ResourceKey<Level> dimension, BlockPos pos, int below, int above) {
         Optional<WorkFootprint> target = workplace.footprints().stream()
+                .filter(footprint -> dimension == null || footprint.isInDimension(dimension))
                 .filter(footprint -> footprint.hasGlyphAt(pos))
                 .findFirst()
                 .or(() -> workplace.footprints().stream()
+                        .filter(footprint -> dimension == null || footprint.isInDimension(dimension))
                         .filter(footprint -> footprint.zone(below, above).contains(pos))
                         .min(Comparator.comparingInt(footprint -> footprint.zone(below, above).volume())));
 
@@ -255,6 +376,11 @@ public final class StylusActions {
         return target.withFootprints(placed.footprints()).withLinks(placed.links()).markInitialized();
     }
 
+    public static Workplace paste(Workplace target, Workplace relativeClipboard, BlockPos anchor, ResourceKey<Level> dimension) {
+        Workplace placed = toAbsoluteForDimension(relativeClipboard, anchor, dimension);
+        return target.withFootprints(placed.footprints()).withLinks(placed.links()).markInitialized();
+    }
+
     /**
      * Converts a workplace to positions relative to the anchor. Item memory is dropped, as it is absolute per position.
      */
@@ -262,11 +388,42 @@ public final class StylusActions {
         return shift(workplace, -anchor.getX(), -anchor.getY(), -anchor.getZ(), true);
     }
 
+    public static Workplace toRelative(Workplace workplace, BlockPos anchor, ResourceKey<Level> dimension) {
+        Workplace shifted = shift(workplace, -anchor.getX(), -anchor.getY(), -anchor.getZ(), true);
+        List<WorkFootprint> stamped = shifted.footprints().stream()
+                .map(footprint -> footprint.dimension().isEmpty() ? footprint.withDimension(dimension) : footprint)
+                .toList();
+        return shifted.withFootprints(stamped);
+    }
+
     /**
      * Places a relative workplace at the given anchor.
      */
     public static Workplace toAbsolute(Workplace relative, BlockPos anchor) {
         return shift(relative, anchor.getX(), anchor.getY(), anchor.getZ(), false);
+    }
+
+    /**
+     * Places a relative workplace at the given anchor in {@code targetDimension}, dropping any footprints from other
+     * dimensions. If any footprint was dropped for a dimension mismatch, container links are also cleared and
+     * {@code initialized} is reset when no footprints remain, preventing cross-dimension weirdness.
+     */
+    public static Workplace toAbsoluteForDimension(Workplace relative, BlockPos anchor, ResourceKey<Level> targetDimension) {
+        boolean droppedOtherDimension = relative.footprints().stream()
+                .anyMatch(footprint -> !footprint.isInDimension(targetDimension));
+        List<WorkFootprint> matching = relative.footprints().stream()
+                .filter(footprint -> footprint.isInDimension(targetDimension))
+                .map(footprint -> footprint.offset(anchor.getX(), anchor.getY(), anchor.getZ()).withDimension(targetDimension))
+                .toList();
+        if (droppedOtherDimension) {
+            boolean initialized = !matching.isEmpty() && relative.initialized();
+            return new Workplace(matching, List.of(), relative.options(), Map.of(), initialized);
+        }
+
+        List<ContainerLink> links = relative.links().stream()
+                .map(link -> new ContainerLink(link.pos().offset(anchor.getX(), anchor.getY(), anchor.getZ()), link.side(), link.role()))
+                .toList();
+        return new Workplace(matching, links, relative.options(), relative.itemMemory(), relative.initialized());
     }
 
     private static Workplace shift(Workplace workplace, int dx, int dy, int dz, boolean clearMemory) {

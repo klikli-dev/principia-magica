@@ -10,13 +10,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public final class ZoneRenderer {
 
     public static final int COLOR = 0x55FFFF;
+    public static final int HIGHLIGHT_COLOR = 0xFFFFFF;
     public static final float GLYPH_SIZE = 0.8F;
+    public static final float HIGHLIGHT_GLYPH_SIZE = 1.0F;
+    private static final float CORNER_NODE_SIZE = 0.35F;
+    private static final float HIGHLIGHT_CORNER_SIZE = 0.55F;
     private static final float CARVED_MARK_SIZE = 0.4F;
-    private static final float REACH_ALPHA = 0.3F;
     private static final float PLUMB_ALPHA = 0.6F;
     private static final float CARVED_MARK_ALPHA = 0.5F;
     private static final double PLUMB_OFFSET = 0.5 + 0.01;
@@ -25,25 +32,59 @@ public final class ZoneRenderer {
     }
 
     /**
-     * Draws a footprint as its solid box, the layer or volume it covers, with the job's reach around it as a faint
-     * outline. The corners of the solid box are marked.
+     * Draws a footprint as a single solid box with a cross marker on each of its 8 box corners, depth tested like the box.
+     * Each virtual corner block shows a glyph on one face: top corners on their upper face, bottom corners on their lower face.
+     * The glyphs are drawn without depth testing so corners below ground stay visible.
      */
-    public static void render(WorkplaceGeometry geometry, WorkFootprint footprint, int below, int above, float alpha, double time) {
+    public static void render(WorkplaceGeometry geometry, WorkFootprint footprint, @Nullable BlockPos highlightedCornerBlock, float alpha, double time) {
         AABB box = footprint.zone(0, 0).aabb().inflate(0.01);
         float pulse = WorkplaceGeometry.pulse(time, 0.12, 0.7F);
 
         geometry.boxFaces(box, WorkplaceGeometry.argb(COLOR, alpha * 0.06F * pulse));
         geometry.boxEdges(box, WorkplaceGeometry.argb(COLOR, alpha * pulse));
 
-        if (below != 0 || above != 0) {
-            AABB reach = footprint.zone(below, above).aabb().inflate(0.01);
-            geometry.boxEdges(reach, WorkplaceGeometry.argb(COLOR, alpha * REACH_ALPHA * pulse));
+        Set<CornerFace> renderedGlyphs = new HashSet<>(16);
+        for (int i = 0; i < 8; i++) {
+            BlockPos cornerPos = footprint.cornerBlock(i);
+            boolean highlighted = cornerPos.equals(highlightedCornerBlock);
+
+            Vec3 vertex = WorkplaceGeometry.boxCorner(box, i);
+            float markSize = highlighted ? HIGHLIGHT_CORNER_SIZE : CORNER_NODE_SIZE;
+            int markRgb = highlighted ? HIGHLIGHT_COLOR : COLOR;
+            float markAlpha = highlighted ? alpha : alpha * 0.9F;
+            geometry.cornerNode(vertex, markSize, WorkplaceGeometry.argb(markRgb, markAlpha));
+
+            Direction face = WorkFootprint.isTopCorner(i) ? Direction.UP : Direction.DOWN;
+            if (!renderedGlyphs.add(new CornerFace(cornerPos, face))) {
+                continue;
+            }
+
+            int rgb = highlighted ? HIGHLIGHT_COLOR : COLOR;
+            float size = highlighted ? HIGHLIGHT_GLYPH_SIZE : GLYPH_SIZE;
+            int decalArgb = WorkplaceGeometry.argb(rgb, alpha * (highlighted ? 1.0F : pulse));
+
+            geometry.xrayDecal(cornerPos, face, size, decalArgb);
+        }
+    }
+
+    /**
+     * A glyph on one face of a virtual corner block. A flat footprint has top and bottom corners on the same block, which get one glyph each.
+     */
+    private record CornerFace(BlockPos pos, Direction face) {
+    }
+
+    /**
+     * Draws the tether connecting the sticky-locked anchor block to the moved corner block of the box.
+     */
+    public static void renderCornerTether(WorkplaceGeometry geometry, BlockPos anchorBlock, BlockPos currentBlock, float alpha, double time) {
+        if (anchorBlock.equals(currentBlock)) {
+            return;
         }
 
-        int corner = WorkplaceGeometry.argb(COLOR, alpha);
-        for (int i = 0; i < 8; i++) {
-            geometry.glyph(WorkplaceGeometry.boxCorner(box, i), 0.3F, WorkplaceGeometry.Glyph.PLUS, corner);
-        }
+        float pulse = WorkplaceGeometry.pulse(time, 0.25, 0.5F);
+        geometry.beam(Vec3.atCenterOf(anchorBlock), Vec3.atCenterOf(currentBlock), WorkplaceGeometry.argb(HIGHLIGHT_COLOR, alpha * 0.75F));
+        geometry.decal(anchorBlock, Direction.UP, CARVED_MARK_SIZE, WorkplaceGeometry.argb(COLOR, alpha * CARVED_MARK_ALPHA));
+        geometry.boxEdges(new AABB(anchorBlock).inflate(0.01), WorkplaceGeometry.argb(COLOR, alpha * 0.45F * pulse));
     }
 
     /**

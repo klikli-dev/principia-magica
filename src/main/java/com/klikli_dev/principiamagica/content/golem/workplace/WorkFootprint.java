@@ -10,8 +10,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +39,16 @@ import java.util.Optional;
  * @param maxY  highest Y of the box, inclusive. Derived from the corners if there are glyphs.
  * @param glyphs the carved corner glyphs that define the rectangle; empty for default footprints
  */
-public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, int maxY, List<CarvedGlyph> glyphs) {
+public record WorkFootprint(
+        int minX,
+        int minZ,
+        int maxX,
+        int maxZ,
+        int minY,
+        int maxY,
+        List<CarvedGlyph> glyphs,
+        Optional<ResourceKey<Level>> dimension
+) {
 
     public static final int MAX_SIZE = 64;
 
@@ -58,7 +71,8 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
             Codec.INT.fieldOf("max_z").forGetter(WorkFootprint::maxZ),
             Codec.INT.fieldOf("min_y").forGetter(WorkFootprint::minY),
             Codec.INT.fieldOf("max_y").forGetter(WorkFootprint::maxY),
-            CarvedGlyph.CODEC.listOf().optionalFieldOf("glyphs", List.of()).forGetter(WorkFootprint::glyphs)
+            CarvedGlyph.CODEC.listOf().optionalFieldOf("glyphs", List.of()).forGetter(WorkFootprint::glyphs),
+            Level.RESOURCE_KEY_CODEC.optionalFieldOf("dimension").forGetter(WorkFootprint::dimension)
     ).apply(instance, WorkFootprint::new));
 
     /**
@@ -81,16 +95,35 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
     public static final Codec<WorkFootprint> CODEC = Codec.either(CURRENT_CODEC, LEGACY_CODEC)
             .xmap(either -> either.map(footprint -> footprint, footprint -> footprint), Either::left);
 
-    public static final StreamCodec<ByteBuf, WorkFootprint> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, WorkFootprint::minX,
-            ByteBufCodecs.VAR_INT, WorkFootprint::minZ,
-            ByteBufCodecs.VAR_INT, WorkFootprint::maxX,
-            ByteBufCodecs.VAR_INT, WorkFootprint::maxZ,
-            ByteBufCodecs.VAR_INT, WorkFootprint::minY,
-            ByteBufCodecs.VAR_INT, WorkFootprint::maxY,
-            CarvedGlyph.STREAM_CODEC.apply(ByteBufCodecs.list()), WorkFootprint::glyphs,
-            WorkFootprint::new
+    private static final StreamCodec<ByteBuf, List<CarvedGlyph>> GLYPH_LIST_STREAM_CODEC = CarvedGlyph.STREAM_CODEC.apply(ByteBufCodecs.list());
+    private static final StreamCodec<ByteBuf, Optional<ResourceKey<Level>>> DIMENSION_STREAM_CODEC = ByteBufCodecs.optional(ResourceKey.streamCodec(Registries.DIMENSION));
+
+    public static final StreamCodec<ByteBuf, WorkFootprint> STREAM_CODEC = StreamCodec.of(
+            (buf, footprint) -> {
+                ByteBufCodecs.VAR_INT.encode(buf, footprint.minX());
+                ByteBufCodecs.VAR_INT.encode(buf, footprint.minZ());
+                ByteBufCodecs.VAR_INT.encode(buf, footprint.maxX());
+                ByteBufCodecs.VAR_INT.encode(buf, footprint.maxZ());
+                ByteBufCodecs.VAR_INT.encode(buf, footprint.minY());
+                ByteBufCodecs.VAR_INT.encode(buf, footprint.maxY());
+                GLYPH_LIST_STREAM_CODEC.encode(buf, footprint.glyphs());
+                DIMENSION_STREAM_CODEC.encode(buf, footprint.dimension());
+            },
+            buf -> new WorkFootprint(
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    ByteBufCodecs.VAR_INT.decode(buf),
+                    GLYPH_LIST_STREAM_CODEC.decode(buf),
+                    DIMENSION_STREAM_CODEC.decode(buf)
+            )
     );
+
+    public WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, int maxY, List<CarvedGlyph> glyphs) {
+        this(minX, minZ, maxX, maxZ, minY, maxY, glyphs, Optional.empty());
+    }
 
     public WorkFootprint {
         glyphs = List.copyOf(glyphs);
@@ -108,7 +141,7 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
         List<CarvedGlyph> lifted = glyphs.stream()
                 .map(glyph -> glyph.withLift(level - glyph.pos().getY()))
                 .toList();
-        return new WorkFootprint(minX, minZ, maxX, maxZ, level, level, lifted);
+        return new WorkFootprint(minX, minZ, maxX, maxZ, level, level, lifted, Optional.empty());
     }
 
     /**
@@ -122,8 +155,29 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
                 Math.max(a.pos().getZ(), b.pos().getZ()),
                 Math.min(a.corner().getY(), b.corner().getY()),
                 Math.max(a.corner().getY(), b.corner().getY()),
-                List.of(a, b)
+                List.of(a, b),
+                Optional.empty()
         );
+    }
+
+    /**
+     * A box footprint without carved glyphs, spanned between two corners.
+     */
+    public static WorkFootprint ofBox(BlockPos a, BlockPos b) {
+        return new WorkFootprint(
+                Math.min(a.getX(), b.getX()),
+                Math.min(a.getZ(), b.getZ()),
+                Math.max(a.getX(), b.getX()),
+                Math.max(a.getZ(), b.getZ()),
+                Math.min(a.getY(), b.getY()),
+                Math.max(a.getY(), b.getY()),
+                List.of(),
+                Optional.empty()
+        );
+    }
+
+    public static WorkFootprint ofBox(BlockPos a, BlockPos b, ResourceKey<Level> dimension) {
+        return ofBox(a, b).withDimension(dimension);
     }
 
     /**
@@ -133,8 +187,16 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
         return new WorkFootprint(
                 anchor.getX() - radius, anchor.getZ() - radius,
                 anchor.getX() + radius, anchor.getZ() + radius,
-                groundY, groundY, List.of()
+                groundY, groundY, List.of(), Optional.empty()
         );
+    }
+
+    public boolean isInDimension(ResourceKey<Level> levelDimension) {
+        return this.dimension.isEmpty() || this.dimension.get().equals(levelDimension);
+    }
+
+    public WorkFootprint withDimension(ResourceKey<Level> levelDimension) {
+        return new WorkFootprint(this.minX, this.minZ, this.maxX, this.maxZ, this.minY, this.maxY, this.glyphs, Optional.of(levelDimension));
     }
 
     public int width() {
@@ -231,7 +293,8 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
                             int newY = Math.clamp(candidate.corner().getY() + delta, MIN_Y, MAX_Y);
                             return candidate.withLift(newY - candidate.pos().getY());
                         })
-                        .toList());
+                        .toList(),
+                this.dimension);
     }
 
     /**
@@ -243,7 +306,7 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
     public WorkFootprint moved(int delta) {
         int shift = this.clampShift(delta);
         return new WorkFootprint(this.minX, this.minZ, this.maxX, this.maxZ, this.minY + shift, this.maxY + shift,
-                this.glyphs.stream().map(glyph -> glyph.withLift(glyph.lift() + shift)).toList());
+                this.glyphs.stream().map(glyph -> glyph.withLift(glyph.lift() + shift)).toList(), this.dimension);
     }
 
     private int clampShift(int delta) {
@@ -252,11 +315,85 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
         return low > high ? 0 : Math.clamp(delta, low, high);
     }
 
+    public static boolean isValidCorner(int cornerIndex) {
+        return cornerIndex >= 0 && cornerIndex < 8;
+    }
+
+    public static boolean isTopCorner(int cornerIndex) {
+        return (cornerIndex & 2) != 0;
+    }
+
+    public static int oppositeCorner(int cornerIndex) {
+        return cornerIndex ^ 7;
+    }
+
+    /**
+     * @return the inclusive block coordinate of one of the 8 box corners (bit 0 = X, bit 1 = Y, bit 2 = Z)
+     */
+    public BlockPos cornerBlock(int cornerIndex) {
+        return new BlockPos(
+                (cornerIndex & 1) == 0 ? this.minX : this.maxX,
+                (cornerIndex & 2) == 0 ? this.minY : this.maxY,
+                (cornerIndex & 4) == 0 ? this.minZ : this.maxZ
+        );
+    }
+
+    /**
+     * @return the 3D vertex position of one of the 8 box corners, matching {@code WorkplaceGeometry.boxCorner}
+     */
+    public Vec3 cornerVertex(int cornerIndex) {
+        return new Vec3(
+                (cornerIndex & 1) == 0 ? this.minX : this.maxX + 1.0,
+                (cornerIndex & 2) == 0 ? this.minY : this.maxY + 1.0,
+                (cornerIndex & 4) == 0 ? this.minZ : this.maxZ + 1.0
+        );
+    }
+
+    /**
+     * Moves the Y level of the face containing {@code cornerIndex} by {@code delta}.
+     * If moving a top corner below {@code minY} or a bottom corner above {@code maxY}, the bounds cross over cleanly
+     * so the moved face becomes the new opposite face.
+     */
+    public WorkFootprint resizeCornerY(int cornerIndex, int delta) {
+        if (delta == 0 || !isValidCorner(cornerIndex)) {
+            return this;
+        }
+
+        int movingY = isTopCorner(cornerIndex) ? this.maxY : this.minY;
+        int fixedY = isTopCorner(cornerIndex) ? this.minY : this.maxY;
+        int newMovingY = movingY + delta;
+        int newMinY = Math.min(newMovingY, fixedY);
+        int newMaxY = Math.max(newMovingY, fixedY);
+
+        return new WorkFootprint(this.minX, this.minZ, this.maxX, this.maxZ, newMinY, newMaxY, List.of(), this.dimension);
+    }
+
+    /**
+     * @return the corner index of the moved face after {@link #resizeCornerY(int, int)}, flipping bit 1 if it crossed the fixed face
+     */
+    public int resizedCornerIndex(int cornerIndex, int delta) {
+        if (delta == 0 || !isValidCorner(cornerIndex)) {
+            return cornerIndex;
+        }
+
+        int movingY = isTopCorner(cornerIndex) ? this.maxY : this.minY;
+        int fixedY = isTopCorner(cornerIndex) ? this.minY : this.maxY;
+        int newMovingY = movingY + delta;
+        if (newMovingY > fixedY) {
+            return cornerIndex | 2;
+        }
+        if (newMovingY < fixedY) {
+            return cornerIndex & ~2;
+        }
+        return cornerIndex;
+    }
+
     public WorkFootprint offset(int dx, int dy, int dz) {
         return new WorkFootprint(
                 this.minX + dx, this.minZ + dz, this.maxX + dx, this.maxZ + dz,
                 this.minY + dy, this.maxY + dy,
-                this.glyphs.stream().map(glyph -> glyph.offset(dx, dy, dz)).toList()
+                this.glyphs.stream().map(glyph -> glyph.offset(dx, dy, dz)).toList(),
+                this.dimension
         );
     }
 }

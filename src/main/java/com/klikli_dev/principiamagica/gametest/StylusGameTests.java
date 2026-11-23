@@ -5,24 +5,31 @@
 package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditResult;
+import com.klikli_dev.principiamagica.content.golem.item.StylusActions.PickUpResult;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
+import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.CornerHit;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.GlyphHit;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.ZoneHit;
+import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -31,12 +38,17 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.TriState;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -44,6 +56,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -534,6 +547,336 @@ public class StylusGameTests {
         Tag saved = WorkFootprint.CODEC.encodeStart(NbtOps.INSTANCE, loaded).getOrThrow();
         helper.assertTrue(WorkFootprint.CODEC.parse(NbtOps.INSTANCE, saved).getOrThrow().equals(loaded),
                 "A migrated footprint should save and load in the current format");
+
+        helper.succeed();
+    }
+
+    public static void eightCornersRaycastAndOcclusion(GameTestHelper helper) {
+        WorkFootprint flat = WorkFootprint.ofBox(new BlockPos(2, 64, 2), new BlockPos(5, 64, 5), Level.OVERWORLD);
+        WorkFootprint volume = WorkFootprint.ofBox(new BlockPos(10, 64, 10), new BlockPos(14, 68, 14), Level.OVERWORLD);
+        WorkFootprint nether = WorkFootprint.ofBox(new BlockPos(2, 64, 2), new BlockPos(5, 64, 5), Level.NETHER);
+
+        for (int i = 0; i < 8; i++) {
+            BlockPos block = volume.cornerBlock(i);
+            Vec3 center = Vec3.atCenterOf(block);
+            Vec3 from = center.add(17.0, 23.0, 11.0);
+            Vec3 to = center.subtract(17.0, 23.0, 11.0);
+            Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, List.of(volume), Level.OVERWORLD);
+            helper.assertTrue(hit.isPresent() && hit.get().cornerIndex() == i && hit.get().block().equals(block),
+                    "Ray through virtual corner block " + i + " from afar should hit corner " + i + ", got " + hit);
+        }
+
+        // Virtual corner block slightly proud (1.0625) wins over a solid block at that same coordinate
+        BlockPos corner0Block = flat.cornerBlock(0);
+        Vec3 fromAbove = Vec3.atCenterOf(corner0Block).add(0.0, 10.0, 0.0);
+        Vec3 toBelow = Vec3.atCenterOf(corner0Block).subtract(0.0, 10.0, 0.0);
+        Optional<CornerHit> onCornerBlock = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(flat), Level.OVERWORLD);
+        helper.assertTrue(onCornerBlock.isPresent() && onCornerBlock.get().block().equals(corner0Block),
+                "Virtual corner block should win over the block surface at the same coordinate");
+
+        // Dimension filtering ignores footprints from other dimensions
+        Optional<CornerHit> wrongDim = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(nether), Level.OVERWORLD);
+        helper.assertTrue(wrongDim.isEmpty(), "Overworld raycast must ignore Nether footprints");
+
+        helper.succeed();
+    }
+
+    public static void cornerResizeMovesCoplanarCornersAndPushesFlatBox(GameTestHelper helper) {
+        WorkFootprint flat = WorkFootprint.ofBox(new BlockPos(1, 64, 1), new BlockPos(4, 64, 4), Level.OVERWORLD);
+        Workplace workplace = Workplace.EMPTY.withFootprints(List.of(flat));
+
+        // Top corner (index 2 = minX, maxY, minZ) up by 3 -> maxY becomes 67, minY stays 64
+        Workplace raisedTop = StylusActions.resizeCornerY(workplace, 0, 2, 3).workplace();
+        WorkFootprint raised = raisedTop.footprints().getFirst();
+        helper.assertTrue(raised.minY() == 64 && raised.maxY() == 67,
+                "Raising top corner should raise maxY to 67, got " + raised.minY() + ".." + raised.maxY());
+        helper.assertTrue(raised.cornerBlock(6).getY() == 67 && raised.cornerBlock(7).getY() == 67,
+                "All 4 top corners should move together");
+        helper.assertTrue(raised.cornerBlock(0).getY() == 64 && raised.cornerBlock(5).getY() == 64,
+                "Bottom 4 corners should remain at 64");
+
+        // Moving top corner down past minY (67 -> 62, delta -5) swaps minY/maxY cleanly so 64 becomes maxY and corner flips to bottom
+        Workplace crossedDown = StylusActions.resizeCornerY(raisedTop, 0, 2, -5).workplace();
+        WorkFootprint crossedDownFp = crossedDown.footprints().getFirst();
+        helper.assertTrue(crossedDownFp.minY() == 62 && crossedDownFp.maxY() == 64,
+                "Moving top corner below bottom should result in [62..64], got " + crossedDownFp.minY() + ".." + crossedDownFp.maxY());
+        helper.assertTrue(raised.resizedCornerIndex(2, -5) == 0,
+                "Top corner 2 crossing below minY should become bottom corner 0");
+
+        // Moving that bottom corner back up past maxY (62 -> 69, delta +7) swaps back so 64 becomes minY and corner flips to top
+        Workplace crossedUp = StylusActions.resizeCornerY(crossedDown, 0, 0, 7).workplace();
+        WorkFootprint crossedUpFp = crossedUp.footprints().getFirst();
+        helper.assertTrue(crossedUpFp.minY() == 64 && crossedUpFp.maxY() == 69,
+                "Moving bottom corner above top should result in [64..69], got " + crossedUpFp.minY() + ".." + crossedUpFp.maxY());
+        helper.assertTrue(crossedDownFp.resizedCornerIndex(0, 7) == 2,
+                "Bottom corner 0 crossing above maxY should become top corner 2");
+
+        // On a flat box, scrolling a top corner down moves it down cleanly to [63..64]
+        Workplace flatDown = StylusActions.resizeCornerY(workplace, 0, 2, -1).workplace();
+        helper.assertTrue(flatDown.footprints().getFirst().minY() == 63 && flatDown.footprints().getFirst().maxY() == 64,
+                "Scrolling top corner down on a flat box should move it to [63..64]");
+
+        EditResult tooLarge = StylusActions.resizeCornerY(workplace, 0, 2, WorkFootprint.MAX_SIZE);
+        helper.assertTrue(!tooLarge.isSuccess() && tooLarge.failure() == EditFailure.TOO_LARGE,
+                "Resizing past MAX_SIZE height should fail with TOO_LARGE");
+
+        EditResult outOfBounds = StylusActions.resizeCornerY(workplace, 0, 0, WorkFootprint.MIN_Y - 100);
+        helper.assertTrue(!outOfBounds.isSuccess() && outOfBounds.failure() == EditFailure.OUT_OF_BOUNDS,
+                "Resizing past MIN_Y should fail with OUT_OF_BOUNDS");
+
+        helper.succeed();
+    }
+
+    public static void pickUpMoveAndCancelCorner(GameTestHelper helper) {
+        WorkFootprint original = WorkFootprint.ofBox(new BlockPos(2, 64, 2), new BlockPos(6, 67, 5));
+        Workplace workplace = Workplace.EMPTY.withFootprints(List.of(original));
+
+        // Pick up top-max corner (index 7 = 6,67,5); opposite fixed corner is index 0 (2,64,2) with ghostLift = 3
+        PickUpResult picked = StylusActions.pickUpCorner(workplace, Level.OVERWORLD, 0, 7).orElseThrow();
+        helper.assertTrue(picked.workplace().footprints().isEmpty(), "Picking up corner should remove the footprint while moving");
+        PendingGlyph pending = picked.pending();
+        helper.assertTrue(pending.pos().pos().equals(new BlockPos(2, 64, 2)),
+                "Anchor should be opposite corner (2,64,2), got " + pending.pos().pos());
+        helper.assertTrue(pending.ghostLift() == 3, "Top corner pickup should preserve height as ghostLift=3");
+        helper.assertTrue(pending.original().equals(Optional.of(original)), "Pending should keep original footprint for cancel");
+
+        // PendingGlyph codec round-trip preserves original
+        Tag encoded = PendingGlyph.CODEC.encodeStart(NbtOps.INSTANCE, pending).getOrThrow();
+        PendingGlyph decoded = PendingGlyph.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow();
+        helper.assertTrue(decoded.equals(pending), "PendingGlyph with original should round-trip via codec");
+
+        // Cancelling restores the exact original footprint
+        Workplace restored = StylusActions.restoreFootprint(picked.workplace(), decoded.original().orElseThrow());
+        helper.assertTrue(restored.footprints().equals(List.of(original)), "Cancelling corner move should restore original footprint");
+
+        // Placing at a new position creates the resized footprint (even 1x1x1 on the anchor itself)
+        EditResult placed = StylusActions.placeFootprint(picked.workplace(), pending.pos().pos(), new BlockPos(2, 64, 2));
+        helper.assertTrue(placed.isSuccess(), "Placing moved corner at anchor should succeed as 1x1x1 box");
+        WorkFootprint shrunk = placed.workplace().footprints().getFirst();
+        helper.assertTrue(shrunk.width() == 1 && shrunk.depth() == 1 && shrunk.height() == 1,
+                "Shrunk box should be 1x1x1");
+
+        helper.succeed();
+    }
+
+    public static void cornerMovePreservesPlantingMemory(GameTestHelper helper) {
+        WorkFootprint original = WorkFootprint.ofBox(new BlockPos(2, 64, 2), new BlockPos(6, 67, 5));
+        BlockPos planted = new BlockPos(4, 64, 4);
+        Holder<Item> log = Items.OAK_LOG.builtInRegistryHolder();
+        Workplace workplace = Workplace.EMPTY.withFootprints(List.of(original)).withItemMemory(Map.of(planted, log)).markInitialized();
+        helper.assertTrue(workplace.itemMemory().equals(Map.of(planted, log)), "Setup should store planting memory inside the footprint");
+
+        // Picking up the corner drops the memory from the workplace, but keeps it on the pending move
+        PickUpResult picked = StylusActions.pickUpCorner(workplace, Level.OVERWORLD, 0, 7).orElseThrow();
+        helper.assertTrue(picked.workplace().itemMemory().isEmpty(), "Picking up the corner should move the memory onto the pending move");
+        PendingGlyph pending = picked.pending();
+        helper.assertTrue(pending.originalMemory().equals(Map.of(planted, log)), "Pending move should keep the dropped memory");
+
+        // The pending move, including its memory, survives the codec round-trip that the stylus uses for persistence
+        Tag encoded = PendingGlyph.CODEC.encodeStart(NbtOps.INSTANCE, pending).getOrThrow();
+        PendingGlyph decoded = PendingGlyph.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow();
+        helper.assertTrue(decoded.equals(pending), "PendingGlyph with memory should round-trip via codec");
+
+        // Cancelling restores the memory together with the footprint
+        Workplace cancelled = StylusActions.restoreFootprint(picked.workplace(), decoded.original().orElseThrow(), decoded.originalMemory());
+        helper.assertTrue(cancelled.itemMemory().equals(Map.of(planted, log)), "Cancelling should restore the planting memory");
+
+        // Completing the move at the original size keeps the memory, since it still lies inside the new footprint
+        EditResult kept = StylusActions.completeMove(picked.workplace(), pending, Level.OVERWORLD, new BlockPos(6, 67, 5));
+        helper.assertTrue(kept.isSuccess() && kept.workplace().itemMemory().equals(Map.of(planted, log)),
+                "Completing the move over the memory should keep it");
+
+        // Completing the move with a footprint that no longer covers the memory drops it, as it is outside the footprint
+        EditResult shrunk = StylusActions.completeMove(picked.workplace(), pending, Level.OVERWORLD, new BlockPos(3, 67, 3));
+        helper.assertTrue(shrunk.isSuccess() && shrunk.workplace().itemMemory().isEmpty(),
+                "Completing the move away from the memory should drop it");
+
+        helper.succeed();
+    }
+
+    public static void cancelMoveKeptUntilGolemIsReachable(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+
+        WorkFootprint original = WorkFootprint.ofBox(new BlockPos(1, 1, 1), new BlockPos(5, 1, 5), helper.getLevel().dimension());
+        Workplace workplace = Workplace.EMPTY.withFootprints(List.of(original)).markInitialized();
+        PickUpResult picked = StylusActions.pickUpCorner(workplace, helper.getLevel().dimension(), 0, 7).orElseThrow();
+        golem.updateWorkplace(current -> picked.workplace());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        stylus.set(DataComponentRegistry.STYLUS_PENDING_GLYPH.get(), picked.pending());
+
+        // Out of reach: the move must stay on the stylus instead of being dropped with the footprint
+        player.setPos(golem.getX() + 100.0, golem.getY(), golem.getZ());
+        helper.assertTrue(StylusItem.cancelPending(stylus, player) == StylusItem.CancelOutcome.MOVE_KEPT,
+                "Cancelling a move with the golem out of reach should keep the move");
+        helper.assertTrue(stylus.has(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()),
+                "Pending move should stay on the stylus while the golem is out of reach");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().footprints().isEmpty(),
+                "Footprint should not be restored while the golem is out of reach");
+
+        // Back in reach: the cancel restores the footprint and clears the pending move
+        player.setPos(golem.getX(), golem.getY(), golem.getZ());
+        helper.assertTrue(StylusItem.cancelPending(stylus, player) == StylusItem.CancelOutcome.MOVE_CANCELLED,
+                "Cancelling a move with the golem in reach should restore the footprint");
+        helper.assertTrue(!stylus.has(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()),
+                "Pending move should be cleared once restored");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().footprints().equals(List.of(original)),
+                "Cancelling in reach should restore the original footprint");
+
+        helper.succeed();
+    }
+
+    public static void crouchRightClickDiscardsStuckCornerMove(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+
+        WorkFootprint original = WorkFootprint.ofBox(new BlockPos(1, 1, 1), new BlockPos(5, 1, 5), helper.getLevel().dimension());
+        Workplace workplace = Workplace.EMPTY.withFootprints(List.of(original)).markInitialized();
+        PickUpResult picked = StylusActions.pickUpCorner(workplace, helper.getLevel().dimension(), 0, 7).orElseThrow();
+        golem.updateWorkplace(current -> picked.workplace());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        stylus.set(DataComponentRegistry.STYLUS_PENDING_GLYPH.get(), picked.pending());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+
+        // Out of reach: a plain right-click in the air keeps the move
+        player.setPos(golem.getX() + 100.0, golem.getY(), golem.getZ());
+        ItemStack held = player.getMainHandItem();
+        StylusItem item = (StylusItem) ItemRegistry.COPPER_STYLUS.get();
+        item.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(held.has(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()),
+                "Plain right-click should keep the stuck move");
+        helper.assertTrue(held.has(DataComponentRegistry.STYLUS_SELECTION.get()),
+                "Plain right-click should keep the selection");
+
+        // Crouch right-click in the air discards the move and clears the selection
+        player.setShiftKeyDown(true);
+        item.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(!held.has(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()),
+                "Crouch right-click should discard the stuck move");
+        helper.assertTrue(!held.has(DataComponentRegistry.STYLUS_SELECTION.get()),
+                "Crouch right-click should clear the selection");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().footprints().isEmpty(),
+                "Discarding the move should not restore the footprint");
+
+        helper.succeed();
+    }
+
+    public static void sneakRightClickInsideFootprintErasesFootprint(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        Player player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+
+        BlockPos minCorner = helper.absolutePos(new BlockPos(1, 1, 1));
+        BlockPos maxCorner = helper.absolutePos(new BlockPos(5, 1, 5));
+        BlockPos inside = helper.absolutePos(new BlockPos(3, 1, 3));
+        helper.setBlock(new BlockPos(3, 1, 3), Blocks.DIRT);
+
+        WorkFootprint netherFootprint = WorkFootprint.ofBox(minCorner, maxCorner, Level.NETHER);
+        WorkFootprint overworldFootprint = WorkFootprint.ofBox(minCorner, maxCorner, helper.getLevel().dimension());
+        golem.updateWorkplace(current -> Workplace.EMPTY.withFootprints(List.of(netherFootprint, overworldFootprint)).markInitialized());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+        player.setPos(Vec3.atCenterOf(inside));
+        player.setShiftKeyDown(true);
+
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(inside), Direction.UP, inside, false);
+        stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+
+        List<WorkFootprint> remaining = golem.getWorkplace(helper.getLevel()).orElseThrow().footprints();
+        helper.assertTrue(remaining.equals(List.of(netherFootprint)),
+                "Sneak-right-clicking inside the zone should erase the current dimension's footprint and keep other dimensions intact, got " + remaining);
+
+        helper.succeed();
+    }
+
+    /**
+     * A creative player right-clicking a golem with a stylus selects it. Vanilla hands the item a copy of the held stack in creative,
+     * so the selection must be written to the player's held stack.
+     */
+    public static void creativeStylusSelectsGolem(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        player.getAbilities().instabuild = true;
+        golem.setOwnerUUID(player.getUUID());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.COPPER_STYLUS.get()));
+        player.interactOn(golem, InteractionHand.MAIN_HAND, Vec3.ZERO);
+
+        UUID selected = player.getItemInHand(InteractionHand.MAIN_HAND).get(DataComponentRegistry.STYLUS_SELECTION.get());
+        helper.assertTrue(golem.getUUID().equals(selected), "A creative player's right-click should select the golem on the held stylus, got " + selected);
+
+        helper.succeed();
+    }
+
+    /**
+     * Right-click on golems with the imprint tablet goes through the player's interaction, as in game: copy from the first golem,
+     * paste onto the second, and crouch-right-click clears the clipboard without touching the golem.
+     */
+    public static void imprintTabletCopiesPastesAndClears(GameTestHelper helper) {
+        GolemEntity source = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        GolemEntity target = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(6, 2, 2));
+        Player player = helper.makeMockServerPlayerInLevel();
+        source.setOwnerUUID(player.getUUID());
+        target.setOwnerUUID(player.getUUID());
+
+        WorkFootprint footprint = WorkFootprint.ofBox(helper.absolutePos(new BlockPos(1, 1, 1)), helper.absolutePos(new BlockPos(3, 1, 3)), helper.getLevel().dimension());
+        source.updateWorkplace(current -> Workplace.EMPTY.withFootprints(List.of(footprint)).markInitialized());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.IMPRINT_TABLET.get()));
+
+        player.setShiftKeyDown(false);
+        InteractionResult copied = player.interactOn(source, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        ItemStack tablet = player.getItemInHand(InteractionHand.MAIN_HAND);
+        helper.assertTrue(copied.consumesAction(), "Right-click on an owned golem should be consumed by the tablet, got " + copied);
+        helper.assertTrue(tablet.get(DataComponentRegistry.IMPRINT_CLIPBOARD.get()) != null, "Right-click on a golem should copy its workplace");
+
+        InteractionResult pasted = player.interactOn(target, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        helper.assertTrue(pasted.consumesAction(), "Right-click on a second golem should be consumed by the tablet, got " + pasted);
+        List<WorkFootprint> targetFootprints = target.getWorkplace(helper.getLevel()).orElseThrow().footprints();
+        helper.assertTrue(targetFootprints.size() == 1, "Right-click on a golem with a clipboard should paste it, got " + targetFootprints);
+
+        player.setShiftKeyDown(true);
+        player.interactOn(target, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).get(DataComponentRegistry.IMPRINT_CLIPBOARD.get()) == null,
+                "Crouch-right-click should clear the clipboard");
+        helper.assertTrue(target.getWorkplace(helper.getLevel()).orElseThrow().footprints().size() == 1,
+                "Crouch-right-click should not paste onto the golem");
+
+        helper.succeed();
+    }
+
+    public static void workAreaDimensionPreventsCrossDimensionWeirdness(GameTestHelper helper) {
+        WorkFootprint overworldBox = WorkFootprint.ofBox(new BlockPos(10, 64, 10), new BlockPos(14, 65, 14), Level.OVERWORLD);
+        Tag encoded = WorkFootprint.CODEC.encodeStart(NbtOps.INSTANCE, overworldBox).getOrThrow();
+        WorkFootprint decoded = WorkFootprint.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow();
+        helper.assertTrue(decoded.equals(overworldBox) && decoded.dimension().equals(Optional.of(Level.OVERWORLD)),
+                "WorkFootprint dimension should round-trip via codec");
+
+        Workplace source = Workplace.EMPTY
+                .withFootprints(List.of(overworldBox))
+                .withLinks(List.of(new ContainerLink(new BlockPos(9, 64, 10), Direction.UP, ContainerRole.BOTH)))
+                .markInitialized();
+        helper.assertTrue(source.footprintsIn(Level.OVERWORLD).size() == 1, "Overworld should see Overworld footprint");
+        helper.assertTrue(source.footprintsIn(Level.NETHER).isEmpty(), "Nether must ignore Overworld footprint");
+        helper.assertTrue(source.zones(Level.NETHER, 0, 3).isEmpty(), "Nether must get no work zones from Overworld footprint");
+
+        Workplace relative = StylusActions.toRelative(source, new BlockPos(10, 64, 10), Level.OVERWORLD);
+
+        Workplace releasedInOverworld = StylusActions.toAbsoluteForDimension(relative, new BlockPos(20, 70, 20), Level.OVERWORLD);
+        helper.assertTrue(releasedInOverworld.footprints().size() == 1 && releasedInOverworld.links().size() == 1,
+                "Releasing in same dimension should restore footprints and links");
+
+        Workplace releasedInNether = StylusActions.toAbsoluteForDimension(relative, new BlockPos(20, 70, 20), Level.NETHER);
+        helper.assertTrue(releasedInNether.footprints().isEmpty() && releasedInNether.links().isEmpty() && !releasedInNether.initialized(),
+                "Releasing in a different dimension must drop old dimension footprints and links");
 
         helper.succeed();
     }

@@ -161,6 +161,36 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES =
             TEST_FUNCTIONS.register("copper_stylus_returned_by_crafting_recipes", () -> StylusGameTests::copperStylusReturnedByCraftingRecipes);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> EIGHT_CORNERS_RAYCAST_AND_OCCLUSION =
+            TEST_FUNCTIONS.register("eight_corners_raycast_and_occlusion", () -> StylusGameTests::eightCornersRaycastAndOcclusion);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CORNER_RESIZE_MOVES_COPLANAR_CORNERS_AND_PUSHES_FLAT_BOX =
+            TEST_FUNCTIONS.register("corner_resize_moves_coplanar_corners_and_pushes_flat_box", () -> StylusGameTests::cornerResizeMovesCoplanarCornersAndPushesFlatBox);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PICK_UP_MOVE_AND_CANCEL_CORNER =
+            TEST_FUNCTIONS.register("pick_up_move_and_cancel_corner", () -> StylusGameTests::pickUpMoveAndCancelCorner);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CORNER_MOVE_PRESERVES_PLANTING_MEMORY =
+            TEST_FUNCTIONS.register("corner_move_preserves_planting_memory", () -> StylusGameTests::cornerMovePreservesPlantingMemory);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CROUCH_RIGHT_CLICK_DISCARDS_STUCK_CORNER_MOVE =
+            TEST_FUNCTIONS.register("crouch_right_click_discards_stuck_corner_move", () -> StylusGameTests::crouchRightClickDiscardsStuckCornerMove);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CANCEL_MOVE_KEPT_UNTIL_GOLEM_IS_REACHABLE =
+            TEST_FUNCTIONS.register("cancel_move_kept_until_golem_is_reachable", () -> StylusGameTests::cancelMoveKeptUntilGolemIsReachable);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT =
+            TEST_FUNCTIONS.register("sneak_right_click_inside_footprint_erases_footprint", () -> StylusGameTests::sneakRightClickInsideFootprintErasesFootprint);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> IMPRINT_TABLET_COPIES_PASTES_AND_CLEARS =
+            TEST_FUNCTIONS.register("imprint_tablet_copies_pastes_and_clears", () -> StylusGameTests::imprintTabletCopiesPastesAndClears);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CREATIVE_STYLUS_SELECTS_GOLEM =
+            TEST_FUNCTIONS.register("creative_stylus_selects_golem", () -> StylusGameTests::creativeStylusSelectsGolem);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS =
+            TEST_FUNCTIONS.register("work_area_dimension_prevents_cross_dimension_weirdness", () -> StylusGameTests::workAreaDimensionPreventsCrossDimensionWeirdness);
+
     // --- Golem menu ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS =
@@ -209,6 +239,18 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_RESTOCK_AND_PLANT =
             TEST_FUNCTIONS.register("farming_restock_and_plant", () -> FarmingGameTests::restockAndPlant);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_RESTOCK_AND_PLANT_WITH_HOE =
+            TEST_FUNCTIONS.register("farming_restock_and_plant_with_hoe", () -> FarmingGameTests::restockAndPlantWithHoe);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_TILLS_THEN_RESTOCKS_AND_PLANTS =
+            TEST_FUNCTIONS.register("farming_tills_then_restocks_and_plants", () -> FarmingGameTests::tillsThenRestocksAndPlants);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_CLEARS_GRASS_THEN_TILLS_AND_PLANTS =
+            TEST_FUNCTIONS.register("farming_clears_grass_then_tills_and_plants", () -> FarmingGameTests::clearsGrassThenTillsAndPlants);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_ENABLING_TILL_AFTER_IDLE_STARTS_TILLING =
+            TEST_FUNCTIONS.register("farming_enabling_till_after_idle_starts_tilling", () -> FarmingGameTests::enablingTillAfterIdleStartsTilling);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_STACKED_PLANT_KEEPS_BASE =
             TEST_FUNCTIONS.register("farming_stacked_plant_keeps_base", () -> FarmingGameTests::stackedPlantKeepsBase);
@@ -338,6 +380,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
             TEST_FUNCTIONS.register("lumberjack_bonemeal_off_leaves_sapling", () -> LumberjackGameTests::bonemealOffLeavesSapling);
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_RESTOCKS_BONEMEAL_FROM_SUPPLY =
             TEST_FUNCTIONS.register("lumberjack_restocks_bonemeal_from_supply", () -> LumberjackGameTests::restocksBonemealFromSupply);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_RESTOCKS_BONEMEAL_WITH_AXE =
+            TEST_FUNCTIONS.register("lumberjack_restocks_bonemeal_with_axe", () -> LumberjackGameTests::restocksBonemealWithAxe);
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL =
             TEST_FUNCTIONS.register("lumberjack_stalled_sapling_stops_bonemeal", () -> LumberjackGameTests::stalledSaplingStopsTakingBonemeal);
 
@@ -519,6 +564,16 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, ZONE_BOX_TARGETING_PICKS_NEAREST_AND_FLOATING_BOXES, environment, structure, 40, 0);
         registerTest(event, RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED, environment, structure, 40, 0);
         registerTest(event, COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES, environment, structure, 40, 0);
+        registerTest(event, EIGHT_CORNERS_RAYCAST_AND_OCCLUSION, environment, structure, 40, 0);
+        registerTest(event, CORNER_RESIZE_MOVES_COPLANAR_CORNERS_AND_PUSHES_FLAT_BOX, environment, structure, 40, 0);
+        registerTest(event, PICK_UP_MOVE_AND_CANCEL_CORNER, environment, structure, 40, 0);
+        registerTest(event, CANCEL_MOVE_KEPT_UNTIL_GOLEM_IS_REACHABLE, environment, structure, 40, 0);
+        registerTest(event, CORNER_MOVE_PRESERVES_PLANTING_MEMORY, environment, structure, 40, 0);
+        registerTest(event, CROUCH_RIGHT_CLICK_DISCARDS_STUCK_CORNER_MOVE, environment, structure, 40, 0);
+        registerTest(event, SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, IMPRINT_TABLET_COPIES_PASTES_AND_CLEARS, environment, structure, 40, 0);
+        registerTest(event, CREATIVE_STYLUS_SELECTS_GOLEM, environment, structure, 40, 0);
+        registerTest(event, WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS, environment, structure, 40, 0);
     }
 
     private static void registerMenuTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
@@ -562,6 +617,10 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, FARMING_DEPOSIT_FULL_INVENTORY, environment, structure, 800, 0);
         registerTest(event, FARMING_DEPOSIT_SKIPS_FULL_CHEST, environment, structure, 800, 0);
         registerTest(event, FARMING_RESTOCK_AND_PLANT, environment, structure, 800, 0);
+        registerTest(event, FARMING_RESTOCK_AND_PLANT_WITH_HOE, environment, structure, 800, 0);
+        registerTest(event, FARMING_TILLS_THEN_RESTOCKS_AND_PLANTS, environment, structure, 1200, 0);
+        registerTest(event, FARMING_CLEARS_GRASS_THEN_TILLS_AND_PLANTS, environment, structure, 1200, 0);
+        registerTest(event, FARMING_ENABLING_TILL_AFTER_IDLE_STARTS_TILLING, environment, structure, 1200, 0);
         registerTest(event, FARMING_STACKED_PLANT_KEEPS_BASE, environment, structure, 800, 0);
         registerTest(event, FARMING_GOURD_HARVEST_KEEPS_STEM, environment, structure, 800, 0);
         registerTest(event, FARMING_BERRY_BUSH_RESETS, environment, structure, 800, 0);
@@ -608,6 +667,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LUMBERJACK_BONEMEAL_GROWS_SAPLING, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_BONEMEAL_OFF_LEAVES_SAPLING, environment, structure, 400, 0);
         registerTest(event, LUMBERJACK_RESTOCKS_BONEMEAL_FROM_SUPPLY, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_RESTOCKS_BONEMEAL_WITH_AXE, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL, environment, structure, 1000, 0);
     }
 

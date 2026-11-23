@@ -47,27 +47,20 @@ public final class WorkplaceRenderTypes {
     public static final RenderPipeline FILL_PIPELINE = pipeline("fill", FILL_FRAGMENT_SHADER, BlendFunction.TRANSLUCENT, false);
 
     /**
-     * Textured, unlit glyph decals carved on block faces. Additive, so the glyphs glow.
+     * Textured, unlit glyph decals carved on block faces. Additive, so the glyphs glow. Depth tested.
      */
-    public static final RenderPipeline GLYPH_PIPELINE = RenderPipeline.builder()
-            .withLocation(PrincipiaMagica.loc("pipeline/workplace_glyph"))
-            .withVertexShader(RIBBON_VERTEX_SHADER)
-            .withFragmentShader(GLYPH_FRAGMENT_SHADER)
-            .withSampler("Sampler0")
-            .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
-            .withUniform("Projection", UniformType.UNIFORM_BUFFER)
-            .withUniform("Fog", UniformType.UNIFORM_BUFFER)
-            .withUniform("Globals", UniformType.UNIFORM_BUFFER)
-            .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
-            .withColorTargetState(new ColorTargetState(BlendFunction.ADDITIVE))
-            .withCull(false)
-            .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
-            .build();
+    public static final RenderPipeline GLYPH_PIPELINE = glyphPipeline("glyph", CompareOp.LESS_THAN_OR_EQUAL);
+
+    /**
+     * Same glyph shader without depth testing, so the corner glyphs stay visible and can be seen through terrain.
+     */
+    public static final RenderPipeline GLYPH_XRAY_PIPELINE = glyphPipeline("glyph_xray", CompareOp.ALWAYS_PASS);
 
     public static final RenderType RIBBON = create("principiamagica_workplace_ribbon", RIBBON_PIPELINE);
     public static final RenderType BEAM = create("principiamagica_workplace_beam", BEAM_PIPELINE);
     public static final RenderType FILL = create("principiamagica_workplace_fill", FILL_PIPELINE);
     public static final RenderType GLYPH = createTextured("principiamagica_workplace_glyph", GLYPH_PIPELINE, GLYPH_TEXTURE);
+    public static final RenderType GLYPH_XRAY = createTextured("principiamagica_workplace_glyph_xray", GLYPH_XRAY_PIPELINE, GLYPH_TEXTURE);
 
     private WorkplaceRenderTypes() {
     }
@@ -77,6 +70,24 @@ public final class WorkplaceRenderTypes {
         event.registerPipeline(BEAM_PIPELINE);
         event.registerPipeline(FILL_PIPELINE);
         event.registerPipeline(GLYPH_PIPELINE);
+        event.registerPipeline(GLYPH_XRAY_PIPELINE);
+    }
+
+    private static RenderPipeline glyphPipeline(String name, CompareOp depthTest) {
+        return RenderPipeline.builder()
+                .withLocation(PrincipiaMagica.loc("pipeline/workplace_" + name))
+                .withVertexShader(RIBBON_VERTEX_SHADER)
+                .withFragmentShader(GLYPH_FRAGMENT_SHADER)
+                .withSampler("Sampler0")
+                .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
+                .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+                .withUniform("Fog", UniformType.UNIFORM_BUFFER)
+                .withUniform("Globals", UniformType.UNIFORM_BUFFER)
+                .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+                .withColorTargetState(new ColorTargetState(BlendFunction.ADDITIVE))
+                .withCull(false)
+                .withDepthStencilState(new DepthStencilState(depthTest, false))
+                .build();
     }
 
     private static RenderPipeline pipeline(String name, Identifier fragmentShader, BlendFunction blend, boolean dashed) {

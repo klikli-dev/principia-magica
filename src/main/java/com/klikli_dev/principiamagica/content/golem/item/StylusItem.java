@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.item;
 
+import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
@@ -42,7 +43,10 @@ import java.util.function.Predicate;
  */
 public class StylusItem extends Item {
 
-    private static final double MAX_DISTANCE_SQR = 64.0 * 64.0;
+    /**
+     * The squared distance within which the selected golem can be reached with the stylus.
+     */
+    public static final double MAX_DISTANCE_SQR = 64.0 * 64.0;
 
     public StylusItem(Properties properties) {
         super(properties);
@@ -63,7 +67,8 @@ public class StylusItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        return StylusEntityInteraction.interact(stack, serverPlayer, golem);
+        // The held stack, not the one passed in: in creative vanilla passes a copy, and changes to it are lost
+        return StylusEntityInteraction.interact(player.getItemInHand(hand), serverPlayer, golem);
     }
 
     @Override
@@ -85,8 +90,11 @@ public class StylusItem extends Item {
 
         Optional<GolemEntity> selected = findSelectedGolem(player, stack);
         if (selected.isEmpty()) {
-            stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
-            stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+            // A pending corner move still owes its footprint to the golem, so the selection is kept until it can be restored
+            if (!hasPendingMove(stack)) {
+                stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
+                stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+            }
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.golem_not_found"));
             return InteractionResult.FAIL;
         }
@@ -112,20 +120,73 @@ public class StylusItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        if (cancelPending(stack)) {
-            serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_cancelled"));
-            return InteractionResult.SUCCESS;
-        }
-
-        if (player.isShiftKeyDown()) {
-            boolean hadSelection = stack.remove(DataComponentRegistry.STYLUS_SELECTION.get()) != null;
-            boolean hadClipboard = stack.remove(DataComponentRegistry.STYLUS_CLIPBOARD.get()) != null;
-            if (hadSelection || hadClipboard) {
-                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
+        switch (cancelPending(stack, serverPlayer)) {
+            case CORNER_CANCELLED -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_cancelled"));
+            case MOVE_CANCELLED -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_cancelled"));
+            case MOVE_KEPT -> {
+                if (player.isShiftKeyDown()) {
+                    // Escape hatch for a move whose golem can never be reached again: the moved work area is lost
+                    stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+                    stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
+                    serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_discarded"));
+                } else {
+                    serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_golem_not_found"));
+                }
+            }
+            case NONE -> {
+                if (player.isShiftKeyDown() && stack.remove(DataComponentRegistry.STYLUS_SELECTION.get()) != null) {
+                    serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
+                }
             }
         }
 
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * What {@link #cancelPending(ItemStack, ServerPlayer)} did with the pending corner.
+     */
+    public enum CancelOutcome {
+        /** There was no pending corner. */
+        NONE,
+        /** A pending corner that did not move a footprint was removed. */
+        CORNER_CANCELLED,
+        /** A pending corner move was cancelled and its original footprint restored to the selected golem. */
+        MOVE_CANCELLED,
+        /** A pending corner move could not be restored because the selected golem is not reachable, so it stays on the stack. */
+        MOVE_KEPT
+    }
+
+    private static boolean hasPendingMove(ItemStack stack) {
+        PendingGlyph pending = stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+        return pending != null && pending.original().isPresent();
+    }
+
+    /**
+     * Cancels the pending corner on the stack. A pending corner move is only removed once its original footprint has been
+     * restored to the selected golem. If the golem is not reachable, the move stays on the stack, so the footprint is not lost.
+     */
+    public static CancelOutcome cancelPending(ItemStack stack, ServerPlayer player) {
+        PendingGlyph pending = stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+        if (pending == null) {
+            return CancelOutcome.NONE;
+        }
+
+        if (pending.original().isEmpty()) {
+            stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+            return CancelOutcome.CORNER_CANCELLED;
+        }
+
+        Optional<GolemEntity> golem = findSelectedGolem(player, stack);
+        if (golem.isEmpty()) {
+            return CancelOutcome.MOVE_KEPT;
+        }
+
+        ServerLevel level = (ServerLevel) golem.get().level();
+        Workplace current = golem.get().getWorkplace(level).orElse(Workplace.EMPTY);
+        applyWorkplaceEdit(player, golem.get(), StylusActions.restoreFootprint(current, pending.original().get(), pending.originalMemory()));
+        stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+        return CancelOutcome.MOVE_CANCELLED;
     }
 
     /**
@@ -140,12 +201,13 @@ public class StylusItem extends Item {
     }
 
     /**
-     * Cancels the pending corner on the stack.
-     *
-     * @return whether a pending corner was present and removed
+     * Applies a workplace edit, clears stale brain cooldowns so the golem reacts immediately, and syncs to the player.
      */
-    public static boolean cancelPending(ItemStack stack) {
-        return stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()) != null;
+    public static void applyWorkplaceEdit(ServerPlayer player, GolemEntity golem, Workplace updated) {
+        golem.updateWorkplace(current -> updated);
+        golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
+        golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
+        syncWorkplace(player, golem);
     }
 
     public static boolean isWithinRange(ServerPlayer player, GolemEntity golem) {
@@ -174,7 +236,7 @@ public class StylusItem extends Item {
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
 
         ItemStack stack = golem.toItemStack();
-        stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), StylusActions.toRelative(workplace, anchorOf(golem)));
+        stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), StylusActions.toRelative(workplace, anchorOf(golem), level.dimension()));
 
         golem.discard();
         player.getInventory().placeItemBackInInventory(stack);
@@ -274,18 +336,7 @@ public class StylusItem extends Item {
                     pos.getX(), pos.getY(), pos.getZ()).withStyle(ChatFormatting.GRAY));
         }
 
-        Workplace clipboard = stack.get(DataComponentRegistry.STYLUS_CLIPBOARD.get());
-        adder.accept(clipboard == null
-                ? Component.translatable("tooltip.principiamagica.copper_stylus.clipboard_empty").withStyle(ChatFormatting.GRAY)
-                : Component.translatable("tooltip.principiamagica.copper_stylus.clipboard", clipboard.footprints().size(), clipboard.links().size()).withStyle(ChatFormatting.GRAY));
-
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_select").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_copy_paste").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_link").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_zone").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_raise").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_remove").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_pickup").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_clear").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_select", KeyCombo.RIGHT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_pickup", KeyCombo.CROUCH_LEFT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
     }
 }

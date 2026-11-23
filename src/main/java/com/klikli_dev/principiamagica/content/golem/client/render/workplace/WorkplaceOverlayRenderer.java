@@ -5,11 +5,10 @@
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
-import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.Targeted;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedZone;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
-import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
@@ -20,6 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -33,11 +33,9 @@ import java.util.SequencedMap;
 import java.util.UUID;
 
 /**
- * Draws the workplace of the golem selected on a held stylus: footprints, carved glyphs, container links, anchor, work
- * target, and the pending glyph with a preview of the footprint under the cursor. Elements fade in and out when the stylus
- * is equipped, unequipped or the selection changes.
- * <p>
- * The glyph under the crosshair is highlighted, even from a distance. Input handling lives in {@link WorkplaceInput}.
+ * Draws the workplace of the golem selected on a held stylus: footprints with 8 interactive corner glyphs, container links,
+ * anchor, work target, and the pending corner with a preview of the footprint under the cursor. Elements fade in and out
+ * when the stylus is equipped, unequipped or the selection changes.
  */
 public class WorkplaceOverlayRenderer {
 
@@ -45,14 +43,13 @@ public class WorkplaceOverlayRenderer {
     private static final double SPARKLE_RANGE_SQR = 32.0 * 32.0;
     private static final int BUFFER_SIZE = 1536;
     private static final int HIGHLIGHT_COLOR = 0xFFFFFF;
-    private static final float HIGHLIGHT_GLYPH_SIZE = 1.0F;
 
     private final FadingElementTracker<UUID> golemFade = new FadingElementTracker<>();
     private final FadingElementTracker<PendingGlyph> cornerFade = new FadingElementTracker<>();
     private final PendingZoneRenderer pending = new PendingZoneRenderer();
     private MultiBufferSource.@Nullable BufferSource buffers;
     @Nullable
-    private Targeted targeted;
+    private TargetedCorner targetedCorner;
     @Nullable
     private TargetedZone targetedZone;
 
@@ -72,8 +69,8 @@ public class WorkplaceOverlayRenderer {
 
         this.golemFade.tick(selected);
         this.cornerFade.tick(corner);
-        this.pending.tick(corner, WorkplaceTargeting.hoveredHit(minecraft), workplace);
-        this.targeted = WorkplaceTargeting.targetedGlyph(minecraft);
+        this.pending.tick(level, corner, WorkplaceTargeting.hoveredHit(minecraft), workplace);
+        this.targetedCorner = WorkplaceTargeting.targetedCorner(minecraft);
         this.targetedZone = WorkplaceTargeting.targetedZone(minecraft);
 
         if (player != null && level != null) {
@@ -108,7 +105,7 @@ public class WorkplaceOverlayRenderer {
             this.pending.render(geometry, corner, this.cornerFade.alpha(partialTick), partialTick, time);
         }
 
-        // Draws in the insertion order of the fixed buffers: fill, beam, ribbon, glyph.
+        // Draws in the insertion order of the fixed buffers: fill, beam, ribbon, glyph, glyph x-ray.
         buffers.endBatch();
     }
 
@@ -124,6 +121,7 @@ public class WorkplaceOverlayRenderer {
             fixed.put(WorkplaceRenderTypes.BEAM, new ByteBufferBuilder(BUFFER_SIZE));
             fixed.put(WorkplaceRenderTypes.RIBBON, new ByteBufferBuilder(BUFFER_SIZE));
             fixed.put(WorkplaceRenderTypes.GLYPH, new ByteBufferBuilder(BUFFER_SIZE));
+            fixed.put(WorkplaceRenderTypes.GLYPH_XRAY, new ByteBufferBuilder(BUFFER_SIZE));
             this.buffers = MultiBufferSource.immediateWithBuffers(fixed, new ByteBufferBuilder(BUFFER_SIZE));
         }
         return this.buffers;
@@ -142,7 +140,8 @@ public class WorkplaceOverlayRenderer {
 
         int below = golem.getJob().map(GolemJob::below).orElse(WorkFootprint.DEFAULT_BELOW);
         int above = golem.getJob().map(GolemJob::above).orElse(WorkFootprint.DEFAULT_ABOVE);
-        ClientGolemWorkplaceCache.latest(golem.getId()).ifPresent(entry -> WorkplaceSparkles.spawn(level, entry.workplace().zones(below, above)));
+        ClientGolemWorkplaceCache.latest(golem.getId())
+                .ifPresent(entry -> WorkplaceSparkles.spawn(level, entry.workplace().zones(level.dimension(), below, above)));
     }
 
     private void renderGolem(Minecraft minecraft, WorkplaceGeometry geometry, ClientLevel level, @Nullable UUID golemId, float alpha, float partialTick, double time) {
@@ -162,14 +161,13 @@ public class WorkplaceOverlayRenderer {
 
         SelectedGolemRenderer.render(geometry, feet, golem.getBbWidth(), alpha, time);
 
-        int below = golem.getJob().map(GolemJob::below).orElse(WorkFootprint.DEFAULT_BELOW);
-        int above = golem.getJob().map(GolemJob::above).orElse(WorkFootprint.DEFAULT_ABOVE);
-
         ClientGolemWorkplaceCache.latest(golem.getId()).ifPresent(entry -> {
             entry.anchor().ifPresent(anchor -> AnchorRenderer.render(geometry, anchor.pos(), alpha, time));
 
             @Nullable
-            Targeted highlight = this.targeted != null && this.targeted.golemId() == golem.getId() ? this.targeted : null;
+            TargetedCorner highlight = this.targetedCorner != null && this.targetedCorner.golemId() == golem.getId()
+                    ? this.targetedCorner
+                    : null;
             @Nullable
             TargetedZone zoneHighlight = highlight == null && this.targetedZone != null && this.targetedZone.golemId() == golem.getId()
                     ? this.targetedZone
@@ -177,27 +175,21 @@ public class WorkplaceOverlayRenderer {
 
             for (int i = 0; i < entry.workplace().footprints().size(); i++) {
                 WorkFootprint footprint = entry.workplace().footprints().get(i);
+                if (!footprint.isInDimension(level.dimension())) {
+                    continue;
+                }
+                BlockPos highlightedCornerBlock = highlight != null && highlight.footprintIndex() == i ? highlight.block() : null;
                 AABB box = footprint.zone(0, 0).aabb();
                 if (WorkplaceGeometry.isWithin(box.getCenter(), camera, rangeSqr)) {
-                    ZoneRenderer.render(geometry, footprint, below, above, alpha, time);
+                    ZoneRenderer.render(geometry, footprint, highlightedCornerBlock, alpha, time);
                 }
 
-                boolean highlightBox = (highlight != null && highlight.hit().footprint().equals(footprint))
-                        || (zoneHighlight != null && zoneHighlight.hit().index() == i);
+                boolean highlightBox = highlightedCornerBlock != null || (zoneHighlight != null && zoneHighlight.hit().index() == i);
                 if (highlightBox) {
                     geometry.boxEdges(box.inflate(0.01), WorkplaceGeometry.argb(HIGHLIGHT_COLOR, alpha * WorkplaceGeometry.pulse(time, 0.25, 0.4F)));
                 }
-
-                for (CarvedGlyph glyph : footprint.glyphs()) {
-                    if (!WorkplaceGeometry.isWithin(Vec3.atCenterOf(glyph.corner()), camera, rangeSqr)) {
-                        continue;
-                    }
-
-                    if (highlight != null && highlight.hit().glyph().isSameGlyph(glyph)) {
-                        ZoneRenderer.renderGlyph(geometry, glyph, HIGHLIGHT_COLOR, HIGHLIGHT_GLYPH_SIZE, alpha, time);
-                    } else {
-                        ZoneRenderer.renderGlyph(geometry, glyph, ZoneRenderer.COLOR, alpha, time);
-                    }
+                if (highlight != null && highlight.footprintIndex() == i && highlight.locked()) {
+                    ZoneRenderer.renderCornerTether(geometry, highlight.anchorBlock(), highlight.block(), alpha, time);
                 }
             }
 

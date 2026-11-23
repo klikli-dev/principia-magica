@@ -5,12 +5,14 @@
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
-import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
+import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
@@ -77,7 +79,8 @@ public class StylusHud {
         if (minecraft.hitResult instanceof EntityHitResult hit
                 && hit.getEntity() instanceof GolemEntity golem
                 && player.getUUID().equals(golem.getOwnerUUID())) {
-            this.renderGolem(graphics, font, golem, x, y);
+            boolean isSelected = golem.getUUID().equals(stylus.get(DataComponentRegistry.STYLUS_SELECTION.get()));
+            this.renderGolem(graphics, font, golem, isSelected, x, y);
             return;
         }
 
@@ -115,43 +118,63 @@ public class StylusHud {
 
         PendingGlyph pending = WorkplaceTargeting.pendingGlyph(stylus, level);
         if (pending != null) {
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.pending_corner")));
+            boolean isMoving = pending.original().isPresent();
+            hints.add(HintLine.neutral(Component.translatable(isMoving
+                    ? "hud.principiamagica.stylus.moving_corner"
+                    : "hud.principiamagica.stylus.pending_corner")));
+            boolean unreachable = golem == null || minecraft.player == null
+                    || golem.distanceToSqr(minecraft.player) > StylusItem.MAX_DISTANCE_SQR;
+            if (isMoving && unreachable) {
+                // The move cannot be placed or cancelled until the golem is reachable again
+                hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.move_closer")));
+                hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.discard_move", KeyCombo.CROUCH_RIGHT_CLICK.component())));
+                return hints;
+            }
+
             BlockHitResult hovered = WorkplaceTargeting.hoveredHit(minecraft);
             if (hovered != null && golem != null) {
                 Workplace workplace = ClientGolemWorkplaceCache.latest(golem.getId())
                         .map(ClientGolemWorkplaceCache.Entry::workplace)
                         .orElse(Workplace.EMPTY);
-                CarvedGlyph ghost = new CarvedGlyph(hovered.getBlockPos(), hovered.getDirection(), pending.ghostLift());
-                EditFailure failure = StylusActions.carveResult(workplace, pending.glyph(), ghost).failure();
+                BlockPos snapped = WorkplaceTargeting.snapReplaceable(level, hovered.getBlockPos());
+                EditFailure failure = StylusActions.placeFootprint(workplace, level.dimension(), pending.pos().pos(), snapped.offset(0, pending.ghostLift(), 0)).failure();
                 if (failure != null) {
                     hints.add(HintLine.problem(failureMessage(failure)));
                 }
             }
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_next")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.carve_opposite")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cancel")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_next", KeyCombo.CROUCH_SCROLL.component())));
+            hints.add(HintLine.neutral(Component.translatable(isMoving
+                    ? "hud.principiamagica.stylus.hint.place_moved_corner"
+                    : "hud.principiamagica.stylus.hint.carve_opposite", KeyCombo.RIGHT_CLICK.component())));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cancel", KeyCombo.RIGHT_CLICK.component())));
             return hints;
         }
 
         if (golem == null) {
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.select_golem", KeyCombo.RIGHT_CLICK.component())));
             return hints;
         }
 
-        if (WorkplaceTargeting.targetedGlyph(minecraft) != null) {
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_corner")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
+        TargetedCorner corner = WorkplaceTargeting.targetedCorner(minecraft);
+        if (corner != null && (corner.locked() || !hoveringLinkedContainer)) {
+            if (corner.locked()) {
+                hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.corner_locked")));
+            }
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_corner", KeyCombo.CROUCH_SCROLL.component())));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.move_corner", KeyCombo.RIGHT_CLICK.component())));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase", KeyCombo.CROUCH_RIGHT_CLICK.component())));
             return hints;
         }
 
         if (hoveringLinkedContainer) {
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cycle_link")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.unlink")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cycle_link", KeyCombo.RIGHT_CLICK.component())));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.unlink", KeyCombo.CROUCH_RIGHT_CLICK.component())));
             return hints;
         }
 
         if (WorkplaceTargeting.targetedZone(minecraft) != null) {
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.move_zone")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase", KeyCombo.CROUCH_RIGHT_CLICK.component())));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.corner_options")));
         }
         return hints;
     }
@@ -165,7 +188,7 @@ public class StylusHud {
         };
     }
 
-    private void renderGolem(GuiGraphicsExtractor graphics, Font font, GolemEntity golem, int x, int y) {
+    private void renderGolem(GuiGraphicsExtractor graphics, Font font, GolemEntity golem, boolean selected, int x, int y) {
         GolemStatus status = golem.getStatus();
         graphics.fill(x, y + (LINE_HEIGHT - DOT_SIZE) / 2, x + DOT_SIZE, y + (LINE_HEIGHT + DOT_SIZE) / 2, statusColor(status));
         graphics.text(font, golem.getName(), x + DOT_SIZE + DOT_GAP, y, TEXT_COLOR, true);
@@ -173,6 +196,10 @@ public class StylusHud {
         if (status != GolemStatus.OK) {
             graphics.text(font, hintOf(status), x + DOT_SIZE + DOT_GAP, y + LINE_HEIGHT, TEXT_COLOR, true);
         }
+
+        int nextY = y + (status != GolemStatus.OK ? 2 : 1) * LINE_HEIGHT;
+        String hintKey = selected ? "hud.principiamagica.stylus.hint.deselect" : "hud.principiamagica.stylus.hint.select";
+        graphics.text(font, Component.translatable(hintKey, KeyCombo.RIGHT_CLICK.component()), x + DOT_SIZE + DOT_GAP, nextY, NEUTRAL_COLOR, true);
     }
 
     /**

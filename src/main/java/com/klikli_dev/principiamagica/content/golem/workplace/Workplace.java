@@ -14,7 +14,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.List;
@@ -56,12 +58,34 @@ public record Workplace(
             (footprints, links, options, memory, initialized) -> new Workplace(footprints, links, options, MemoryEntry.toMap(memory), initialized)
     );
 
+    /**
+     * Codec for item memory maps on their own, e.g. for memory carried by a pending corner move.
+     */
+    public static final Codec<Map<BlockPos, Holder<Item>>> ITEM_MEMORY_CODEC = MemoryEntry.CODEC.listOf().xmap(MemoryEntry::toMap, Workplace::toEntries);
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, Map<BlockPos, Holder<Item>>> ITEM_MEMORY_STREAM_CODEC =
+            MemoryEntry.STREAM_CODEC.apply(ByteBufCodecs.list()).map(MemoryEntry::toMap, Workplace::toEntries);
+
     public Workplace withFootprints(List<WorkFootprint> footprints) {
         List<WorkFootprint> kept = List.copyOf(footprints);
         Map<BlockPos, Holder<Item>> memory = this.itemMemory.entrySet().stream()
                 .filter(entry -> kept.stream().anyMatch(footprint -> footprint.containsColumn(entry.getKey())))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         return new Workplace(kept, this.links, this.options, memory, this.initialized);
+    }
+
+    /**
+     * @return a copy of this workplace with the given memory entries added. Entries whose column is not inside any footprint
+     * of this workplace are dropped, and entries already present are kept.
+     */
+    public Workplace withRestoredMemory(Map<BlockPos, Holder<Item>> memory) {
+        Map<BlockPos, Holder<Item>> merged = new HashMap<>(this.itemMemory);
+        memory.forEach((pos, item) -> {
+            if (this.footprints.stream().anyMatch(footprint -> footprint.containsColumn(pos))) {
+                merged.putIfAbsent(pos, item);
+            }
+        });
+        return withItemMemory(merged);
     }
 
     public Workplace withLinks(List<ContainerLink> links) {
@@ -81,14 +105,29 @@ public record Workplace(
     }
 
     /**
+     * @return the footprints belonging to {@code dimension} (including legacy footprints with no stored dimension)
+     */
+    public List<WorkFootprint> footprintsIn(ResourceKey<Level> dimension) {
+        return this.footprints.stream().filter(footprint -> footprint.isInDimension(dimension)).toList();
+    }
+
+    /**
      * @return the effective boxes of all footprints for a job that reaches the given distances from the working level
      */
     public List<WorkZone> zones(int below, int above) {
         return this.footprints.stream().map(footprint -> footprint.zone(below, above)).toList();
     }
 
+    public List<WorkZone> zones(ResourceKey<Level> dimension, int below, int above) {
+        return this.footprintsIn(dimension).stream().map(footprint -> footprint.zone(below, above)).toList();
+    }
+
     public boolean containsInZone(int below, int above, BlockPos pos) {
         return this.zones(below, above).stream().anyMatch(zone -> zone.contains(pos));
+    }
+
+    public boolean containsInZone(ResourceKey<Level> dimension, int below, int above, BlockPos pos) {
+        return this.zones(dimension, below, above).stream().anyMatch(zone -> zone.contains(pos));
     }
 
     /**
@@ -139,7 +178,11 @@ public record Workplace(
     }
 
     private List<MemoryEntry> memoryEntries() {
-        return this.itemMemory.entrySet().stream().map(entry -> new MemoryEntry(entry.getKey(), entry.getValue())).toList();
+        return toEntries(this.itemMemory);
+    }
+
+    private static List<MemoryEntry> toEntries(Map<BlockPos, Holder<Item>> memory) {
+        return memory.entrySet().stream().map(entry -> new MemoryEntry(entry.getKey(), entry.getValue())).toList();
     }
 
     private record MemoryEntry(BlockPos pos, Holder<Item> item) {

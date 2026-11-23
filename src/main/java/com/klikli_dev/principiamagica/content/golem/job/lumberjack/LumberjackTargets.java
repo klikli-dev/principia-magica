@@ -129,7 +129,7 @@ public final class LumberjackTargets {
      * A remembered replant spot that is inside the zone and currently free for a sapling.
      */
     private static boolean isPlantSpot(ServerLevel level, Workplace workplace, BlockPos pos) {
-        if (!workplace.itemMemory().containsKey(pos) || !workplace.containsInZone(LumberjackJob.BELOW, LumberjackJob.ABOVE, pos)) {
+        if (!workplace.itemMemory().containsKey(pos) || !workplace.containsInZone(level.dimension(), LumberjackJob.BELOW, LumberjackJob.ABOVE, pos)) {
             return false;
         }
 
@@ -153,7 +153,7 @@ public final class LumberjackTargets {
     }
 
     private static boolean isValidMemory(ServerLevel level, Workplace workplace, BlockPos pos, Holder<Item> item) {
-        return workplace.containsInZone(LumberjackJob.BELOW, LumberjackJob.ABOVE, pos) && survives(level, pos, item.value());
+        return workplace.containsInZone(level.dimension(), LumberjackJob.BELOW, LumberjackJob.ABOVE, pos) && survives(level, pos, item.value());
     }
 
     /**
@@ -204,7 +204,7 @@ public final class LumberjackTargets {
      */
     public static boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
         if (template.is(Items.BONE_MEAL)) {
-            return golem.supplyWants().get(level, workplace, template.getItem(), () -> workplace.options().get(BONEMEAL) && anyInZone(workplace, pos -> {
+            return golem.supplyWants().get(level, workplace, template.getItem(), () -> workplace.options().get(BONEMEAL) && anyInZone(level, workplace, pos -> {
                 BlockState state = level.getBlockState(pos);
                 return !isBonemealStalled(golem, pos)
                         && state.is(BlockTags.SAPLINGS)
@@ -218,8 +218,8 @@ public final class LumberjackTargets {
                 && workplace.itemMemory().keySet().stream().anyMatch(pos -> isPlantSpot(level, workplace, pos) && survives(level, pos, template.getItem()));
     }
 
-    private static boolean anyInZone(Workplace workplace, Predicate<BlockPos> test) {
-        for (WorkZone zone : workplace.zones(LumberjackJob.BELOW, LumberjackJob.ABOVE)) {
+    private static boolean anyInZone(ServerLevel level, Workplace workplace, Predicate<BlockPos> test) {
+        for (WorkZone zone : workplace.zones(level.dimension(), LumberjackJob.BELOW, LumberjackJob.ABOVE)) {
             for (int i = 0; i < zone.volume(); i++) {
                 if (test.test(zone.positionAt(i))) {
                     return true;

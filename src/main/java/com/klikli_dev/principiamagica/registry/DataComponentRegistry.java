@@ -54,9 +54,9 @@ public class DataComponentRegistry {
     );
 
     /**
-     * Relative workplace copied from a golem with the stylus (positions relative to the source golem's anchor).
+     * Relative workplace copied from a golem with the imprint tablet (positions relative to the source golem's anchor).
      */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Workplace>> STYLUS_CLIPBOARD = DATA_COMPONENTS.registerComponentType("stylus_clipboard", builder -> builder
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Workplace>> IMPRINT_CLIPBOARD = DATA_COMPONENTS.registerComponentType("imprint_clipboard", builder -> builder
             .persistent(Workplace.CODEC)
             .networkSynchronized(Workplace.STREAM_CODEC)
     );

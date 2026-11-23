@@ -10,15 +10,18 @@ import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The footprint that is being carved with a stylus: a magenta glyph on the first corner plus a ghost corner on the block under
- * the crosshair, lifted by the pending ghost lift. The box spans both corners and chases the ghost position, which is lerped between
- * client ticks, like theurgy's ChasingAABBOutline.
+ * The footprint that is being carved or moved with a stylus: a magenta anchor on the fixed corner plus a ghost corner
+ * on the block under the crosshair, lifted by the pending ghost lift. The box spans both corners and chases the ghost
+ * position, which is lerped between client ticks.
  */
 public class PendingZoneRenderer {
 
@@ -36,11 +39,12 @@ public class PendingZoneRenderer {
     private EditFailure invalidReason;
 
     /**
+     * @param level     the client level for replaceable ground-cover snapping
      * @param pending   the pending corner, or null if there is none
      * @param hovered   the block face under the crosshair, or null if there is none
-     * @param workplace the selected golem's current workplace for collision/size validation
+     * @param workplace the selected golem's current workplace for size validation
      */
-    public void tick(@Nullable PendingGlyph pending, @Nullable BlockHitResult hovered, Workplace workplace) {
+    public void tick(@Nullable ClientLevel level, @Nullable PendingGlyph pending, @Nullable BlockHitResult hovered, Workplace workplace) {
         if (pending == null) {
             this.previous = null;
             this.current = null;
@@ -50,14 +54,16 @@ public class PendingZoneRenderer {
         }
 
         AABB target;
-        if (hovered == null) {
+        if (hovered == null || level == null) {
             this.ghost = null;
             this.invalidReason = null;
-            target = new AABB(pending.glyph().corner());
+            target = new AABB(pending.pos().pos());
         } else {
-            this.ghost = new CarvedGlyph(hovered.getBlockPos(), hovered.getDirection(), pending.ghostLift());
-            this.invalidReason = StylusActions.carveResult(workplace, pending.glyph(), this.ghost).failure();
-            target = WorkFootprint.of(pending.glyph(), this.ghost).zone(0, 0).aabb();
+            BlockPos snapped = WorkplaceTargeting.snapReplaceable(level, hovered.getBlockPos());
+            Direction face = snapped.equals(hovered.getBlockPos()) ? hovered.getDirection() : Direction.UP;
+            this.ghost = new CarvedGlyph(snapped, face, pending.ghostLift());
+            this.invalidReason = StylusActions.placeFootprint(workplace, level.dimension(), pending.pos().pos(), this.ghost.corner()).failure();
+            target = WorkFootprint.ofBox(pending.pos().pos(), this.ghost.corner()).zone(0, 0).aabb();
         }
 
         if (this.current == null) {
@@ -83,9 +89,9 @@ public class PendingZoneRenderer {
             return;
         }
 
-        AABB box = lerp(this.previous, this.current, partialTick);
+        AABB box = lerp(this.previous, this.current, partialTick).inflate(0.01);
         geometry.boxFaces(box, WorkplaceGeometry.argb(boxColor, alpha * 0.06F));
-        geometry.boxEdges(box.inflate(0.01), WorkplaceGeometry.argb(boxColor, alpha * 0.9F * pulse));
+        geometry.boxEdges(box, WorkplaceGeometry.argb(boxColor, alpha * 0.9F * pulse));
     }
 
     private static AABB lerp(AABB from, AABB to, double t) {

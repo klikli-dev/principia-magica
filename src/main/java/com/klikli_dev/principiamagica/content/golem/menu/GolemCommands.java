@@ -14,6 +14,7 @@ import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -68,6 +69,8 @@ public final class GolemCommands {
         Workplace current = golem.getWorkplace(level).orElse(Workplace.EMPTY);
         edit.apply(current).ifPresent(updated -> {
             golem.updateWorkplace(ignored -> updated);
+            golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
+            golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
             StylusItem.syncWorkplace(player, golem);
         });
     }

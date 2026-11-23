@@ -114,7 +114,7 @@ public class GolemItem extends Item implements GeoItem {
 
         Workplace stored = stack.get(DataComponentRegistry.GOLEM_WORKPLACE.get());
         if (stored != null) {
-            golem.updateWorkplace(current -> StylusActions.toAbsolute(stored, pos));
+            golem.updateWorkplace(current -> StylusActions.toAbsoluteForDimension(stored, pos, serverLevel.dimension()));
         }
 
         GolemStorage storage = stack.get(DataComponentRegistry.GOLEM_STORAGE.get());

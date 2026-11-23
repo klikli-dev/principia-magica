@@ -4,10 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
-import net.minecraft.world.entity.item.ItemEntity;
-
-import net.minecraft.world.item.Items;
-
+import com.klikli_dev.principiamagica.content.golem.ai.sensor.WorkTargetSensor;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -88,12 +85,12 @@ public class RestockItems extends MoveToAndInteract {
     }
 
     /**
-     * The cooldown only applies while the hand is free. A busy hand is checked cheaply every time, and a cooldown set now would otherwise
-     * still run when the hand becomes free, e.g. right after the golem deposited its harvest.
+     * The cooldown only applies while the hand is free (or holding a tool that can be stowed). A busy hand is checked cheaply every time,
+     * and a cooldown set now would otherwise still run when the hand becomes free, e.g. right after the golem deposited its harvest.
      */
     @Override
     protected void onNoTarget(ServerLevel level, GolemEntity golem) {
-        if (golem.getHandItem().isEmpty()) {
+        if (golem.getHandItem().isEmpty() || this.canStowToolForRestock(level, golem)) {
             golem.getBrain().setMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value(), COOLDOWN_TICKS);
         }
     }
@@ -147,10 +144,11 @@ public class RestockItems extends MoveToAndInteract {
             return 0;
         }
 
-        // Supplies only go into a free hand or onto the same supply, a tool stays where it is. The job must also have a target for the item,
-        // otherwise the golem would fetch it, find nothing to do with it and put it away again.
+        // Supplies go into a free hand, onto the same supply, or into the hand after stowing the job's tool on an empty back once no
+        // tool work is waiting. The job must also have a target for the item, otherwise the golem would fetch it, find nothing to do with it
+        // and put it away again.
         ItemStack hand = golem.getHandItem();
-        if (!hand.isEmpty() && !ItemStack.isSameItemSameComponents(hand, template)) {
+        if (!hand.isEmpty() && !ItemStack.isSameItemSameComponents(hand, template) && !this.canStowToolForRestock(level, golem)) {
             return 0;
         }
 
@@ -161,5 +159,23 @@ public class RestockItems extends MoveToAndInteract {
 
         int missing = keep - golem.countCarried(template.getItem());
         return Math.max(0, Math.min(missing, golem.carryFitAmount(template)));
+    }
+
+    /**
+     * A golem holding its job tool can stow it on an empty back to fetch supplies once the sensor has had a chance to scan
+     * and no immediate work candidate is waiting for the tool, so it finishes tilling/harvesting/felling before switching to
+     * planting or fertilising. Note that Brain erases empty lists, so an absent WORK_CANDIDATES memory means no candidates.
+     */
+    private boolean canStowToolForRestock(ServerLevel level, GolemEntity golem) {
+        if (golem.tickCount < WorkTargetSensor.SCAN_RATE
+                || !golem.isTool(golem.getHandItem())
+                || !golem.getBackItem().isEmpty()) {
+            return false;
+        }
+
+        return golem.getBrain().getMemory(MemoryModuleTypeRegistry.WORK_CANDIDATES.value())
+                .map(candidates -> candidates.stream()
+                        .noneMatch(pos -> isAvailable(level, golem, pos) && this.job.targetFinder().isTarget(level, golem, pos)))
+                .orElse(true);
     }
 }

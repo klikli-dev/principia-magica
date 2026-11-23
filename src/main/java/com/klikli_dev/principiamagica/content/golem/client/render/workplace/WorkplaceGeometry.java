@@ -35,6 +35,7 @@ public final class WorkplaceGeometry {
     private final VertexConsumer beams;
     private final VertexConsumer fills;
     private final VertexConsumer decals;
+    private final VertexConsumer xrayDecals;
 
     public WorkplaceGeometry(MultiBufferSource buffers, PoseStack.Pose pose, Vec3 camera) {
         this.pose = pose;
@@ -43,6 +44,7 @@ public final class WorkplaceGeometry {
         this.beams = buffers.getBuffer(WorkplaceRenderTypes.BEAM);
         this.fills = buffers.getBuffer(WorkplaceRenderTypes.FILL);
         this.decals = buffers.getBuffer(WorkplaceRenderTypes.GLYPH);
+        this.xrayDecals = buffers.getBuffer(WorkplaceRenderTypes.GLYPH_XRAY);
     }
 
     public static int argb(int rgb, float alpha) {
@@ -107,6 +109,17 @@ public final class WorkplaceGeometry {
      * Textured glyph decal lying flat on a face of a block, slightly off the face so it does not z-fight. Has no collision.
      */
     public void decal(BlockPos pos, Direction face, float size, int argb) {
+        this.decal(this.decals, pos, face, size, argb);
+    }
+
+    /**
+     * Same as {@link #decal}, but drawn without depth testing so it stays visible through terrain.
+     */
+    public void xrayDecal(BlockPos pos, Direction face, float size, int argb) {
+        this.decal(this.xrayDecals, pos, face, size, argb);
+    }
+
+    private void decal(VertexConsumer consumer, BlockPos pos, Direction face, float size, int argb) {
         Vec3 normal = new Vec3(face.getStepX(), face.getStepY(), face.getStepZ());
         Vec3 centre = Vec3.atCenterOf(pos).add(normal.scale(0.5 + DECAL_OFFSET));
         Vec3 u;
@@ -125,10 +138,10 @@ public final class WorkplaceGeometry {
         double half = size * 0.5;
         Vec3 du = u.scale(half);
         Vec3 dv = v.scale(half);
-        this.vertex(this.decals, centre.subtract(du).subtract(dv), 0.0F, 0.0F, argb);
-        this.vertex(this.decals, centre.subtract(du).add(dv), 0.0F, 1.0F, argb);
-        this.vertex(this.decals, centre.add(du).add(dv), 1.0F, 1.0F, argb);
-        this.vertex(this.decals, centre.add(du).subtract(dv), 1.0F, 0.0F, argb);
+        this.vertex(consumer, centre.subtract(du).subtract(dv), 0.0F, 0.0F, argb);
+        this.vertex(consumer, centre.subtract(du).add(dv), 0.0F, 1.0F, argb);
+        this.vertex(consumer, centre.add(du).add(dv), 1.0F, 1.0F, argb);
+        this.vertex(consumer, centre.add(du).subtract(dv), 1.0F, 0.0F, argb);
     }
 
     /**
@@ -143,6 +156,17 @@ public final class WorkplaceGeometry {
             this.ribbon(previous, next, argb);
             previous = next;
         }
+    }
+
+    /**
+     * Small 3D 3-axis cross marking an interactive box corner. Depth tested, so it is hidden behind terrain.
+     */
+    public void cornerNode(Vec3 centre, float size, int argb) {
+        float width = size * 0.25F;
+        double half = size * 0.5;
+        this.segment(this.ribbons, centre.add(-half, 0.0, 0.0), centre.add(half, 0.0, 0.0), width, argb);
+        this.segment(this.ribbons, centre.add(0.0, -half, 0.0), centre.add(0.0, half, 0.0), width, argb);
+        this.segment(this.ribbons, centre.add(0.0, 0.0, -half), centre.add(0.0, 0.0, half), width, argb);
     }
 
     /**

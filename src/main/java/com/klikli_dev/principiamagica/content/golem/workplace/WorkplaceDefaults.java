@@ -32,7 +32,7 @@ public final class WorkplaceDefaults {
      * The anchor moves to the current position so the footprint and the golem's home agree. Existing footprints and links are kept.
      */
     public static void applyIfEmpty(GolemEntity golem, ServerLevel level) {
-        if (golem.getWorkplace(level).map(workplace -> !workplace.footprints().isEmpty()).orElse(true)) {
+        if (golem.getWorkplace(level).map(workplace -> !workplace.footprintsIn(level.dimension()).isEmpty()).orElse(true)) {
             return;
         }
 
@@ -53,7 +53,7 @@ public final class WorkplaceDefaults {
         }
 
         return workplace
-                .withFootprints(List.of(WorkFootprint.centered(anchor, RADIUS, anchor.getY() - GROUND_OFFSET)))
+                .withFootprints(List.of(WorkFootprint.centered(anchor, RADIUS, anchor.getY() - GROUND_OFFSET).withDimension(level.dimension())))
                 .withLinks(links)
                 .markInitialized();
     }

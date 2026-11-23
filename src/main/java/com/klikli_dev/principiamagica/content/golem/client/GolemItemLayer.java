@@ -36,9 +36,11 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
     static final String BACK_BONE = "BackItem";
 
     /**
-     * The middle of the hands. The hands hang at x = ±5.25 and y = 4.5, the torso pivot is at y = 6, so the middle is 1.5 pixels below it.
+     * Offset from the torso pivot (y = 6) to where the raised carrying arms meet (y ≈ 11, z ≈ -7.5..-8) after the
+     * third-person hand transform adds (0, -1, -4.5) px for blocks and (0, 0, -5) px for flat items.
      */
-    private static final float CARRY_OFFSET_Y = 1.5F / 16.0F;
+    private static final float CARRY_OFFSET_Y = 6.0F / 16.0F;
+    private static final float CARRY_OFFSET_Z = -3.0F / 16.0F;
 
     /**
      * Where an item is drawn, and which item it is.
@@ -128,7 +130,7 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
     protected void submitItemStackRender(PoseStack poseStack, GeoBone bone, ItemStackRenderState stackState, ItemDisplayContext displayContext, GolemRenderState renderState, SubmitNodeCollector renderTasks, int packedLight) {
         poseStack.pushPose();
         if (TORSO_BONE.equals(bone.name())) {
-            poseStack.translate(0.0F, -CARRY_OFFSET_Y, 0.0F);
+            poseStack.translate(0.0F, CARRY_OFFSET_Y, CARRY_OFFSET_Z);
         }
 
         if (BACK_BONE.equals(bone.name())) {
