@@ -13,6 +13,7 @@ import com.klikli_dev.principiamagica.client.gui.GuiStyles;
 import com.klikli_dev.principiamagica.client.gui.Tab;
 import com.klikli_dev.principiamagica.client.gui.TabHost;
 import com.klikli_dev.principiamagica.client.gui.WidgetGroup;
+import com.klikli_dev.principiamagica.client.gui.widget.ScrollList;
 import com.klikli_dev.principiamagica.client.gui.widget.SpriteWidget;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache.Entry;
@@ -26,6 +27,7 @@ import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
@@ -123,6 +125,21 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
         if (!hasAxiom) {
             this.tabs.select(GolemMenuTab.GOLEM.ordinal());
         }
+    }
+
+    /**
+     * The wheel scrolls the scroll list under the cursor first. Vanilla's container screen only routes the wheel to slots, so the list
+     * would never see it otherwise.
+     */
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        for (GuiEventListener child : this.children()) {
+            if (child instanceof ScrollList<?> list && list.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+                return true;
+            }
+        }
+
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     /**
