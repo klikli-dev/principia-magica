@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.item;
 
+import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
@@ -303,7 +304,7 @@ public class StylusItem extends Item {
                     pos.getX(), pos.getY(), pos.getZ()).withStyle(ChatFormatting.GRAY));
         }
 
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_select").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_pickup").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_select", KeyCombo.RIGHT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_pickup", KeyCombo.CROUCH_LEFT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
     }
 }

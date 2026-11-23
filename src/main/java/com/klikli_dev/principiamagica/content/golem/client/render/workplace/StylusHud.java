@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -131,16 +132,16 @@ public class StylusHud {
                     hints.add(HintLine.problem(failureMessage(failure)));
                 }
             }
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_next")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_next", KeyCombo.CROUCH_SCROLL.component())));
             hints.add(HintLine.neutral(Component.translatable(isMoving
                     ? "hud.principiamagica.stylus.hint.place_moved_corner"
-                    : "hud.principiamagica.stylus.hint.carve_opposite")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cancel")));
+                    : "hud.principiamagica.stylus.hint.carve_opposite", KeyCombo.RIGHT_CLICK.component())));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cancel", KeyCombo.RIGHT_CLICK.component())));
             return hints;
         }
 
         if (golem == null) {
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.select_golem")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.select_golem", KeyCombo.RIGHT_CLICK.component())));
             return hints;
         }
 
@@ -149,20 +150,20 @@ public class StylusHud {
             if (corner.locked()) {
                 hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.corner_locked")));
             }
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_corner")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.move_corner")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_corner", KeyCombo.CROUCH_SCROLL.component())));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.move_corner", KeyCombo.RIGHT_CLICK.component())));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase", KeyCombo.CROUCH_RIGHT_CLICK.component())));
             return hints;
         }
 
         if (hoveringLinkedContainer) {
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cycle_link")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.unlink")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cycle_link", KeyCombo.RIGHT_CLICK.component())));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.unlink", KeyCombo.CROUCH_RIGHT_CLICK.component())));
             return hints;
         }
 
         if (WorkplaceTargeting.targetedZone(minecraft) != null) {
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase", KeyCombo.CROUCH_RIGHT_CLICK.component())));
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.corner_options")));
         }
         return hints;
@@ -188,7 +189,7 @@ public class StylusHud {
 
         int nextY = y + (status != GolemStatus.OK ? 2 : 1) * LINE_HEIGHT;
         String hintKey = selected ? "hud.principiamagica.stylus.hint.deselect" : "hud.principiamagica.stylus.hint.select";
-        graphics.text(font, Component.translatable(hintKey), x + DOT_SIZE + DOT_GAP, nextY, NEUTRAL_COLOR, true);
+        graphics.text(font, Component.translatable(hintKey, KeyCombo.RIGHT_CLICK.component()), x + DOT_SIZE + DOT_GAP, nextY, NEUTRAL_COLOR, true);
     }
 
     /**

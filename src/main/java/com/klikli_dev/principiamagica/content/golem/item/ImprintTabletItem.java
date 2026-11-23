@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.item;
 
+import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
@@ -93,7 +94,7 @@ public class ImprintTabletItem extends Item {
                 ? Component.translatable("tooltip.principiamagica.imprint_tablet.clipboard_empty").withStyle(ChatFormatting.GRAY)
                 : Component.translatable("tooltip.principiamagica.imprint_tablet.clipboard", clipboard.footprints().size(), clipboard.links().size()).withStyle(ChatFormatting.GRAY));
 
-        adder.accept(Component.translatable("tooltip.principiamagica.imprint_tablet.hint_copy_paste").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.imprint_tablet.hint_clear").withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.imprint_tablet.hint_copy_paste", KeyCombo.CROUCH_RIGHT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.imprint_tablet.hint_clear", KeyCombo.CROUCH_RIGHT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
     }
 }

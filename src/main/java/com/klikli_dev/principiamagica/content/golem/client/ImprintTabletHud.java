@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.client;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.ImprintTabletItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
@@ -73,9 +74,9 @@ public class ImprintTabletHud {
                 && player.getUUID().equals(golem.getOwnerUUID())) {
             hints.add(Component.translatable(hasClipboard
                     ? "hud.principiamagica.imprint_tablet.hint.paste"
-                    : "hud.principiamagica.imprint_tablet.hint.copy"));
+                    : "hud.principiamagica.imprint_tablet.hint.copy", KeyCombo.CROUCH_RIGHT_CLICK.component()));
         } else if (hasClipboard) {
-            hints.add(Component.translatable("hud.principiamagica.imprint_tablet.hint.clear"));
+            hints.add(Component.translatable("hud.principiamagica.imprint_tablet.hint.clear", KeyCombo.CROUCH_RIGHT_CLICK.component()));
         }
         return hints;
     }
