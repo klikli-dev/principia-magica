@@ -77,7 +77,8 @@ public class StylusHud {
         if (minecraft.hitResult instanceof EntityHitResult hit
                 && hit.getEntity() instanceof GolemEntity golem
                 && player.getUUID().equals(golem.getOwnerUUID())) {
-            this.renderGolem(graphics, font, golem, x, y);
+            boolean isSelected = golem.getUUID().equals(stylus.get(DataComponentRegistry.STYLUS_SELECTION.get()));
+            this.renderGolem(graphics, font, golem, isSelected, x, y);
             return;
         }
 
@@ -134,6 +135,7 @@ public class StylusHud {
         }
 
         if (golem == null) {
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.select_golem")));
             return hints;
         }
 
@@ -165,7 +167,7 @@ public class StylusHud {
         };
     }
 
-    private void renderGolem(GuiGraphicsExtractor graphics, Font font, GolemEntity golem, int x, int y) {
+    private void renderGolem(GuiGraphicsExtractor graphics, Font font, GolemEntity golem, boolean selected, int x, int y) {
         GolemStatus status = golem.getStatus();
         graphics.fill(x, y + (LINE_HEIGHT - DOT_SIZE) / 2, x + DOT_SIZE, y + (LINE_HEIGHT + DOT_SIZE) / 2, statusColor(status));
         graphics.text(font, golem.getName(), x + DOT_SIZE + DOT_GAP, y, TEXT_COLOR, true);
@@ -173,6 +175,10 @@ public class StylusHud {
         if (status != GolemStatus.OK) {
             graphics.text(font, hintOf(status), x + DOT_SIZE + DOT_GAP, y + LINE_HEIGHT, TEXT_COLOR, true);
         }
+
+        int nextY = y + (status != GolemStatus.OK ? 2 : 1) * LINE_HEIGHT;
+        String hintKey = selected ? "hud.principiamagica.stylus.hint.deselect" : "hud.principiamagica.stylus.hint.select";
+        graphics.text(font, Component.translatable(hintKey), x + DOT_SIZE + DOT_GAP, nextY, NEUTRAL_COLOR, true);
     }
 
     /**

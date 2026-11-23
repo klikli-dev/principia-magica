@@ -185,6 +185,9 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.stylus.hint.cycle_link", "Right-click: cycle link");
         this.add("hud.principiamagica.stylus.hint.unlink", "Shift-right-click: unlink");
         this.add("hud.principiamagica.stylus.hint.move_zone", "Shift-scroll: move up / down");
+        this.add("hud.principiamagica.stylus.hint.select_golem", "Right-click a golem: select");
+        this.add("hud.principiamagica.stylus.hint.select", "Right-click: select");
+        this.add("hud.principiamagica.stylus.hint.deselect", "Right-click: deselect");
         this.add("hud.principiamagica.libation.empty", "Empty");
         this.add("hud.principiamagica.libation.status.curing", "Curing");
         this.add("hud.principiamagica.libation.status.spout_open", "Spout open");
@@ -263,12 +266,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("tooltip.principiamagica.copper_stylus.clipboard", "Clipboard: %s footprints, %s container links");
         this.add("tooltip.principiamagica.copper_stylus.hint_select", "Right-click golem: select / deselect");
         this.add("tooltip.principiamagica.copper_stylus.hint_copy_paste", "Shift-right-click golem: copy workplace / paste clipboard");
-        this.add("tooltip.principiamagica.copper_stylus.hint_link", "Right-click container: cycle supply, deposit, both, removed");
-        this.add("tooltip.principiamagica.copper_stylus.hint_zone", "Right-click two block faces: carve a footprint");
-        this.add("tooltip.principiamagica.copper_stylus.hint_raise", "Shift-scroll: adjust corner height or move work area up / down");
-        this.add("tooltip.principiamagica.copper_stylus.hint_remove", "Shift-right-click work area or container: remove it");
         this.add("tooltip.principiamagica.copper_stylus.hint_pickup", "Shift-left-click own golem: pick up (keeps workplace)");
-        this.add("tooltip.principiamagica.copper_stylus.hint_clear", "Shift-right-click air: clear selection and clipboard");
 
         this.langCache.data().forEach(this::add);
     }
