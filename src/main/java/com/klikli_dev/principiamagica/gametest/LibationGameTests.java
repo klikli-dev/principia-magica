@@ -6,8 +6,10 @@ package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
+import com.klikli_dev.principiamagica.content.libation.PrincipleSelection;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.item.ClayPhialItem;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlock;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.slab.SpoutSide;
@@ -18,8 +20,10 @@ import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.SteepingRecipe;
 import com.klikli_dev.principiamagica.registry.BlockRegistry;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
@@ -33,12 +37,23 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.List;
+import java.util.function.Predicate;
 
 public class LibationGameTests {
 
@@ -504,5 +519,216 @@ public class LibationGameTests {
         slab.useItemOn(new ItemStack(Items.BONE), player, InteractionHand.MAIN_HAND);
         helper.assertTrue(slab.getWater() == LibationSlabBlockEntity.WATER_CAPACITY, "A water bucket should fill the slab, got " + slab.getWater());
         return slab;
+    }
+
+    /**
+     * All principle blocks expose {@link Capabilities.Fluid#BLOCK}: vessels and troughs support transactional
+     * principle fluid insert/extract with abort rollback (and reject water), while the libation slab accepts water
+     * and exposes principles as extract-only.
+     */
+    public static void principleBlockCapabilitiesInsertAndExtract(GameTestHelper helper) {
+        BlockPos basinPos = new BlockPos(2, 2, 2);
+        BlockPos jarPos = new BlockPos(3, 2, 2);
+        BlockPos troughPos = new BlockPos(4, 2, 2);
+        BlockPos slabPos = new BlockPos(5, 2, 2);
+
+        helper.setBlock(basinPos, BlockRegistry.WABET_BASIN.get().defaultBlockState());
+        helper.setBlock(jarPos, BlockRegistry.STEEPING_JAR.get().defaultBlockState());
+        helper.setBlock(troughPos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        helper.setBlock(slabPos, BlockRegistry.LIBATION_SLAB.get().defaultBlockState());
+
+        FluidResource loam = FluidRegistry.resourceFor(PrincipleRegistry.LOAM);
+        FluidResource water = FluidResource.of(Fluids.WATER);
+        for (BlockPos rel : List.of(basinPos, jarPos, troughPos)) {
+            ResourceHandler<FluidResource> handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(rel), Direction.UP);
+            helper.assertTrue(handler != null, "Expected fluid capability at " + rel);
+
+            // Water must be rejected by vessels and troughs.
+            try (Transaction tx = Transaction.open(null)) {
+                int waterInserted = handler.insert(water, 100, tx);
+                helper.assertTrue(waterInserted == 0, "Vessels and troughs should reject water, got " + waterInserted + " at " + rel);
+            }
+
+            // Aborted transaction must leave state untouched.
+            try (Transaction tx = Transaction.open(null)) {
+                int inserted = handler.insert(loam, 100, tx);
+                helper.assertTrue(inserted == 100, "Expected 100 mB inserted in simulation at " + rel);
+            }
+            try (Transaction tx = Transaction.open(null)) {
+                int extracted = handler.extract(loam, 100, tx);
+                helper.assertTrue(extracted == 0, "Aborted insert should have rolled back at " + rel);
+            }
+
+            try (Transaction tx = Transaction.open(null)) {
+                int inserted = handler.insert(loam, 150, tx);
+                helper.assertTrue(inserted == 150, "Expected 150 mB committed at " + rel);
+                tx.commit();
+            }
+            try (Transaction tx = Transaction.open(null)) {
+                int extracted = handler.extract(loam, 50, tx);
+                helper.assertTrue(extracted == 50, "Expected 50 mB extracted at " + rel);
+                tx.commit();
+            }
+        }
+
+        // Libation slab accepts water insertion, refuses principle insertion, and allows principle extraction.
+        ResourceHandler<FluidResource> slabHandler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(slabPos), Direction.UP);
+        helper.assertTrue(slabHandler != null, "Expected fluid capability on libation slab");
+        try (Transaction tx = Transaction.open(null)) {
+            int inserted = slabHandler.insert(loam, 50, tx);
+            helper.assertTrue(inserted == 0, "Libation slab should refuse principle insertion, got " + inserted);
+        }
+        LibationSlabBlockEntity slabBe = stockSlab(helper, slabPos);
+        helper.runAfterDelay(120, () -> {
+            helper.assertTrue(slabBe.getStored().total() == 50, "Expected 50 mB ash in slab");
+            try (Transaction tx = Transaction.open(null)) {
+                int extractedWater = slabHandler.extract(water, 100, tx);
+                helper.assertTrue(extractedWater == 0, "Libation slab water should be insert-only, extracted " + extractedWater);
+                int extracted = slabHandler.extract(FluidRegistry.resourceFor(PrincipleRegistry.ASH), 50, tx);
+                helper.assertTrue(extracted == 50, "Expected 50 mB ash extracted from slab, got " + extracted);
+                tx.commit();
+            }
+            helper.assertTrue(slabBe.getStored().isEmpty(), "Slab should be empty after extraction");
+            helper.succeed();
+        });
+    }
+
+    /**
+     * Clay phials hold up to 250 mB, fill/pour like buckets, stack when holding the exact same principle, and top up on crouch-click.
+     */
+    public static void clayPhialFillsPoursAndStacks(GameTestHelper helper) {
+        BlockPos basinPos = new BlockPos(3, 2, 3);
+        BlockPos troughPos = new BlockPos(4, 2, 3);
+        helper.setBlock(basinPos, BlockRegistry.WABET_BASIN.get().defaultBlockState());
+        helper.setBlock(troughPos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+
+        CuringVesselBlockEntity basin = (CuringVesselBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(basinPos));
+        CatchTroughBlockEntity trough = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(troughPos));
+        basin.insert(PrincipleContents.of(new PrincipleStack(PrincipleRegistry.LOAM, 600)), false);
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.CLAY_PHIAL.get(), 4));
+
+        // Draw twice from the basin (250 mB each) -> 2 empty phials remain in hand, 2 full Loam phials stacked in inventory.
+        InteractionResult firstDraw = useHeldOn(helper, player, basinPos);
+        InteractionResult secondDraw = useHeldOn(helper, player, basinPos);
+        helper.assertTrue(firstDraw.consumesAction() && secondDraw.consumesAction(), "Drawing from basin should succeed");
+        helper.assertTrue(basin.getPrinciples().get(PrincipleRegistry.LOAM) == 100, "Basin should have 100 mB Loam left, got " + basin.getPrinciples().get(PrincipleRegistry.LOAM));
+        helper.assertTrue(player.getMainHandItem().getCount() == 2, "Main hand should have 2 empty phials left, got " + player.getMainHandItem().getCount());
+
+        ItemStack fullStack = findPhialStack(player, stack -> !ClayPhialItem.isEmpty(stack));
+        helper.assertTrue(!fullStack.isEmpty() && fullStack.getCount() == 2, "Full Loam phials should stack together (expected count 2, got " + fullStack.getCount() + ")");
+
+        // Pour one full phial into the trough using the stacked full phials.
+        player.setItemInHand(InteractionHand.MAIN_HAND, fullStack.copy());
+        InteractionResult pourResult = useHeldOn(helper, player, troughPos);
+        helper.assertTrue(pourResult.consumesAction(), "Pouring into trough should succeed");
+        helper.assertTrue(trough.getPrinciples().get(PrincipleRegistry.LOAM) == 250, "Trough should hold 250 mB Loam");
+        helper.assertTrue(player.getMainHandItem().getCount() == 1 && !ClayPhialItem.isEmpty(player.getMainHandItem()), "One full phial should remain in main hand");
+
+        // Partial phial (100 mB) tops up from basin on crouch-click.
+        player.setItemInHand(InteractionHand.MAIN_HAND, ClayPhialItem.createFilled(PrincipleRegistry.LOAM, 100));
+        player.setShiftKeyDown(true);
+        InteractionResult topUp = useHeldOn(helper, player, basinPos);
+        player.setShiftKeyDown(false);
+        helper.assertTrue(topUp.consumesAction(), "Crouch-click top up should succeed");
+        PrincipleStack stored = ClayPhialItem.getStored(player.getMainHandItem());
+        helper.assertTrue(stored != null && stored.amount() == 200, "Partial phial should top up to 200 mB, got " + stored);
+        helper.assertTrue(basin.getPrinciples().isEmpty(), "Basin should be empty after top up");
+        helper.succeed();
+    }
+
+    /**
+     * An empty clay phial draws only the HUD-selected principle from a mixed container.
+     */
+    public static void clayPhialSeparatesMixedPrinciples(GameTestHelper helper) {
+        BlockPos troughPos = new BlockPos(3, 2, 3);
+        helper.setBlock(troughPos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity trough = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(troughPos));
+        trough.insert(PrincipleContents.of(
+                new PrincipleStack(PrincipleRegistry.SILT, 100),
+                new PrincipleStack(PrincipleRegistry.LOAM, 100)), false);
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.CLAY_PHIAL.get()));
+        PrincipleSelection.set(player, PrincipleRegistry.LOAM);
+
+        InteractionResult result = useHeldOn(helper, player, troughPos);
+        PrincipleSelection.set(player, null);
+
+        helper.assertTrue(result.consumesAction(), "Phial draw should succeed");
+        PrincipleStack drawn = ClayPhialItem.getStored(player.getMainHandItem());
+        helper.assertTrue(drawn != null && drawn.principle().value().equals(PrincipleRegistry.LOAM.get()) && drawn.amount() == 100,
+                "Phial should hold 100 mB Loam, got " + drawn);
+        helper.assertTrue(trough.getPrinciples().get(PrincipleRegistry.SILT) == 100, "Trough should still hold 100 mB Silt");
+        helper.assertTrue(trough.getPrinciples().get(PrincipleRegistry.LOAM) == 0, "Trough should have 0 mB Loam left");
+        helper.succeed();
+    }
+
+    /**
+     * Natron sponge blots only the selected principle on normal right-click, and purges all principles on crouch-right-click.
+     */
+    public static void natronSpongeBlotsSelectedAndPurgesAll(GameTestHelper helper) {
+        BlockPos troughPos = new BlockPos(3, 2, 3);
+        helper.setBlock(troughPos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity trough = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(troughPos));
+        trough.insert(PrincipleContents.of(
+                new PrincipleStack(PrincipleRegistry.SILT, 100),
+                new PrincipleStack(PrincipleRegistry.LOAM, 100)), false);
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.NATRON_SPONGE.get()));
+        PrincipleSelection.set(player, PrincipleRegistry.SILT);
+
+        InteractionResult blotResult = useHeldOn(helper, player, troughPos);
+        PrincipleSelection.set(player, null);
+        helper.assertTrue(blotResult.consumesAction(), "Blotting should succeed");
+        helper.assertTrue(trough.getPrinciples().get(PrincipleRegistry.SILT) == 0, "Silt should be blotted out");
+        helper.assertTrue(trough.getPrinciples().get(PrincipleRegistry.LOAM) == 100, "Loam should remain untouched");
+
+        trough.insert(PrincipleContents.of(new PrincipleStack(PrincipleRegistry.ASH, 50)), false);
+        player.setShiftKeyDown(true);
+        InteractionResult purgeResult = useHeldOn(helper, player, troughPos);
+        player.setShiftKeyDown(false);
+        helper.assertTrue(purgeResult.consumesAction(), "Crouch-click purge should succeed");
+        helper.assertTrue(trough.getPrinciples().isEmpty(), "Trough should be completely empty after purge, holds " + trough.getPrinciples());
+        helper.succeed();
+    }
+
+    /**
+     * Crafting three clay balls around quickened clay yields eight clay phials.
+     */
+    public static void clayPhialRecipeProducesEight(GameTestHelper helper) {
+        CraftingInput input = CraftingInput.of(3, 2, List.of(
+                new ItemStack(Items.CLAY_BALL),
+                new ItemStack(ItemRegistry.QUICKENED_CLAY.get()),
+                new ItemStack(Items.CLAY_BALL),
+                ItemStack.EMPTY,
+                new ItemStack(Items.CLAY_BALL),
+                ItemStack.EMPTY
+        ));
+        var recipe = helper.getLevel().getServer().getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
+        helper.assertTrue(recipe.isPresent(), "Clay phial crafting recipe should match 3 clay balls + 1 quickened clay");
+        ItemStack output = recipe.get().value().assemble(input);
+        helper.assertTrue(output.is(ItemRegistry.CLAY_PHIAL.get()) && output.getCount() == 8,
+                "Expected 8 clay phials, got " + output);
+        helper.succeed();
+    }
+
+    private static InteractionResult useHeldOn(GameTestHelper helper, Player player, BlockPos relPos) {
+        BlockPos absPos = helper.absolutePos(relPos);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absPos), Direction.UP, absPos, false);
+        return player.getMainHandItem().useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+    }
+
+    private static ItemStack findPhialStack(Player player, Predicate<ItemStack> predicate) {
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (stack.is(ItemRegistry.CLAY_PHIAL.get()) && predicate.test(stack)) {
+                return stack;
+            }
+        }
+        return ItemStack.EMPTY;
     }
 }

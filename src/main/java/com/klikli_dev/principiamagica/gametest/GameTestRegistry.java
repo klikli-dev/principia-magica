@@ -442,6 +442,21 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_DRYING_SLAB_HOPPER_INSERTS_AND_EXTRACTS =
             TEST_FUNCTIONS.register("libation_drying_slab_hopper_inserts_and_extracts", () -> LibationGameTests::dryingSlabHopperInsertsInputAndExtractsOutput);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_PRINCIPLE_BLOCK_CAPABILITIES =
+            TEST_FUNCTIONS.register("libation_principle_block_capabilities", () -> LibationGameTests::principleBlockCapabilitiesInsertAndExtract);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_CLAY_PHIAL_FILLS_POURS_AND_STACKS =
+            TEST_FUNCTIONS.register("libation_clay_phial_fills_pours_and_stacks", () -> LibationGameTests::clayPhialFillsPoursAndStacks);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_CLAY_PHIAL_SEPARATES_MIXED_PRINCIPLES =
+            TEST_FUNCTIONS.register("libation_clay_phial_separates_mixed_principles", () -> LibationGameTests::clayPhialSeparatesMixedPrinciples);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_NATRON_SPONGE_BLOTS_AND_PURGES =
+            TEST_FUNCTIONS.register("libation_natron_sponge_blots_and_purges", () -> LibationGameTests::natronSpongeBlotsSelectedAndPurgesAll);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_CLAY_PHIAL_RECIPE_PRODUCES_EIGHT =
+            TEST_FUNCTIONS.register("libation_clay_phial_recipe_produces_eight", () -> LibationGameTests::clayPhialRecipeProducesEight);
+
     // --- Persistence ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PERSISTENCE_SAVE_AND_LOAD_KEEPS_EVERYTHING =
@@ -690,6 +705,11 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LIBATION_DRYING_SLAB_DRIES_INTO_OUTPUT, environment, structure, 600, 0);
         registerTest(event, LIBATION_DRYING_SLAB_STALLS_WHEN_OUTPUT_IS_FULL, environment, structure, 1000, 0);
         registerTest(event, LIBATION_DRYING_SLAB_HOPPER_INSERTS_AND_EXTRACTS, environment, structure, 600, 0);
+        registerTest(event, LIBATION_PRINCIPLE_BLOCK_CAPABILITIES, environment, structure, 300, 0);
+        registerTest(event, LIBATION_CLAY_PHIAL_FILLS_POURS_AND_STACKS, environment, structure, 40, 0);
+        registerTest(event, LIBATION_CLAY_PHIAL_SEPARATES_MIXED_PRINCIPLES, environment, structure, 40, 0);
+        registerTest(event, LIBATION_NATRON_SPONGE_BLOTS_AND_PURGES, environment, structure, 40, 0);
+        registerTest(event, LIBATION_CLAY_PHIAL_RECIPE_PRODUCES_EIGHT, environment, structure, 40, 0);
     }
 
     private static void registerTest(
