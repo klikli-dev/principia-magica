@@ -5,6 +5,8 @@
 package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
+import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlock;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEntity;
@@ -315,6 +317,74 @@ public class LibationGameTests {
             helper.assertTrue(be.getOutput().isEmpty(), "The output should be empty after the extraction, got " + be.getOutput());
             helper.succeed();
         });
+    }
+
+    /**
+     * Once the storage of a slab is drained through an open spout, the drain stops: the trough receives all 50 mB and nothing
+     * moves on afterwards.
+     */
+    public static void drainStopsWhenStorageIsEmpty(GameTestHelper helper) {
+        BlockPos slab = new BlockPos(3, 2, 3);
+        BlockPos spout = new BlockPos(3, 2, 2);
+        BlockPos trough = new BlockPos(3, 1, 2);
+        helper.setBlock(slab, BlockRegistry.LIBATION_SLAB.get().defaultBlockState());
+        helper.setBlock(spout, BlockRegistry.LIBATION_SPOUT.get().defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
+        helper.setBlock(trough, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        LibationSlabBlockEntity be = stockSlab(helper, slab);
+        CatchTroughBlockEntity troughBe = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(trough));
+
+        // The spout opens once the storage is full, as in slabDrainsOnlyThroughOpenSpout: neighbour updates close an unpowered spout.
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(be.getStored().total() == 50, "The slab should store the 50 mB of ash while the spout is closed, stored " + be.getStored().total());
+            helper.setBlock(spout, BlockRegistry.LIBATION_SPOUT.get().defaultBlockState()
+                    .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH)
+                    .setValue(BlockStateProperties.OPEN, true));
+            helper.runAfterDelay(120, () -> {
+                helper.assertBlockProperty(spout, BlockStateProperties.OPEN, true);
+                helper.assertTrue(be.getStored().isEmpty(), "The drain should empty the storage, stored " + be.getStored().total());
+                helper.assertTrue(troughBe.getPrinciples().total() == 50, "The trough should receive all 50 mB, holds " + troughBe.getPrinciples().total());
+                helper.runAfterDelay(60, () -> {
+                    helper.assertTrue(be.getStored().isEmpty(), "A stopped drain should not refill the storage, stored " + be.getStored().total());
+                    helper.assertTrue(troughBe.getPrinciples().total() == 50, "A stopped drain should not move principles, trough holds " + troughBe.getPrinciples().total());
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /**
+     * A requested sync waits until the sync interval has passed since the last sync, and is flushed on the tick that ends it.
+     */
+    public static void syncThrottleFlushesRequestsAtTheInterval(GameTestHelper helper) {
+        BlockPos trough = new BlockPos(3, 1, 3);
+        helper.setBlock(trough, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity be = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(trough));
+        SyncThrottle throttle = new SyncThrottle(be);
+
+        throttle.syncNow();
+        throttle.requestSync();
+        helper.assertTrue(throttle.pending(), "A requested sync should be pending");
+        for (int tick = 1; tick < SyncThrottle.SYNC_INTERVAL; tick++) {
+            throttle.tick();
+        }
+        helper.assertTrue(throttle.pending(), "A requested sync should wait for the sync interval");
+        throttle.tick();
+        helper.assertTrue(!throttle.pending(), "A requested sync should be flushed once the sync interval passed");
+        helper.succeed();
+    }
+
+    /**
+     * The displayed amount of a liquid snaps when it first shows and when it empties or refills, and otherwise eases towards the
+     * synced amount.
+     */
+    public static void displayedAmountEasesTowardsSyncedAmount(GameTestHelper helper) {
+        AmountSmoother smoother = new AmountSmoother();
+        helper.assertTrue(smoother.update(100, 0, 0.0F) == 100.0F, "The first amount should snap to the synced amount");
+        float eased = smoother.update(200, 10, 0.0F);
+        helper.assertTrue(eased > 100.0F && eased < 200.0F, "The amount should ease towards the synced amount, got " + eased);
+        helper.assertTrue(smoother.update(0, 11, 0.0F) == 0.0F, "An amount that empties should snap to zero");
+        helper.assertTrue(smoother.update(50, 12, 0.0F) == 50.0F, "An amount that refills should snap, got " + smoother.update(50, 12, 0.0F));
+        helper.succeed();
     }
 
     /**

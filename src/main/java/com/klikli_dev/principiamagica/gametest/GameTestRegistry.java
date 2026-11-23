@@ -325,6 +325,15 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_SLAB_DRAINS_ONLY_THROUGH_OPEN_SPOUT =
             TEST_FUNCTIONS.register("libation_slab_drains_only_through_open_spout", () -> LibationGameTests::slabDrainsOnlyThroughOpenSpout);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_DRAIN_STOPS_WHEN_STORAGE_IS_EMPTY =
+            TEST_FUNCTIONS.register("libation_drain_stops_when_storage_is_empty", () -> LibationGameTests::drainStopsWhenStorageIsEmpty);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_SYNC_THROTTLE_FLUSHES_AT_THE_INTERVAL =
+            TEST_FUNCTIONS.register("libation_sync_throttle_flushes_at_the_interval", () -> LibationGameTests::syncThrottleFlushesRequestsAtTheInterval);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_DISPLAYED_AMOUNT_EASES_TOWARDS_SYNCED_AMOUNT =
+            TEST_FUNCTIONS.register("libation_displayed_amount_eases_towards_synced_amount", () -> LibationGameTests::displayedAmountEasesTowardsSyncedAmount);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_STEEPING_DOES_NOT_COMPLETE_INSTANTLY =
             TEST_FUNCTIONS.register("libation_steeping_does_not_complete_instantly", () -> LibationGameTests::steepingDoesNotCompleteInstantly);
 
@@ -558,6 +567,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LIBATION_SPOUT_OPENS_FROM_REDSTONE, environment, structure, 40, 0);
         registerTest(event, LIBATION_SLAB_DISSOLVES_WITHOUT_SPOUT, environment, structure, 300, 0);
         registerTest(event, LIBATION_SLAB_DRAINS_ONLY_THROUGH_OPEN_SPOUT, environment, structure, 600, 0);
+        registerTest(event, LIBATION_DRAIN_STOPS_WHEN_STORAGE_IS_EMPTY, environment, structure, 600, 0);
+        registerTest(event, LIBATION_SYNC_THROTTLE_FLUSHES_AT_THE_INTERVAL, environment, structure, 40, 0);
+        registerTest(event, LIBATION_DISPLAYED_AMOUNT_EASES_TOWARDS_SYNCED_AMOUNT, environment, structure, 40, 0);
         registerTest(event, LIBATION_STEEPING_DOES_NOT_COMPLETE_INSTANTLY, environment, structure, 40, 0);
         registerTest(event, LIBATION_STEEPING_MAKES_QUICKENED_CLAY, environment, structure, 300, 0);
         registerTest(event, LIBATION_STEEPING_COMPLETES_AFTER_RECIPE_TIME, environment, structure, 300, 0);
