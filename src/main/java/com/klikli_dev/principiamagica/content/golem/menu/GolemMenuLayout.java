@@ -5,13 +5,15 @@
 package com.klikli_dev.principiamagica.content.golem.menu;
 
 import com.klikli_dev.codedefinedgui.api.layout.LayoutSpec;
+import com.klikli_dev.principiamagica.client.gui.ContentRect;
 
 /**
  * Static geometry of the golem menu. The screen is a composition of a vertical tab rail, the golem panel and the player inventory panel
- * below it. All coordinates here are relative to the screen's left and top edge, which is what vanilla slots use.
+ * below it, centred as a whole. All coordinates here are relative to the screen's left and top edge, which is what vanilla slots use.
  * <p>
- * Frame-relative coordinates (relative to the golem panel's top left corner) are converted with {@link #panelX(int)} and
- * {@link #panelY(int)}. Slot coordinates are the position of the item, the slot sprites are drawn around it.
+ * The golem panel has a border of {@link #CONTENT_X} and {@link #CONTENT_Y} pixels around its content. Content coordinates are relative to
+ * the content's top left corner, see {@link #panelX(int)} and {@link #panelY(int)}. Slot coordinates are the position of the item, the slot
+ * sprites are drawn around it.
  */
 public final class GolemMenuLayout {
 
@@ -23,13 +25,22 @@ public final class GolemMenuLayout {
 
     public static final int PANEL_X = RAIL_WIDTH;
     public static final int PANEL_Y = 0;
-    public static final int PANEL_WIDTH = 204;
-    public static final int PANEL_HEIGHT = 126;
+    public static final int PANEL_WIDTH = 212;
+    public static final int PANEL_HEIGHT = 132;
 
-    public static final int INVENTORY_PANEL_X = PANEL_X + 14;
-    public static final int INVENTORY_PANEL_Y = 130;
+    /**
+     * Padding between the golem panel's border and its content.
+     */
+    public static final int CONTENT_X = 4;
+    public static final int CONTENT_Y = 3;
+
+    /**
+     * The player inventory panel, centred below the golem panel. Its padding is vanilla's 7 pixels, it has no title.
+     */
     public static final int INVENTORY_PANEL_WIDTH = 176;
-    public static final int INVENTORY_PANEL_HEIGHT = 98;
+    public static final int INVENTORY_PANEL_HEIGHT = 90;
+    public static final int INVENTORY_PANEL_X = PANEL_X + (PANEL_WIDTH - INVENTORY_PANEL_WIDTH) / 2;
+    public static final int INVENTORY_PANEL_Y = PANEL_HEIGHT + 6;
 
     /**
      * The whole screen: the rail plus the golem panel wide, and the golem panel plus the inventory panel tall.
@@ -50,11 +61,11 @@ public final class GolemMenuLayout {
     public static final int BACK_Y = panelY(59);
 
     /**
-     * The player's main inventory and hotbar. The inventory panel has its label above the slots, so the main rows start 18 pixels down.
+     * The player's main inventory and hotbar. Vanilla's 7 pixel padding puts the first items at 8, and the hotbar follows a 4 pixel gap.
      */
     public static final int PLAYER_INVENTORY_X = INVENTORY_PANEL_X + 8;
-    public static final int PLAYER_MAIN_Y = INVENTORY_PANEL_Y + 18;
-    public static final int PLAYER_HOTBAR_Y = INVENTORY_PANEL_Y + 76;
+    public static final int PLAYER_MAIN_Y = INVENTORY_PANEL_Y + 8;
+    public static final int PLAYER_HOTBAR_Y = PLAYER_MAIN_Y + 3 * SLOT_SIZE + 4;
 
     public static final int PLAYER_MAIN_ROWS = 3;
     public static final int PLAYER_COLUMNS = 9;
@@ -82,16 +93,24 @@ public final class GolemMenuLayout {
     }
 
     /**
-     * @return the screen x of a golem panel x coordinate
+     * @return the screen x of a content x coordinate of the golem panel
      */
     public static int panelX(int x) {
-        return PANEL_X + x;
+        return PANEL_X + CONTENT_X + x;
     }
 
     /**
-     * @return the screen y of a golem panel y coordinate
+     * @return the screen y of a content y coordinate of the golem panel
      */
     public static int panelY(int y) {
-        return PANEL_Y + y;
+        return PANEL_Y + CONTENT_Y + y;
+    }
+
+    /**
+     * @param panel the golem panel's rectangle
+     * @return the rectangle inside the panel's border, where the tabs lay out their widgets
+     */
+    public static ContentRect content(ContentRect panel) {
+        return new ContentRect(panel.x() + CONTENT_X, panel.y() + CONTENT_Y, panel.width() - 2 * CONTENT_X, panel.height() - 2 * CONTENT_Y);
     }
 }

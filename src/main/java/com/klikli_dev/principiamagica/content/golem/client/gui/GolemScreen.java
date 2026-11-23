@@ -48,13 +48,13 @@ import java.util.function.Supplier;
  */
 public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements GuiHost {
 
-    private static final int NAME_MARGIN = 8;
-    private static final int NAME_WIDTH = 188;
-    private static final int NAME_TEXT_Y = 10;
-    private static final int INVENTORY_LABEL_X = 8;
-    private static final int INVENTORY_LABEL_Y = 6;
-    private static final int PORTRAIT_X = GolemMenuLayout.PANEL_X + GolemMainTab.PORTRAIT_X + 4;
-    private static final int PORTRAIT_Y = GolemMenuLayout.PANEL_Y + GolemMainTab.PORTRAIT_Y + 10;
+    private static final int CARTOUCHE_X = 8;
+    private static final int CARTOUCHE_Y = 6;
+    private static final int CARTOUCHE_WIDTH = 188;
+    private static final int CARTOUCHE_HEIGHT = 16;
+    private static final int NAME_TEXT_Y = CARTOUCHE_Y + (CARTOUCHE_HEIGHT - 8) / 2;
+    private static final int PORTRAIT_X = GolemMenuLayout.panelX(GolemMainTab.PORTRAIT_X + 4);
+    private static final int PORTRAIT_Y = GolemMenuLayout.panelY(GolemMainTab.PORTRAIT_Y + 10);
     private static final int PORTRAIT_WIDTH = 50;
     private static final int PORTRAIT_HEIGHT = 66;
     private static final int PORTRAIT_SCALE = 30;
@@ -77,12 +77,14 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
                 GolemMenuLayout.PANEL_WIDTH, GolemMenuLayout.PANEL_HEIGHT);
         ContentRect inventory = new ContentRect(this.leftPos + GolemMenuLayout.INVENTORY_PANEL_X, this.topPos + GolemMenuLayout.INVENTORY_PANEL_Y,
                 GolemMenuLayout.INVENTORY_PANEL_WIDTH, GolemMenuLayout.INVENTORY_PANEL_HEIGHT);
+        ContentRect content = GolemMenuLayout.content(panel);
 
         StyleContext style = GuiStyles.context();
         this.addGuiWidget(new SpriteWidget(panel.x(), panel.y(), panel.width(), panel.height(), this.sprite(style, "panel")));
         this.addGuiWidget(new SpriteWidget(inventory.x(), inventory.y(), inventory.width(), inventory.height(),
                 style.sprite(BuiltinGuiParts.PLAYER_INVENTORY_BACKGROUND, GuiStyles.sprite("inventory_panel"))));
-        this.addGuiWidget(new SpriteWidget(panel.x() + 8, panel.y() + 6, 188, 16, this.sprite(style, "cartouche")));
+        this.addGuiWidget(new SpriteWidget(content.x() + CARTOUCHE_X, content.y() + CARTOUCHE_Y, CARTOUCHE_WIDTH, CARTOUCHE_HEIGHT,
+                this.sprite(style, "cartouche")));
 
         WidgetGroup playerSlots = new WidgetGroup(this);
         GuiSprite slot = style.sprite(BuiltinGuiParts.PLAYER_SLOT, GuiStyles.sprite("slot"));
@@ -141,12 +143,10 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
      */
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        String name = this.font.plainSubstrByWidth(GolemGuiText.golemName(this.view).getString(), NAME_WIDTH - NAME_MARGIN);
-        graphics.centeredText(this.font, Component.literal(name), GolemMenuLayout.PANEL_X + GolemMenuLayout.PANEL_WIDTH / 2,
-                NAME_TEXT_Y, GuiStyles.TEXT_PRIMARY);
-
-        graphics.text(this.font, Component.translatable("container.inventory"),
-                GolemMenuLayout.INVENTORY_PANEL_X + INVENTORY_LABEL_X, GolemMenuLayout.INVENTORY_PANEL_Y + INVENTORY_LABEL_Y, GuiStyles.TEXT_PRIMARY, false);
+        // The name is drawn without shadow, in the dark text colour of the cartouche.
+        String name = this.font.plainSubstrByWidth(GolemGuiText.golemName(this.view).getString(), CARTOUCHE_WIDTH - 2 * CARTOUCHE_X);
+        int nameX = GolemMenuLayout.PANEL_X + GolemMenuLayout.PANEL_WIDTH / 2;
+        graphics.text(this.font, name, nameX - this.font.width(name) / 2, NAME_TEXT_Y, GuiStyles.TEXT_PRIMARY, false);
 
         if (this.showsGolemPreview() && this.view.golem() != null) {
             int right = PORTRAIT_X + PORTRAIT_WIDTH;
