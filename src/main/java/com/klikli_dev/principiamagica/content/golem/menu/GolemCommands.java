@@ -119,6 +119,17 @@ public final class GolemCommands {
     }
 
     /**
+     * @return the workplace without any container links, or empty if it has none to clear
+     */
+    public static Optional<Workplace> clearLinks(Workplace workplace) {
+        if (workplace.links().isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(workplace.withLinks(List.of()).markInitialized());
+    }
+
+    /**
      * @return the workplace without the link at the index, or empty if the index is out of range
      */
     public static Optional<Workplace> removeLink(Workplace workplace, int index) {

@@ -78,6 +78,7 @@ public final class GuiStyles {
         sprite("icon_zone", 16, 16);
         sprite("icon_deposit", 16, 16);
         sprite("icon_supply", 16, 16);
+        sprite("icon_unlink", 16, 16);
         sprite("divider", 32, 3);
     }
 

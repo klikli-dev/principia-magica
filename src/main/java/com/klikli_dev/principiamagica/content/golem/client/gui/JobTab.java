@@ -8,6 +8,7 @@ import com.klikli_dev.codedefinedgui.api.style.StyleContext;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
 import com.klikli_dev.principiamagica.client.gui.ContentRect;
 import com.klikli_dev.principiamagica.client.gui.GuiStyles;
+import com.klikli_dev.principiamagica.client.gui.widget.IconToggleButton;
 import com.klikli_dev.principiamagica.client.gui.widget.ItemIcon;
 import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
 import com.klikli_dev.principiamagica.client.gui.widget.ScrollList;
@@ -22,6 +23,7 @@ import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Networking;
+import com.klikli_dev.principiamagica.network.messages.MessageClearContainerLinks;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
@@ -55,6 +57,10 @@ final class JobTab extends GolemTab {
     private static final int LIST_HEIGHT = 48;
     private static final int SWITCH_MARGIN = 2;
     private static final int LABEL_MARGIN = 4;
+    private static final int JOB_LABEL_WIDTH = 128;
+    private static final int CLEAR_BUTTON_X = 162;
+    private static final int CLEAR_BUTTON_Y = 24;
+    private static final int CLEAR_BUTTON_SIZE = 20;
 
     private static final int HEADING_COLOR = 0xFFEBAC26;
     private static final int LIST_COLOR = 0xFFF6E2B8;
@@ -66,6 +72,7 @@ final class JobTab extends GolemTab {
     private TooltipArea zoneHint;
     private TooltipArea depositHint;
     private TooltipArea supplyHint;
+    private IconToggleButton clearLinksButton;
 
     JobTab(Supplier<GolemView> viewSupplier) {
         super(viewSupplier);
@@ -87,8 +94,14 @@ final class JobTab extends GolemTab {
     @Override
     protected void build(ContentRect bounds) {
         this.add(new ItemIcon(bounds.x() + 8, bounds.y() + 26, ItemIcon.SIZE, this::axiomStack));
-        this.add(new LabelWidget(bounds.x() + 28, bounds.y() + 30, 160, () -> GolemGuiText.jobName(this.view()))
+        this.add(new LabelWidget(bounds.x() + 28, bounds.y() + 30, JOB_LABEL_WIDTH, () -> GolemGuiText.jobName(this.view()))
                 .withStyle(this.style).withMaxLines(1));
+        MutableComponent clearTooltip = Component.empty()
+                .append(Component.translatable("gui.principiamagica.golem.clear_links.title").withStyle(Style.EMPTY.withColor(HEADING_COLOR).withBold(true)))
+                .append(line(Component.translatable("gui.principiamagica.golem.clear_links.description"), Style.EMPTY.withColor(EXPLANATION_COLOR)));
+        this.clearLinksButton = this.add(new IconToggleButton(bounds.x() + CLEAR_BUTTON_X, bounds.y() + CLEAR_BUTTON_Y, CLEAR_BUTTON_SIZE,
+                GuiStyles.sprite("icon_unlink"), clearTooltip, this::clearLinks)
+                .withStyle(this.style));
 
         this.add(new SpriteWidget(bounds.x() + 8, bounds.y() + 42, 188, 52, this.sprite("inset")));
         this.optionList = this.add(new ScrollList<JobOption>(bounds.x() + LIST_X, bounds.y() + LIST_Y, LIST_WIDTH, LIST_HEIGHT, ROW_HEIGHT,
@@ -123,6 +136,8 @@ final class JobTab extends GolemTab {
         this.optionList.setEntries(options);
         this.optionList.tick();
 
+        this.clearLinksButton.active = !this.view().workplace().links().isEmpty();
+
         int zones = this.view().workplace().footprints().size();
         this.zoneHint.setText(hint(Component.translatable("gui.principiamagica.golem.zones.title", zones),
                 "gui.principiamagica.golem.zones.description", null));
@@ -142,6 +157,13 @@ final class JobTab extends GolemTab {
 
     private void toggleOption(JobOption option) {
         Networking.sendToServer(new MessageSetJobOption(this.golemId(), option.key(), !this.isOn(option)));
+    }
+
+    /**
+     * Asks the server to remove all container links. The server syncs the workplace back, which updates the summary.
+     */
+    private void clearLinks() {
+        Networking.sendToServer(new MessageClearContainerLinks(this.golemId()));
     }
 
     /**

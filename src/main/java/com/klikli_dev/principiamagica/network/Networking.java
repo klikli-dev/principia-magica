@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.network;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.network.messages.MessageClearContainerLinks;
 import com.klikli_dev.principiamagica.network.messages.MessageEraseZone;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftPending;
 import com.klikli_dev.principiamagica.network.messages.MessagePickUpCorner;
@@ -29,6 +30,7 @@ public class Networking {
         //to server
         registrar.playToServer(MessageSetGolemMode.TYPE, MessageSetGolemMode.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageSetJobOption.TYPE, MessageSetJobOption.STREAM_CODEC, MessageHandler::handle);
+        registrar.playToServer(MessageClearContainerLinks.TYPE, MessageClearContainerLinks.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageEraseZone.TYPE, MessageEraseZone.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageLiftPending.TYPE, MessageLiftPending.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageResizeCorner.TYPE, MessageResizeCorner.STREAM_CODEC, MessageHandler::handle);

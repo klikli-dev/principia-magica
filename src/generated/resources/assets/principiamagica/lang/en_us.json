@@ -141,6 +141,8 @@
   "golem_task.principiamagica.work_area": "the work area",
   "gui.principiamagica.golem.axiom.tooltip": "Place an axiom to give the golem a job",
   "gui.principiamagica.golem.back.tooltip": "Back: the golem's tool, stowed while it carries an item",
+  "gui.principiamagica.golem.clear_links.description": "Removes every deposit and supply link of this golem",
+  "gui.principiamagica.golem.clear_links.title": "Unlink all containers",
   "gui.principiamagica.golem.deposit.description": "Containers where the golem stores its output",
   "gui.principiamagica.golem.deposit.title": "Deposit",
   "gui.principiamagica.golem.hand.tooltip": "Hand: the golem's tool while it works, or an item it carries",
