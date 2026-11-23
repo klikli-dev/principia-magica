@@ -53,7 +53,12 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     private static final int CARTOUCHE_X = 8;
     private static final int CARTOUCHE_Y = 6;
     private static final int CARTOUCHE_WIDTH = 188;
-    private static final int CARTOUCHE_HEIGHT = 16;
+    private static final int CARTOUCHE_HEIGHT = 17;
+    /**
+     * The height of the capitals and digits of the font. The font's line height adds one pixel of descender space below the baseline, so the
+     * text is centred with this height, not with the line height.
+     */
+    private static final int TITLE_GLYPH_HEIGHT = 7;
 
     private GolemView view;
     private @Nullable TabHost tabs;
@@ -155,7 +160,7 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         String name = this.font.plainSubstrByWidth(GolemGuiText.golemName(this.view).getString(), CARTOUCHE_WIDTH - 2 * CARTOUCHE_X);
         int cartoucheTop = GolemMenuLayout.CONTENT_Y + CARTOUCHE_Y;
-        int nameY = cartoucheTop + (CARTOUCHE_HEIGHT - this.font.lineHeight) / 2;
+        int nameY = cartoucheTop + (CARTOUCHE_HEIGHT - TITLE_GLYPH_HEIGHT) / 2;
         int nameX = GolemMenuLayout.PANEL_X + GolemMenuLayout.PANEL_WIDTH / 2;
         graphics.text(this.font, name, nameX - this.font.width(name) / 2, nameY, GuiStyles.TEXT_PRIMARY, false);
     }
