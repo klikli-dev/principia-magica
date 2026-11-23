@@ -20,6 +20,7 @@ import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
+import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
@@ -28,6 +29,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -40,8 +42,8 @@ import java.util.function.Supplier;
  * The job tab: the axiom and the job's name, the job's options as switches in a scrollable list, and a summary of the workplace.
  * The tab is only enabled while the golem has an axiom.
  * <p>
- * Each part of the summary has its own hover area. Its tooltip names what the icon means, lists the linked containers, and ends with the
- * hint to edit them with the Stylus.
+ * Each part of the summary has its own hover area. Its tooltip has a gold heading, lists the linked containers with their positions, explains
+ * the icon in grey, and ends with the hint to edit them with the Stylus in italic.
  */
 final class JobTab extends GolemTab {
 
@@ -52,6 +54,11 @@ final class JobTab extends GolemTab {
     private static final int LIST_HEIGHT = 48;
     private static final int SWITCH_MARGIN = 2;
     private static final int LABEL_MARGIN = 4;
+
+    private static final int HEADING_COLOR = 0xFFEBAC26;
+    private static final int LIST_COLOR = 0xFFF6E2B8;
+    private static final int EXPLANATION_COLOR = 0xFFB0A89A;
+    private static final int HINT_COLOR = 0xFF3FA59A;
 
     private final StyleContext style = WidgetParts.defaultStyle();
     private ScrollList<JobOption> optionList;
@@ -117,9 +124,9 @@ final class JobTab extends GolemTab {
         this.zoneHint.setText(hint(Component.translatable("gui.principiamagica.golem.zones.title", zones),
                 "gui.principiamagica.golem.zones.description", null));
         this.depositHint.setText(hint(Component.translatable("gui.principiamagica.golem.deposit.title"),
-                "gui.principiamagica.golem.deposit.description", this.linkNames(ContainerRole::canDeposit)));
+                "gui.principiamagica.golem.deposit.description", this.linkNames(ContainerRole::canDeposit, true)));
         this.supplyHint.setText(hint(Component.translatable("gui.principiamagica.golem.supply.title"),
-                "gui.principiamagica.golem.supply.description", this.linkNames(ContainerRole::canSupply)));
+                "gui.principiamagica.golem.supply.description", this.linkNames(ContainerRole::canSupply, true)));
     }
 
     private ItemStack axiomStack() {
@@ -157,7 +164,7 @@ final class JobTab extends GolemTab {
      * @return the first linked container with the role, followed by how many more there are, or the empty text if there is none
      */
     private Component linkSummary(Predicate<ContainerRole> role, String emptyKey) {
-        List<Component> names = this.linkNames(role);
+        List<Component> names = this.linkNames(role, false);
         if (names.isEmpty()) {
             return Component.translatable(emptyKey);
         }
@@ -170,9 +177,10 @@ final class JobTab extends GolemTab {
     }
 
     /**
+     * @param withPositions whether each name is followed by the position of its container
      * @return the names of all linked containers with the role, in the order they were linked
      */
-    private List<Component> linkNames(Predicate<ContainerRole> role) {
+    private List<Component> linkNames(Predicate<ContainerRole> role, boolean withPositions) {
         Level level = Minecraft.getInstance().level;
         if (level == null) {
             return List.of();
@@ -181,7 +189,13 @@ final class JobTab extends GolemTab {
         List<Component> names = new ArrayList<>();
         for (ContainerLink link : this.view().workplace().links()) {
             if (role.test(link.role())) {
-                names.add(level.getBlockState(link.pos()).getBlock().getName());
+                Component name = level.getBlockState(link.pos()).getBlock().getName();
+                if (withPositions) {
+                    MutableComponent at = Component.translatable("gui.principiamagica.golem.task_at", GolemGuiText.formatPos(link.pos()));
+                    names.add(name.copy().append(" ").append(at.withStyle(Style.EMPTY.withColor(EXPLANATION_COLOR))));
+                } else {
+                    names.add(name);
+                }
             }
         }
 
@@ -189,27 +203,35 @@ final class JobTab extends GolemTab {
     }
 
     /**
-     * The tooltip of a summary part: its title, the linked containers if it lists them, what the part means, and the Stylus hint.
+     * The tooltip of a summary part: a gold heading, the linked containers as a list if the part lists them, a grey line on what the part
+     * means, and the Stylus hint in italic.
      *
-     * @param title the title, e.g. "Deposit" or "Work zones: 2"
+     * @param title the heading, e.g. "Deposit" or "Work zones: 2"
      * @param descriptionKey the lang key of what the part means
      * @param names the linked containers, or null if the part does not list containers
      */
     private static Component hint(Component title, String descriptionKey, List<Component> names) {
-        MutableComponent tooltip = Component.empty().append(title);
+        MutableComponent tooltip = Component.empty().append(title.copy().withStyle(Style.EMPTY.withColor(HEADING_COLOR).withBold(true)));
         if (names != null) {
             if (names.isEmpty()) {
-                tooltip.append("\n").append(Component.translatable("gui.principiamagica.golem.none_linked"));
+                tooltip.append(line(Component.translatable("gui.principiamagica.golem.none_linked"), Style.EMPTY.withColor(EXPLANATION_COLOR)));
             }
 
             for (Component name : names) {
-                tooltip.append("\n").append(Component.literal("- ")).append(name);
+                tooltip.append(line(Component.literal("• ").append(name), Style.EMPTY.withColor(LIST_COLOR)));
             }
         }
 
         return tooltip
-                .append("\n").append(Component.translatable(descriptionKey))
-                .append("\n").append(Component.translatable("gui.principiamagica.golem.workplace.tooltip"));
+                .append(line(Component.translatable(descriptionKey), Style.EMPTY.withColor(EXPLANATION_COLOR)))
+                .append(line(Component.translatable("gui.principiamagica.golem.workplace.tooltip"), Style.EMPTY.withColor(HINT_COLOR).withItalic(true)));
+    }
+
+    /**
+     * @return a new line of the tooltip with the text in the style
+     */
+    private static MutableComponent line(Component text, Style style) {
+        return Component.literal("\n").append(text.copy().withStyle(style));
     }
 
     private GuiSprite sprite(String name) {
