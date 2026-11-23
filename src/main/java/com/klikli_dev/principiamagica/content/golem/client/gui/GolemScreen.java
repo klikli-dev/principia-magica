@@ -12,9 +12,9 @@ import com.klikli_dev.codedefinedgui.api.screen.page.TabHost;
 import com.klikli_dev.codedefinedgui.api.style.BuiltinGuiParts;
 import com.klikli_dev.codedefinedgui.api.style.StyleContext;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
+import com.klikli_dev.codedefinedgui.api.widget.GuiSpriteWidget;
+import com.klikli_dev.codedefinedgui.api.widget.ScrollListWidget;
 import com.klikli_dev.principiamagica.client.gui.GuiStyles;
-import com.klikli_dev.principiamagica.client.gui.widget.ScrollList;
-import com.klikli_dev.principiamagica.client.gui.widget.SpriteWidget;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache.Entry;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -80,10 +80,10 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
         ContentRect content = GolemMenuLayout.content(panel);
 
         StyleContext style = GuiStyles.context();
-        this.addGuiWidget(new SpriteWidget(panel.x(), panel.y(), panel.width(), panel.height(), this.sprite(style, "panel")));
-        this.addGuiWidget(new SpriteWidget(inventory.x(), inventory.y(), inventory.width(), inventory.height(),
+        this.addGuiWidget(new GuiSpriteWidget(panel.x(), panel.y(), panel.width(), panel.height(), this.sprite(style, "panel")));
+        this.addGuiWidget(new GuiSpriteWidget(inventory.x(), inventory.y(), inventory.width(), inventory.height(),
                 style.sprite(BuiltinGuiParts.PLAYER_INVENTORY_BACKGROUND, GuiStyles.sprite("inventory_panel"))));
-        this.addGuiWidget(new SpriteWidget(content.x() + CARTOUCHE_X, content.y() + CARTOUCHE_Y, CARTOUCHE_WIDTH, CARTOUCHE_HEIGHT,
+        this.addGuiWidget(new GuiSpriteWidget(content.x() + CARTOUCHE_X, content.y() + CARTOUCHE_Y, CARTOUCHE_WIDTH, CARTOUCHE_HEIGHT,
                 this.sprite(style, "cartouche")));
 
         WidgetGroup playerSlots = new WidgetGroup(this);
@@ -132,7 +132,7 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         for (GuiEventListener child : this.children()) {
-            if (child instanceof ScrollList<?> list && list.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+            if (child instanceof ScrollListWidget<?> list && list.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
                 return true;
             }
         }

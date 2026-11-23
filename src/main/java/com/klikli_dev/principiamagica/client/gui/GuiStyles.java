@@ -14,7 +14,6 @@ import com.klikli_dev.codedefinedgui.api.style.GuiStyleRegistry;
 import com.klikli_dev.codedefinedgui.api.style.StyleContext;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
-import com.klikli_dev.principiamagica.client.gui.widget.WidgetParts;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -22,8 +21,8 @@ import java.util.Map;
 /**
  * The "clay tablet and faience" theme of the golem GUI, registered as {@link #GOLEM}.
  * <p>
- * The style maps two things: CodeDefinedGui's player inventory parts ({@link BuiltinGuiParts}) and the parts of the framework widgets
- * ({@link WidgetParts}), so the widgets stay generic. Screen decorations (panels, insets, icons) are looked up with {@link #part(String)}
+ * The style maps two things: CodeDefinedGui's player inventory parts and the shared widget parts ({@link BuiltinGuiParts}), so the
+ * generic widgets of CodeDefinedGui look like this theme. Screen decorations (panels, insets, icons) are looked up with {@link #part(String)}
  * and {@link #sprite(String)}, which share one table, so the default sprite and the style never drift apart.
  */
 public final class GuiStyles {
@@ -114,7 +113,7 @@ public final class GuiStyles {
     }
 
     /**
-     * @return the style of the golem GUI, the default of all framework widgets
+     * @return the style of the golem GUI, passed to the shared widgets of the golem screen
      */
     public static StyleContext context() {
         return new GuiStyleContext(GuiStyleRegistry.get(GOLEM));
@@ -133,26 +132,22 @@ public final class GuiStyles {
                 .set(BuiltinGuiParts.TAB, GuiStyleProperties.SPRITE, sprite("tab"))
                 .set(BuiltinGuiParts.TAB, GuiStyleProperties.HOVER_SPRITE, sprite("tab_hover"))
                 .set(BuiltinGuiParts.TAB, GuiStyleProperties.ON_SPRITE, sprite("tab_selected"))
-                .set(WidgetParts.BUTTON, GuiStyleProperties.SPRITE, sprite("button"))
-                .set(WidgetParts.BUTTON, GuiStyleProperties.HOVER_SPRITE, sprite("button_hover"))
-                .set(WidgetParts.BUTTON, GuiStyleProperties.TEXT_COLOR, TEXT_PRIMARY)
-                .set(WidgetParts.BUTTON, GuiStyleProperties.COLOR, TEXT_DISABLED)
-                .set(WidgetParts.ICON_BUTTON, GuiStyleProperties.SPRITE, sprite("button"))
-                .set(WidgetParts.ICON_BUTTON, GuiStyleProperties.HOVER_SPRITE, sprite("button_hover"))
-                .set(WidgetParts.ICON_BUTTON, GuiStyleProperties.ON_SPRITE, sprite("button_selected"))
-                .set(WidgetParts.ICON_BUTTON, WidgetParts.DISABLED_SPRITE, sprite("button_disabled"))
-                .set(WidgetParts.TOGGLE, GuiStyleProperties.ON_SPRITE, sprite("toggle_on"))
-                .set(WidgetParts.TOGGLE, GuiStyleProperties.OFF_SPRITE, sprite("toggle_off"))
-                .set(WidgetParts.TOGGLE_HOVER, GuiStyleProperties.ON_SPRITE, sprite("toggle_on_hover"))
-                .set(WidgetParts.TOGGLE_HOVER, GuiStyleProperties.OFF_SPRITE, sprite("toggle_off_hover"))
-                .set(WidgetParts.TEXT, GuiStyleProperties.TEXT_COLOR, TEXT_PRIMARY)
-                .set(WidgetParts.TEXT, GuiStyleProperties.COLOR, TEXT_SECONDARY)
-                .set(WidgetParts.ROW, GuiStyleProperties.COLOR, ROW_HIGHLIGHT)
-                .set(WidgetParts.SCROLLBAR, GuiStyleProperties.SPRITE, sprite("scrollbar_track"))
-                .set(WidgetParts.SCROLLBAR, WidgetParts.HANDLE_SPRITE, sprite("scrollbar_handle"))
-                .set(WidgetParts.SCROLLBAR, WidgetParts.HANDLE_HOVER_SPRITE, sprite("scrollbar_handle_hover"))
-                .set(WidgetParts.PROGRESS, GuiStyleProperties.SPRITE, sprite("bar_background"))
-                .set(WidgetParts.PROGRESS, WidgetParts.FILL_SPRITE, sprite("bar_fill"))
+                .set(BuiltinGuiParts.ICON_TOGGLE_BUTTON, GuiStyleProperties.SPRITE, sprite("button"))
+                .set(BuiltinGuiParts.ICON_TOGGLE_BUTTON, GuiStyleProperties.HOVER_SPRITE, sprite("button_hover"))
+                .set(BuiltinGuiParts.ICON_TOGGLE_BUTTON, GuiStyleProperties.ON_SPRITE, sprite("button_selected"))
+                .set(BuiltinGuiParts.ICON_TOGGLE_BUTTON, GuiStyleProperties.DISABLED_SPRITE, sprite("button_disabled"))
+                .set(BuiltinGuiParts.TOGGLE_SWITCH, GuiStyleProperties.ON_SPRITE, sprite("toggle_on"))
+                .set(BuiltinGuiParts.TOGGLE_SWITCH, GuiStyleProperties.OFF_SPRITE, sprite("toggle_off"))
+                .set(BuiltinGuiParts.TOGGLE_SWITCH_HOVER, GuiStyleProperties.ON_SPRITE, sprite("toggle_on_hover"))
+                .set(BuiltinGuiParts.TOGGLE_SWITCH_HOVER, GuiStyleProperties.OFF_SPRITE, sprite("toggle_off_hover"))
+                .set(BuiltinGuiParts.TEXT, GuiStyleProperties.TEXT_COLOR, TEXT_PRIMARY)
+                .set(BuiltinGuiParts.LIST_ROW, GuiStyleProperties.COLOR, ROW_HIGHLIGHT)
+                .set(BuiltinGuiParts.LIST_ROW, GuiStyleProperties.TEXT_COLOR, TEXT_PRIMARY)
+                .set(BuiltinGuiParts.LIST_SCROLLBAR, GuiStyleProperties.SPRITE, sprite("scrollbar_track"))
+                .set(BuiltinGuiParts.LIST_SCROLLBAR, GuiStyleProperties.HANDLE_SPRITE, sprite("scrollbar_handle"))
+                .set(BuiltinGuiParts.LIST_SCROLLBAR, GuiStyleProperties.HANDLE_HOVER_SPRITE, sprite("scrollbar_handle_hover"))
+                .set(BuiltinGuiParts.PROGRESS_BAR, GuiStyleProperties.SPRITE, sprite("bar_background"))
+                .set(BuiltinGuiParts.PROGRESS_BAR, GuiStyleProperties.FILL_SPRITE, sprite("bar_fill"))
                 .build();
     }
 }
