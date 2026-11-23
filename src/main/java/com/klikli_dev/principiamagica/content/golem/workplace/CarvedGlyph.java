@@ -18,7 +18,7 @@ import net.minecraft.network.codec.StreamCodec;
  *
  * @param pos  the block the glyph is carved into, the anchor of the plumb line
  * @param face the face of the block the glyph sits on
- * @param lift the Y offset of the corner from the carved block, clamped to [WorkFootprint.MIN_LIFT, WorkFootprint.MAX_LIFT] by the stylus
+ * @param lift the Y offset of the corner from the carved block
  */
 public record CarvedGlyph(BlockPos pos, Direction face, int lift) {
 

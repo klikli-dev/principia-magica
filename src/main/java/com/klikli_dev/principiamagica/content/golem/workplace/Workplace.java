@@ -19,6 +19,7 @@ import net.minecraft.world.item.Item;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -88,6 +89,35 @@ public record Workplace(
 
     public boolean containsInZone(int below, int above, BlockPos pos) {
         return this.zones(below, above).stream().anyMatch(zone -> zone.contains(pos));
+    }
+
+    /**
+     * @return whether any footprint in this workplace has a 3D corner at cornerPos
+     */
+    public boolean hasCornerAt(BlockPos cornerPos) {
+        return this.footprints.stream().anyMatch(footprint -> footprint.hasCornerAt(cornerPos));
+    }
+
+    /**
+     * @return whether any footprint other than {@code excludeFootprintIndex} has a 3D corner at cornerPos
+     */
+    public boolean hasCornerAt(BlockPos cornerPos, int excludeFootprintIndex) {
+        for (int i = 0; i < this.footprints.size(); i++) {
+            if (i != excludeFootprintIndex && this.footprints.get(i).hasCornerAt(cornerPos)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return the glyph whose 3D corner is at cornerPos, if any
+     */
+    public Optional<CarvedGlyph> findGlyphAtCorner(BlockPos cornerPos) {
+        return this.footprints.stream()
+                .map(footprint -> footprint.findGlyphByCorner(cornerPos))
+                .flatMap(Optional::stream)
+                .findFirst();
     }
 
     /**

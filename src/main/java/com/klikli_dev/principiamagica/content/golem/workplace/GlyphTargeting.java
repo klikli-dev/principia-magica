@@ -10,6 +10,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -41,6 +42,15 @@ public final class GlyphTargeting {
      * @param distance  the distance from the ray origin to the entry point of the glyph's hit box
      */
     public record GlyphHit(WorkFootprint footprint, CarvedGlyph glyph, double distance) {
+    }
+
+    /**
+     * @param index     the index of the hit footprint in the workplace
+     * @param footprint the footprint that was hit
+     * @param distance  the distance from the ray origin to the entry point of the box (0 when inside)
+     * @param inside    whether the ray origin is inside the box
+     */
+    public record ZoneHit(int index, WorkFootprint footprint, double distance, boolean inside) {
     }
 
     /**
@@ -90,6 +100,72 @@ public final class GlyphTargeting {
      */
     public static boolean winsOverBlock(GlyphHit hit, double blockDistance) {
         return hit.distance() <= blockDistance + BLOCK_EPSILON;
+    }
+
+    /**
+     * Picks the nearest footprint box hit by the ray before {@code blockDistance}.
+     * Falls back to the smallest footprint containing {@code from} if no external box face was hit.
+     */
+    public static Optional<ZoneHit> pickZone(Vec3 from, Vec3 to, List<WorkFootprint> footprints, double blockDistance) {
+        ZoneHit nearest = null;
+        int nearestVolume = Integer.MAX_VALUE;
+
+        for (int i = 0; i < footprints.size(); i++) {
+            WorkFootprint footprint = footprints.get(i);
+            AABB box = footprint.zone(0, 0).aabb();
+            if (box.contains(from)) {
+                continue;
+            }
+
+            Optional<Vec3> entry = box.clip(from, to);
+            if (entry.isEmpty()) {
+                continue;
+            }
+
+            double distance = from.distanceTo(entry.get());
+            if (distance > blockDistance + BLOCK_EPSILON) {
+                continue;
+            }
+
+            int volume = footprint.width() * footprint.depth() * footprint.height();
+            if (nearest == null || distance < nearest.distance() - BLOCK_EPSILON
+                    || (Math.abs(distance - nearest.distance()) <= BLOCK_EPSILON && volume < nearestVolume)) {
+                nearest = new ZoneHit(i, footprint, distance, false);
+                nearestVolume = volume;
+            }
+        }
+
+        if (nearest != null) {
+            return Optional.of(nearest);
+        }
+
+        ZoneHit containing = null;
+        int containingVolume = Integer.MAX_VALUE;
+        for (int i = 0; i < footprints.size(); i++) {
+            WorkFootprint footprint = footprints.get(i);
+            if (!footprint.zone(0, 0).aabb().contains(from)) {
+                continue;
+            }
+
+            int volume = footprint.width() * footprint.depth() * footprint.height();
+            if (containing == null || volume < containingVolume) {
+                containing = new ZoneHit(i, footprint, 0.0, true);
+                containingVolume = volume;
+            }
+        }
+
+        return Optional.ofNullable(containing);
+    }
+
+    /**
+     * @return whether the eye is close enough to any point of the box for the server to accept editing it
+     */
+    public static boolean isBoxInReach(Vec3 eye, AABB box) {
+        double reach = MAX_RANGE + REACH_MARGIN;
+        double closestX = Math.clamp(eye.x, box.minX, box.maxX);
+        double closestY = Math.clamp(eye.y, box.minY, box.maxY);
+        double closestZ = Math.clamp(eye.z, box.minZ, box.maxZ);
+        return eye.distanceToSqr(closestX, closestY, closestZ) <= reach * reach;
     }
 
     /**

@@ -15,7 +15,6 @@ import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -52,13 +51,12 @@ public final class GolemCommands {
     }
 
     /**
-     * Finds the glyph carved into pos on the face, if the player is in reach of its corner. Glyphs are targeted from a distance,
-     * so reach is checked against the corner the glyph is drawn at, not the carved block.
+     * Finds the glyph whose 3D corner is at cornerPos, if the player is in reach of it.
      *
-     * @return the stored glyph with its lift, or empty if no footprint carries it or the player is out of reach
+     * @return the stored glyph with its lift, or empty if no footprint carries a corner there or the player is out of reach
      */
-    public static Optional<CarvedGlyph> findReachableGlyph(ServerPlayer player, Workplace workplace, BlockPos pos, Direction face) {
-        return StylusActions.findGlyph(workplace, pos, face)
+    public static Optional<CarvedGlyph> findReachableGlyph(ServerPlayer player, Workplace workplace, BlockPos cornerPos) {
+        return workplace.findGlyphAtCorner(cornerPos)
                 .filter(glyph -> GlyphTargeting.isInReach(player.getEyePosition(), glyph.corner()));
     }
 
@@ -98,16 +96,10 @@ public final class GolemCommands {
     }
 
     /**
-     * @return the workplace with the footprint at the index moved up or down by delta, clamped so its corners stay in range, or empty if the index is out of range
+     * @return the workplace with the footprint at the index moved up or down by delta, clamped so its corners stay in range, or empty if rejected
      */
     public static Optional<Workplace> shiftFootprint(Workplace workplace, int index, int delta) {
-        if (index < 0 || index >= workplace.footprints().size()) {
-            return Optional.empty();
-        }
-
-        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
-        footprints.set(index, footprints.get(index).moved(delta));
-        return Optional.of(workplace.withFootprints(footprints).markInitialized());
+        return StylusActions.shiftFootprint(workplace, index, delta).toOptional();
     }
 
     /**

@@ -7,16 +7,13 @@ package com.klikli_dev.principiamagica.content.golem.item;
 import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.Level;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,6 +25,31 @@ import java.util.Optional;
  * Pure workplace edits used by the golem stylus. No world access, so they can be unit tested as gametests.
  */
 public final class StylusActions {
+
+    public enum EditFailure {
+        CORNER_OCCUPIED,
+        TOO_LARGE,
+        OUT_OF_BOUNDS,
+        NOT_FOUND
+    }
+
+    public record EditResult(@Nullable Workplace workplace, @Nullable EditFailure failure) {
+        public static EditResult ok(Workplace workplace) {
+            return new EditResult(workplace, null);
+        }
+
+        public static EditResult fail(EditFailure failure) {
+            return new EditResult(null, failure);
+        }
+
+        public boolean isSuccess() {
+            return this.workplace != null;
+        }
+
+        public Optional<Workplace> toOptional() {
+            return Optional.ofNullable(this.workplace);
+        }
+    }
 
     private StylusActions() {
     }
@@ -72,19 +94,35 @@ public final class StylusActions {
     }
 
     /**
-     * Carves the second glyph of a footprint, spanned between the two glyphs.
-     *
-     * @return the workplace with the footprint added, or empty if the footprint exceeds the maximum size
+     * Carves the second glyph of a footprint, spanned between the two glyphs, enforcing unique 3D corner blocks,
+     * world height bounds, and maximum dimensions.
      */
-    public static Optional<Workplace> carve(Workplace workplace, CarvedGlyph first, CarvedGlyph second) {
+    public static EditResult carveResult(Workplace workplace, CarvedGlyph first, CarvedGlyph second) {
+        if (first.corner().equals(second.corner()) || workplace.hasCornerAt(first.corner()) || workplace.hasCornerAt(second.corner())) {
+            return EditResult.fail(EditFailure.CORNER_OCCUPIED);
+        }
+
         WorkFootprint footprint = WorkFootprint.of(first, second);
+        if (footprint.isOutOfBounds()) {
+            return EditResult.fail(EditFailure.OUT_OF_BOUNDS);
+        }
+
         if (footprint.isTooLarge()) {
-            return Optional.empty();
+            return EditResult.fail(EditFailure.TOO_LARGE);
         }
 
         List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
         footprints.add(footprint);
-        return Optional.of(workplace.withFootprints(footprints).markInitialized());
+        return EditResult.ok(workplace.withFootprints(footprints).markInitialized());
+    }
+
+    /**
+     * Carves the second glyph of a footprint, spanned between the two glyphs.
+     *
+     * @return the workplace with the footprint added, or empty if rejected
+     */
+    public static Optional<Workplace> carve(Workplace workplace, CarvedGlyph first, CarvedGlyph second) {
+        return carveResult(workplace, first, second).toOptional();
     }
 
     /**
@@ -109,13 +147,13 @@ public final class StylusActions {
     }
 
     /**
-     * Erases the footprint that carries exactly this glyph, matching both its block and its face.
+     * Erases the footprint that carries a glyph whose 3D corner is at cornerPos.
      *
-     * @return the workplace without the footprint, or empty if no footprint carries the glyph
+     * @return the workplace without the footprint, or empty if no footprint carries a corner there
      */
-    public static Optional<Workplace> removeFootprintWithGlyph(Workplace workplace, CarvedGlyph glyph) {
+    public static Optional<Workplace> removeFootprintByCorner(Workplace workplace, BlockPos cornerPos) {
         Optional<WorkFootprint> target = workplace.footprints().stream()
-                .filter(footprint -> footprint.glyphs().stream().anyMatch(candidate -> candidate.isSameGlyph(glyph)))
+                .filter(footprint -> footprint.hasCornerAt(cornerPos))
                 .findFirst();
 
         return target.map(footprint -> {
@@ -126,90 +164,87 @@ public final class StylusActions {
     }
 
     /**
-     * @return the glyph carved into pos on the face, as stored in the workplace, so its lift is the stored one
+     * Erases the footprint at the given index.
      */
-    public static Optional<CarvedGlyph> findGlyph(Workplace workplace, BlockPos pos, Direction face) {
-        return workplace.footprints().stream()
-                .map(footprint -> footprint.findGlyph(pos, face))
-                .flatMap(Optional::stream)
-                .findFirst();
-    }
-
-    /**
-     * Lifts or lowers the corner carried by the glyph at pos on the face, clamped to the lift range.
-     *
-     * @return the workplace with the corner moved, or empty if no footprint carries the glyph
-     */
-    public static Optional<Workplace> liftCorner(Workplace workplace, BlockPos pos, Direction face, int delta) {
-        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
-        for (int i = 0; i < footprints.size(); i++) {
-            WorkFootprint footprint = footprints.get(i);
-            Optional<CarvedGlyph> glyph = footprint.findGlyph(pos, face);
-            if (glyph.isPresent()) {
-                footprints.set(i, footprint.liftGlyph(glyph.get(), delta));
-                return Optional.of(workplace.withFootprints(footprints).markInitialized());
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    /**
-     * Removes the footprint of the glyph at pos on the face and returns its other corner, so the player can move this
-     * corner. The picked glyph's lift is returned too, so the moved corner keeps its height.
-     *
-     * @return the workplace without the footprint and the pickup, or empty if no two-corner footprint carries the glyph
-     */
-    public static Optional<PickUp> pickUpGlyph(Workplace workplace, BlockPos pos, Direction face) {
-        Optional<WorkFootprint> target = workplace.footprints().stream()
-                .filter(footprint -> footprint.glyphs().size() == 2 && footprint.findGlyph(pos, face).isPresent())
-                .findFirst();
-        if (target.isEmpty()) {
+    public static Optional<Workplace> removeFootprint(Workplace workplace, int index) {
+        if (index < 0 || index >= workplace.footprints().size()) {
             return Optional.empty();
         }
 
-        CarvedGlyph picked = target.get().findGlyph(pos, face).orElseThrow();
-        CarvedGlyph remaining = target.get().glyphs().stream()
-                .filter(glyph -> !glyph.isSameGlyph(picked))
-                .findFirst()
-                .orElseThrow();
-
         List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
-        footprints.remove(target.get());
-        return Optional.of(new PickUp(workplace.withFootprints(footprints).markInitialized(), remaining, picked, target.get()));
+        footprints.remove(index);
+        return Optional.of(workplace.withFootprints(footprints).markInitialized());
     }
 
     /**
-     * @param workplace the workplace without the picked footprint
-     * @param remaining the corner that stays, it becomes the first corner of the next carve
-     * @param picked    the picked corner with its lift, it is the one the player moves
-     * @param original  the footprint as it was before the pick-up, restored if the pick-up is cancelled
+     * Lifts or lowers the corner at cornerPos, checking bounds, corner collisions, and maximum footprint height.
      */
-    public record PickUp(Workplace workplace, CarvedGlyph remaining, CarvedGlyph picked, WorkFootprint original) {
+    public static EditResult liftCorner(Workplace workplace, BlockPos cornerPos, int delta) {
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        for (int i = 0; i < footprints.size(); i++) {
+            WorkFootprint footprint = footprints.get(i);
+            Optional<CarvedGlyph> glyph = footprint.findGlyphByCorner(cornerPos);
+            if (glyph.isEmpty()) {
+                continue;
+            }
+
+            CarvedGlyph target = glyph.get();
+            int newY = target.corner().getY() + delta;
+            if (newY < WorkFootprint.MIN_Y || newY > WorkFootprint.MAX_Y) {
+                return EditResult.fail(EditFailure.OUT_OF_BOUNDS);
+            }
+
+            BlockPos newCorner = new BlockPos(target.pos().getX(), newY, target.pos().getZ());
+            if (hasOtherCornerAt(workplace, target, newCorner)) {
+                return EditResult.fail(EditFailure.CORNER_OCCUPIED);
+            }
+
+            WorkFootprint updated = footprint.liftGlyph(target, delta);
+            if (updated.isTooLarge()) {
+                return EditResult.fail(EditFailure.TOO_LARGE);
+            }
+
+            footprints.set(i, updated);
+            return EditResult.ok(workplace.withFootprints(footprints).markInitialized());
+        }
+
+        return EditResult.fail(EditFailure.NOT_FOUND);
+    }
+
+    private static boolean hasOtherCornerAt(Workplace workplace, CarvedGlyph moving, BlockPos newCorner) {
+        for (WorkFootprint footprint : workplace.footprints()) {
+            for (CarvedGlyph other : footprint.glyphs()) {
+                if (!other.corner().equals(moving.corner()) && other.corner().equals(newCorner)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
-     * The pending corner of a pick-up: the remaining corner is the first corner, the picked corner's lift is the ghost lift,
-     * and the original footprint is kept for restoring.
+     * Moves the footprint at index up or down by delta, checking bounds and corner collisions with other footprints.
      */
-    public static PendingGlyph pendingOf(ResourceKey<Level> dimension, PickUp pickUp) {
-        return new PendingGlyph(GlobalPos.of(dimension, pickUp.remaining().pos()), pickUp.remaining().face(),
-                pickUp.remaining().lift(), pickUp.picked().lift(), List.of(pickUp.original()));
-    }
+    public static EditResult shiftFootprint(Workplace workplace, int index, int delta) {
+        if (index < 0 || index >= workplace.footprints().size()) {
+            return EditResult.fail(EditFailure.NOT_FOUND);
+        }
 
-    /**
-     * Puts the footprint of a cancelled pick-up back.
-     *
-     * @return the workplace with the original footprint added back, or unchanged if the pending corner is not a pick-up
-     */
-    public static Workplace restorePickUp(Workplace workplace, PendingGlyph pending) {
-        if (pending.restore().isEmpty()) {
-            return workplace;
+        WorkFootprint footprint = workplace.footprints().get(index);
+        WorkFootprint moved = footprint.moved(delta);
+        if (delta != 0 && moved.minY() == footprint.minY() && moved.maxY() == footprint.maxY()) {
+            return EditResult.fail(EditFailure.OUT_OF_BOUNDS);
+        }
+
+        for (CarvedGlyph glyph : moved.glyphs()) {
+            if (workplace.hasCornerAt(glyph.corner(), index)) {
+                return EditResult.fail(EditFailure.CORNER_OCCUPIED);
+            }
         }
 
         List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
-        footprints.addAll(pending.restore());
-        return workplace.withFootprints(footprints).markInitialized();
+        footprints.set(index, moved);
+        return EditResult.ok(workplace.withFootprints(footprints).markInitialized());
     }
 
     /**

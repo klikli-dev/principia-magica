@@ -40,13 +40,7 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
     public static final int MAX_SIZE = 64;
 
     /**
-     * The range a corner can be lifted from its carved block, in blocks.
-     */
-    public static final int MIN_LIFT = -8;
-    public static final int MAX_LIFT = 16;
-
-    /**
-     * The Y range a glyphless footprint can be moved within, the build limits of the overworld.
+     * The Y range a footprint or corner can be moved within, the build limits of the overworld.
      */
     public static final int MIN_Y = -64;
     public static final int MAX_Y = 320;
@@ -143,13 +137,6 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
         );
     }
 
-    /**
-     * @return the lift clamped to the range a corner can be lifted within
-     */
-    public static int clampLift(int lift) {
-        return Math.clamp(lift, MIN_LIFT, MAX_LIFT);
-    }
-
     public int width() {
         return this.maxX - this.minX + 1;
     }
@@ -173,11 +160,31 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
         return this.width() > MAX_SIZE || this.depth() > MAX_SIZE || this.height() > MAX_SIZE;
     }
 
+    public boolean isOutOfBounds() {
+        return this.minY < MIN_Y || this.maxY > MAX_Y;
+    }
+
     /**
      * @return whether the column of pos is inside the rectangle, regardless of height
      */
     public boolean containsColumn(BlockPos pos) {
         return pos.getX() >= this.minX && pos.getX() <= this.maxX && pos.getZ() >= this.minZ && pos.getZ() <= this.maxZ;
+    }
+
+    /**
+     * @return whether a glyph has its 3D corner at cornerPos
+     */
+    public boolean hasCornerAt(BlockPos cornerPos) {
+        return this.glyphs.stream().anyMatch(glyph -> glyph.corner().equals(cornerPos));
+    }
+
+    /**
+     * @return the glyph whose 3D corner is at cornerPos
+     */
+    public Optional<CarvedGlyph> findGlyphByCorner(BlockPos cornerPos) {
+        return this.glyphs.stream()
+                .filter(glyph -> glyph.corner().equals(cornerPos))
+                .findFirst();
     }
 
     /**
@@ -210,20 +217,26 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
     }
 
     /**
-     * Lifts or lowers the corner carried by the glyph, clamped to the lift range. The corner stays on its carved block's column.
+     * Lifts or lowers the corner carried by the glyph, clamped to {@link #MIN_Y}..{@link #MAX_Y}. The corner stays on its carved block's column.
      *
      * @return the footprint with the corner moved, or this footprint unchanged if it carries no such glyph
      */
     public WorkFootprint liftGlyph(CarvedGlyph glyph, int delta) {
         return new WorkFootprint(this.minX, this.minZ, this.maxX, this.maxZ, this.minY, this.maxY,
                 this.glyphs.stream()
-                        .map(candidate -> candidate.isSameGlyph(glyph) ? candidate.withLift(clampLift(candidate.lift() + delta)) : candidate)
+                        .map(candidate -> {
+                            if (!candidate.corner().equals(glyph.corner())) {
+                                return candidate;
+                            }
+                            int newY = Math.clamp(candidate.corner().getY() + delta, MIN_Y, MAX_Y);
+                            return candidate.withLift(newY - candidate.pos().getY());
+                        })
                         .toList());
     }
 
     /**
      * Moves the whole footprint up or down. Glyphs keep their carved blocks and their lifts change, so the corners move with the box.
-     * The move is clamped so that every corner stays within the lift range, or, for a glyphless footprint, within the build limits.
+     * The move is clamped to {@link #MIN_Y}..{@link #MAX_Y}.
      *
      * @return the moved footprint
      */
@@ -234,21 +247,9 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
     }
 
     private int clampShift(int delta) {
-        int low;
-        int high;
-        if (this.glyphs.isEmpty()) {
-            low = MIN_Y - this.minY;
-            high = MAX_Y - this.maxY;
-        } else {
-            low = MIN_LIFT - this.glyphs.stream().mapToInt(CarvedGlyph::lift).min().getAsInt();
-            high = MAX_LIFT - this.glyphs.stream().mapToInt(CarvedGlyph::lift).max().getAsInt();
-        }
-
-        if (low > high) {
-            return 0;
-        }
-
-        return Math.clamp(delta, low, high);
+        int low = MIN_Y - this.minY;
+        int high = MAX_Y - this.maxY;
+        return low > high ? 0 : Math.clamp(delta, low, high);
     }
 
     public WorkFootprint offset(int dx, int dy, int dz) {
