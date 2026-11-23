@@ -10,6 +10,7 @@ import com.geckolib.renderer.layer.builtin.BlockAndItemGeoLayer;
 import com.geckolib.util.RenderUtil;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
@@ -125,9 +126,14 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
     @Override
     protected void submitItemStackRender(PoseStack poseStack, GeoBone bone, ItemStackRenderState stackState, ItemDisplayContext displayContext, GolemRenderState renderState, SubmitNodeCollector renderTasks, int packedLight) {
         poseStack.pushPose();
-        // The back item needs no turn: the flat item lies in the plane of the back bone, which is the plane of the back.
         if (TORSO_BONE.equals(bone.name())) {
             poseStack.translate(0.0F, -CARRY_OFFSET_Y, 0.0F);
+        }
+
+        if (displayContext == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
+            // The hand transform of GeckoLib's ItemInHandGeoLayer: the handle is gripped and the head turns across the arm.
+            poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
+            poseStack.translate(0.0F, 0.125F, -0.0625F);
         }
 
         super.submitItemStackRender(poseStack, bone, stackState, displayContext, renderState, renderTasks, packedLight);
