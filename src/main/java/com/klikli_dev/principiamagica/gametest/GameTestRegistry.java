@@ -169,8 +169,8 @@ PICK_UP_CANCEL_RESTORES_FOOTPRINT =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_SHIFT_CLICK_INSTALLS_JOB =
             TEST_FUNCTIONS.register("axiom_shift_click_installs_job", () -> GolemMenuGameTests::axiomShiftClickInstallsJob);
 
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> TOOL_SLOT_REJECTS_WITHOUT_JOB =
-            TEST_FUNCTIONS.register("tool_slot_rejects_without_job", () -> GolemMenuGameTests::toolSlotRejectsWithoutJob);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> TOOL_SLOT_ACCEPTS_TOOL_WITHOUT_JOB =
+            TEST_FUNCTIONS.register("tool_slot_accepts_tool_without_job", () -> GolemMenuGameTests::toolSlotAcceptsToolWithoutJob);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB =
             TEST_FUNCTIONS.register("golem_side_slots_inactive_on_job_tab", () -> GolemMenuGameTests::golemSideSlotsInactiveOnJobTab);
@@ -512,7 +512,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, AXIOM_SLOT_PICKUP_RETURNS_AXIOM_ONCE, environment, structure, 40, 0);
         registerTest(event, AXIOM_SLOT_SWAP_RETURNS_PREVIOUS_AXIOM, environment, structure, 40, 0);
         registerTest(event, AXIOM_SHIFT_CLICK_INSTALLS_JOB, environment, structure, 40, 0);
-        registerTest(event, TOOL_SLOT_REJECTS_WITHOUT_JOB, environment, structure, 40, 0);
+        registerTest(event, TOOL_SLOT_ACCEPTS_TOOL_WITHOUT_JOB, environment, structure, 40, 0);
         registerTest(event, GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB, environment, structure, 40, 0);
         registerTest(event, SHIFT_CLICK_ON_JOB_TAB_DOES_NOT_ENTER_GOLEM_INVENTORY, environment, structure, 40, 0);
         registerTest(event, JOB_TAB_NEEDS_AXIOM, environment, structure, 40, 0);

@@ -153,13 +153,13 @@ public class GolemMenuGameTests {
         helper.succeed();
     }
 
-    public static void toolSlotRejectsWithoutJob(GameTestHelper helper) {
+    public static void toolSlotAcceptsToolWithoutJob(GameTestHelper helper) {
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
         Player player = ownedPlayer(helper, golem);
         GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
 
-        helper.assertTrue(!menu.backSlot().mayPlace(new ItemStack(Items.IRON_AXE)), "A golem without a job should not accept a tool on its back");
+        helper.assertTrue(menu.backSlot().mayPlace(new ItemStack(Items.IRON_AXE)), "A golem without a job should accept a tool on its back");
 
         helper.succeed();
     }
