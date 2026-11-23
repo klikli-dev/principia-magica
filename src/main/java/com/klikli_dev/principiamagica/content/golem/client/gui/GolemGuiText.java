@@ -104,6 +104,7 @@ final class GolemGuiText {
 
         return Component.empty()
                 .append(Component.translatable(status.translationKey()).withStyle(Style.EMPTY.withColor(headlineColor(status))))
+                .append("\n").append(hintLine(status, task))
                 .append("\n").append(status.description());
     }
 
