@@ -14,7 +14,9 @@ public class GolemRenderer extends GeoEntityRenderer<GolemEntity, GolemRenderSta
     public GolemRenderer(EntityRendererProvider.Context context) {
         super(context, new GolemModel());
 
+        // The hand item, the tool or the carried item, on the right hand bone.
         this.withRenderLayer(new ItemInHandGeoLayer<>(context, this, "RightHandItem", null));
+        this.withRenderLayer(new GolemBackItemLayer(context, this));
     }
 
     @Override
