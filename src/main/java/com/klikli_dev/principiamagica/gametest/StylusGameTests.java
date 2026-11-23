@@ -556,7 +556,7 @@ public class StylusGameTests {
             Vec3 center = Vec3.atCenterOf(block);
             Vec3 from = center.add(17.0, 23.0, 11.0);
             Vec3 to = center.subtract(17.0, 23.0, 11.0);
-            Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, List.of(volume), 40.0, Level.OVERWORLD);
+            Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, List.of(volume), Level.OVERWORLD);
             helper.assertTrue(hit.isPresent() && hit.get().cornerIndex() == i && hit.get().block().equals(block),
                     "Ray through virtual corner block " + i + " from afar should hit corner " + i + ", got " + hit);
         }
@@ -565,17 +565,12 @@ public class StylusGameTests {
         BlockPos corner0Block = flat.cornerBlock(0);
         Vec3 fromAbove = Vec3.atCenterOf(corner0Block).add(0.0, 10.0, 0.0);
         Vec3 toBelow = Vec3.atCenterOf(corner0Block).subtract(0.0, 10.0, 0.0);
-        double surfaceDistance = 9.5; // top face of corner0Block is at y=65.0
-        Optional<CornerHit> onCornerBlock = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(flat), surfaceDistance, Level.OVERWORLD);
+        Optional<CornerHit> onCornerBlock = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(flat), Level.OVERWORLD);
         helper.assertTrue(onCornerBlock.isPresent() && onCornerBlock.get().block().equals(corner0Block),
                 "Virtual corner block should win over the block surface at the same coordinate");
 
-        // Corner behind a nearer solid wall is occluded
-        Optional<CornerHit> wallOccluded = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(flat), 4.0, Level.OVERWORLD);
-        helper.assertTrue(wallOccluded.isEmpty(), "Corner behind a solid wall must be occluded");
-
         // Dimension filtering ignores footprints from other dimensions
-        Optional<CornerHit> wrongDim = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(nether), 40.0, Level.OVERWORLD);
+        Optional<CornerHit> wrongDim = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(nether), Level.OVERWORLD);
         helper.assertTrue(wrongDim.isEmpty(), "Overworld raycast must ignore Nether footprints");
 
         helper.succeed();

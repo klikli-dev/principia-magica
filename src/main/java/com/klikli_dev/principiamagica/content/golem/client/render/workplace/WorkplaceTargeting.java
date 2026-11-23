@@ -224,8 +224,7 @@ public class WorkplaceTargeting {
             clearCornerLock();
         }
 
-        double blockDist = blockDistance(level, player, from, to);
-        Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, footprints, blockDist, level.dimension());
+        Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, footprints, level.dimension());
         return hit.map(h -> new TargetedCorner(
                 golem.getId(),
                 h.footprintIndex(),

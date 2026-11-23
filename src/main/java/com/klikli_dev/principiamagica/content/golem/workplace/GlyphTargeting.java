@@ -191,13 +191,10 @@ public final class GlyphTargeting {
     }
 
     /**
-     * Picks the nearest of the 8 virtual corner blocks of all footprints hit by the ray before {@code blockDistance}.
+     * Picks the nearest of the 8 virtual corner blocks of all footprints hit by the ray. Corners are not occluded by terrain,
+     * as their glyphs are drawn through terrain too, so corners below ground can be targeted.
      */
-    public static Optional<CornerHit> pickCorner(Vec3 from, Vec3 to, List<WorkFootprint> footprints, double blockDistance) {
-        return pickCorner(from, to, footprints, blockDistance, null);
-    }
-
-    public static Optional<CornerHit> pickCorner(Vec3 from, Vec3 to, List<WorkFootprint> footprints, double blockDistance, @Nullable ResourceKey<Level> dimension) {
+    public static Optional<CornerHit> pickCorner(Vec3 from, Vec3 to, List<WorkFootprint> footprints, @Nullable ResourceKey<Level> dimension) {
         CornerHit nearest = null;
         for (int footprintIndex = 0; footprintIndex < footprints.size(); footprintIndex++) {
             WorkFootprint footprint = footprints.get(footprintIndex);
@@ -215,10 +212,6 @@ public final class GlyphTargeting {
                         continue;
                     }
                     distance = from.distanceTo(entry.get());
-                }
-
-                if (distance > blockDistance + BLOCK_EPSILON) {
-                    continue;
                 }
 
                 if (nearest == null || distance < nearest.distance()) {
