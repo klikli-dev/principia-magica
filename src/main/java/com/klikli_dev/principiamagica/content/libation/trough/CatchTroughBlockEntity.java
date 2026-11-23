@@ -13,11 +13,18 @@ import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
+import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.SteepingRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.SteepingRecipe.SteepingRecipeInput;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
@@ -85,6 +92,15 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
     @Override
     public PrincipleContents getPrinciples() {
         return this.principles.contents();
+    }
+
+    @Override
+    public ResourceHandler<FluidResource> principleHandler() {
+        return this.principles;
+    }
+
+    public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, BlockEntityTypeRegistry.CATCH_TROUGH.get(), (trough, side) -> trough.principles);
     }
 
     @Override
@@ -156,7 +172,12 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
         SteepingRecipe steep = recipe.get().value();
         this.steeping.advance(1.0F, steep.time(), () -> {
             this.item = steep.assemble(new SteepingRecipeInput(this.item, this.principles.contents()));
-            this.principles.set(this.principles.contents().subtract(steep.principles()));
+            try (Transaction tx = Transaction.open(null)) {
+                for (PrincipleStack stack : steep.principles().stacks()) {
+                    this.principles.extract(FluidRegistry.resourceFor(stack.principle()), stack.amount(), tx);
+                }
+                tx.commit();
+            }
             this.level.playSound(null, this.worldPosition, SoundRegistry.CATCH_TROUGH_STEEP.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             this.level.blockEvent(this.worldPosition, this.getBlockState().getBlock(), EVENT_STEEP, steep.principles().blendedColor());
         });

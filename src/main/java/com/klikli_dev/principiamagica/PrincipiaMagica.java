@@ -8,7 +8,10 @@ import com.klikli_dev.principiamagica.datagen.PrincipiaMagicaDataGenerators;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.item.ClayPhialItem;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.trough.CatchTroughBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.gametest.GameTestRegistry;
 import com.klikli_dev.principiamagica.registry.ActivityRegistry;
@@ -22,6 +25,7 @@ import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.DataMapTypeRegistry;
 import com.klikli_dev.principiamagica.registry.EntityDataSerializerRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import com.klikli_dev.principiamagica.registry.GolemJobRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
@@ -54,6 +58,8 @@ public class PrincipiaMagica {
         ResearchTriggerTypeRegistry.bootstrap();
 
         BlockRegistry.BLOCKS.register(modEventBus);
+        FluidRegistry.FLUID_TYPES.register(modEventBus);
+        FluidRegistry.FLUIDS.register(modEventBus);
         ItemRegistry.ITEMS.register(modEventBus);
         BlockEntityTypeRegistry.BLOCK_ENTITY_TYPES.register(modEventBus);
         SoundRegistry.SOUND_EVENTS.register(modEventBus);
@@ -87,6 +93,9 @@ public class PrincipiaMagica {
         modEventBus.addListener(GameTestRegistry::onRegisterGameTests);
         modEventBus.addListener(LibationSlabBlockEntity::onRegisterCapabilities);
         modEventBus.addListener(DryingSlabBlockEntity::onRegisterCapabilities);
+        modEventBus.addListener(CuringVesselBlockEntity::onRegisterCapabilities);
+        modEventBus.addListener(CatchTroughBlockEntity::onRegisterCapabilities);
+        modEventBus.addListener(ClayPhialItem::onRegisterCapabilities);
         modEventBus.addListener(PrincipiaMagicaDataGenerators::onGatherData);
     }
 

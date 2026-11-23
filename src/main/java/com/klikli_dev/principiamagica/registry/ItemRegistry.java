@@ -13,6 +13,8 @@ import com.klikli_dev.principiamagica.content.golem.item.QuickenedClayItem;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.job.lumberjack.LumberjackJob;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
+import com.klikli_dev.principiamagica.content.libation.item.ClayPhialItem;
+import com.klikli_dev.principiamagica.content.libation.item.NatronSpongeItem;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -52,6 +54,12 @@ public class ItemRegistry {
     public static final DeferredItem<BlockItem> STEEPING_JAR = ITEMS.registerSimpleBlockItem("steeping_jar", BlockRegistry.STEEPING_JAR);
 
     public static final DeferredItem<BlockItem> DRYING_SLAB = ITEMS.registerSimpleBlockItem("drying_slab", BlockRegistry.DRYING_SLAB);
+
+    public static final DeferredItem<ClayPhialItem> CLAY_PHIAL = ITEMS.registerItem("clay_phial",
+            p -> new ClayPhialItem(p.stacksTo(ClayPhialItem.STACK_SIZE)));
+
+    public static final DeferredItem<NatronSpongeItem> NATRON_SPONGE = ITEMS.registerItem("natron_sponge",
+            p -> new NatronSpongeItem(p.stacksTo(16)));
 
     public static final DeferredItem<Item> AXIOM_TABLET = registerStackable("axiom_tablet", MATERIAL_STACK_SIZE);
 

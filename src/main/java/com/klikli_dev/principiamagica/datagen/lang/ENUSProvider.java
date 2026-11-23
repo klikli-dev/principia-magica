@@ -44,6 +44,9 @@ public class ENUSProvider extends LanguageProvider {
         this.add("subtitles.principiamagica.vessel.tap_close", "Tap closes");
         this.add("subtitles.principiamagica.vessel.cure", "Principles cure");
         this.add("subtitles.principiamagica.drying_slab.dried", "Item dries");
+        this.add("subtitles.principiamagica.phial.fill", "Phial fills");
+        this.add("subtitles.principiamagica.phial.empty", "Phial pours");
+        this.add("subtitles.principiamagica.natron_sponge.blot", "Natron sponge blots");
 
         this.add("message.principiamagica.libation_slab.not_washable", "Nothing can be washed from this");
         this.add("message.principiamagica.libation_slab.full", "The slab is full");
@@ -81,6 +84,16 @@ public class ENUSProvider extends LanguageProvider {
         this.add("item.principiamagica.axiom_of_felling_unfired_steeped", "Steeped Unfired Axiom of Felling");
         this.add("item.principiamagica.axiom_of_harvest", "Axiom of Harvest");
         this.add("item.principiamagica.axiom_of_felling", "Axiom of Felling");
+        this.add("item.principiamagica.clay_phial", "Clay Phial");
+        this.add("item.principiamagica.clay_phial.filled", "Clay Phial of %s");
+        this.add("item.principiamagica.natron_sponge", "Natron Sponge");
+
+        this.add("tooltip.principiamagica.clay_phial.hint_use", "%s container: draw or pour (up to 250 mB)");
+        this.add("tooltip.principiamagica.clay_phial.hint_select", "%s: choose principle");
+        this.add("tooltip.principiamagica.natron_sponge.hint_blot", "%s container: blot selected principle");
+        this.add("tooltip.principiamagica.natron_sponge.hint_purge", "%s container: purge all principles");
+        this.add("tooltip.principiamagica.natron_sponge.hint_select", "%s: choose principle");
+        this.add("hud.principiamagica.libation.hint.select_principle", "%s: choose principle");
 
         this.add("golem_material.principiamagica.wood", "Wooden");
 

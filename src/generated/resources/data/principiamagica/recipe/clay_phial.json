@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:clay_ball",
+    "Q": "principiamagica:quickened_clay"
+  },
+  "pattern": [
+    "CQC",
+    " C "
+  ],
+  "result": {
+    "count": 8,
+    "id": "principiamagica:clay_phial"
+  }
+}

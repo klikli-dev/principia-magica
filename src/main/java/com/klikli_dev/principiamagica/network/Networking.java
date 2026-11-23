@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.network.messages.MessageEraseZone;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftPending;
 import com.klikli_dev.principiamagica.network.messages.MessagePickUpCorner;
 import com.klikli_dev.principiamagica.network.messages.MessageResizeCorner;
+import com.klikli_dev.principiamagica.network.messages.MessageSelectPrinciple;
 import com.klikli_dev.principiamagica.network.messages.MessageSetGolemMode;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
 import com.klikli_dev.principiamagica.network.messages.MessageSyncGolemWorkplace;
@@ -32,6 +33,7 @@ public class Networking {
         registrar.playToServer(MessageLiftPending.TYPE, MessageLiftPending.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageResizeCorner.TYPE, MessageResizeCorner.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessagePickUpCorner.TYPE, MessagePickUpCorner.STREAM_CODEC, MessageHandler::handle);
+        registrar.playToServer(MessageSelectPrinciple.TYPE, MessageSelectPrinciple.STREAM_CODEC, MessageHandler::handle);
     }
 
     public static <T extends Message> void sendTo(ServerPlayer player, T message) {
