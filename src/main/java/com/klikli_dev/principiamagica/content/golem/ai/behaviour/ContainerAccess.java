@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -32,6 +33,23 @@ public final class ContainerAccess {
 
     public static @Nullable ResourceHandler<ItemResource> itemHandler(ServerLevel level, ContainerLink link) {
         return level.getCapability(Capabilities.Item.BLOCK, link.pos(), link.side());
+    }
+
+    /**
+     * @return whether the block at pos exposes an item handler on any side, or without a side. A block that was broken or replaced has none.
+     */
+    public static boolean hasItemCapability(ServerLevel level, BlockPos pos) {
+        if (level.getCapability(Capabilities.Item.BLOCK, pos, null) != null) {
+            return true;
+        }
+
+        for (Direction side : Direction.values()) {
+            if (level.getCapability(Capabilities.Item.BLOCK, pos, side) != null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static @Nullable Container containerAt(ServerLevel level, BlockPos pos) {

@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.item;
 
+import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
@@ -23,15 +24,14 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.Optional;
 
 /**
  * A stylus click on a block for the golem selected on the stylus. What it does depends on the block and on sneaking:
  * <ul>
- *     <li>container, plain: cycles the container link (supply, deposit, both, removed)</li>
- *     <li>container, sneaking: removes the container link</li>
+ *     <li>container or linked position, plain: cycles the container link (supply, deposit, both, removed)</li>
+ *     <li>container or linked position, sneaking: removes the container link. A linked position whose block is gone counts, so stale links can be removed</li>
  *     <li>other block, sneaking: erases the footprint at the block</li>
  *     <li>other block, plain: sets or finishes the pending work-area corner</li>
  * </ul>
@@ -42,11 +42,13 @@ final class StylusBlockInteraction {
     }
 
     static void interact(ServerLevel level, ServerPlayer player, ItemStack stack, GolemEntity golem, BlockPos pos, Direction face) {
-        boolean container = level.getCapability(Capabilities.Item.BLOCK, pos, face) != null;
-        boolean sneaking = player.isShiftKeyDown();
         PendingGlyph pending = stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
         boolean hasPending = pending != null && pending.pos().dimension().equals(level.dimension());
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
+        // A linked position is a container even if its block is gone, so the link can still be cycled or removed
+        boolean linked = workplace.links().stream().anyMatch(link -> link.pos().equals(pos));
+        boolean container = linked || ContainerAccess.hasItemCapability(level, pos);
+        boolean sneaking = player.isShiftKeyDown();
 
         if (hasPending && !sneaking) {
             placeCorner(level, player, stack, golem, workplace, pos, face);
