@@ -186,6 +186,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_DEPOSIT_FULL_INVENTORY =
             TEST_FUNCTIONS.register("farming_deposit_full_inventory", () -> FarmingGameTests::depositFullInventory);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_DEPOSIT_SKIPS_FULL_CHEST =
+            TEST_FUNCTIONS.register("farming_deposit_skips_full_chest", () -> FarmingGameTests::depositSkipsFullChest);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_RESTOCK_AND_PLANT =
             TEST_FUNCTIONS.register("farming_restock_and_plant", () -> FarmingGameTests::restockAndPlant);
 
@@ -515,6 +518,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, FARMING_HARVEST_AND_REPLANT, environment, structure, 800, 0);
         registerTest(event, STACKED_FARM_VOLUME_COVERS_EVERY_LAYER, environment, structure, 40, 0);
         registerTest(event, FARMING_DEPOSIT_FULL_INVENTORY, environment, structure, 800, 0);
+        registerTest(event, FARMING_DEPOSIT_SKIPS_FULL_CHEST, environment, structure, 800, 0);
         registerTest(event, FARMING_RESTOCK_AND_PLANT, environment, structure, 800, 0);
         registerTest(event, FARMING_STACKED_PLANT_KEEPS_BASE, environment, structure, 800, 0);
         registerTest(event, FARMING_GOURD_HARVEST_KEEPS_STEM, environment, structure, 800, 0);

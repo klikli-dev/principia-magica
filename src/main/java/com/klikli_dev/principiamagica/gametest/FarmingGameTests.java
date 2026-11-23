@@ -160,6 +160,29 @@ public class FarmingGameTests {
                 "Full golem should deposit wheat into the deposit chest, chest has " + countInChest(helper, CHEST_POS, Items.WHEAT)));
     }
 
+    /**
+     * The nearest deposit chest is full, so it cannot take the excess. The golem must deposit into the other chest
+     * instead of returning to the full one.
+     */
+    public static void depositSkipsFullChest(GameTestHelper helper) {
+        buildFarmland(helper);
+        BlockPos fullChest = new BlockPos(0, 2, 2);
+        helper.setBlock(fullChest, Blocks.CHEST);
+        Container full = ContainerAccess.containerAt(helper.getLevel(), helper.absolutePos(fullChest));
+        for (int slot = 0; slot < full.getContainerSize(); slot++) {
+            full.setItem(slot, new ItemStack(Items.STONE, 64));
+        }
+        helper.setBlock(CHEST_POS, Blocks.CHEST);
+        List<ContainerLink> links = List.of(link(helper, fullChest, ContainerRole.DEPOSIT), link(helper, CHEST_POS, ContainerRole.DEPOSIT));
+        GolemEntity golem = spawnFarmer(helper, GOLEM_POS, links, JobOptionValues.EMPTY);
+        for (int slot = 0; slot < golem.getInventory().getUsableSlots(); slot++) {
+            golem.getInventory().setItem(slot, new ItemStack(Items.WHEAT, 64));
+        }
+
+        helper.succeedWhen(() -> helper.assertTrue(countInChest(helper, CHEST_POS, Items.WHEAT) >= 64,
+                "Full golem should deposit into the chest with room, the other chest holds " + countInChest(helper, CHEST_POS, Items.WHEAT)));
+    }
+
     public static void restockAndPlant(GameTestHelper helper) {
         buildFarmland(helper);
         ContainerLink supply = link(helper, CHEST_POS, ContainerRole.SUPPLY);
