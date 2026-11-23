@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
+import com.klikli_dev.principiamagica.content.golem.item.QuickenedClayItem;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.job.lumberjack.LumberjackJob;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
@@ -50,7 +51,7 @@ public class ItemRegistry {
 
     public static final DeferredItem<Item> AXIOM_TABLET = registerStackable("axiom_tablet", MATERIAL_STACK_SIZE);
 
-    public static final DeferredItem<Item> QUICKENED_CLAY = registerStackable("quickened_clay", MATERIAL_STACK_SIZE);
+    public static final DeferredItem<QuickenedClayItem> QUICKENED_CLAY = ITEMS.registerItem("quickened_clay", p -> new QuickenedClayItem(p.stacksTo(MATERIAL_STACK_SIZE)));
 
     public static final DeferredItem<Item> AXIOM_OF_HARVEST_UNFIRED = registerStackable("axiom_of_harvest_unfired", UNFIRED_AXIOM_STACK_SIZE);
 
