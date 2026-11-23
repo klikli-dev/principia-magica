@@ -40,8 +40,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
-
 /**
  * Holds principles and cures them into compound principles. Drains through an open spout into the drain target below the
  * spout, at the rate of {@link LibationFlow}. What the vessel is, is defined by its {@link VesselProperties}.
@@ -64,11 +62,17 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
      * The id of the recipe the progress belongs to. Saved with the progress, so that a reload does not reset it.
      */
     private @Nullable ResourceKey<Recipe<?>> activeRecipe;
+    /**
+     * The curing recipe of the principles in the vessel, valid while {@link #curingRecipeStale} is false. The environment is
+     * fixed by the vessel, so only the principles can change the recipe.
+     */
+    private @Nullable RecipeHolder<CuringRecipe> curingRecipe;
+    private boolean curingRecipeStale = true;
 
     public CuringVesselBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, VesselProperties vessel) {
         super(type, pos, state);
         this.vessel = vessel;
-        this.principles = new PrincipleStorage(vessel.capacity(), this.sync);
+        this.principles = new PrincipleStorage(vessel.capacity(), this.sync, this::onPrinciplesChanged);
         this.drain = new PrincipleDrain(this.principles, this.sync);
     }
 
@@ -143,13 +147,12 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
             return;
         }
 
-        Optional<RecipeHolder<CuringRecipe>> found = LibationUtils.curing(level, this.principles.contents(), this.vessel.environment());
-        if (found.isEmpty()) {
+        RecipeHolder<CuringRecipe> holder = this.curingRecipe(level);
+        if (holder == null) {
             this.resetCuring();
             return;
         }
 
-        RecipeHolder<CuringRecipe> holder = found.get();
         CuringRecipe recipe = holder.value();
         if (!holder.id().equals(this.activeRecipe)) {
             this.activeRecipe = holder.id();
@@ -177,6 +180,21 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
         } else {
             this.sync.requestSync();
         }
+    }
+
+    /**
+     * @return the curing recipe of the principles, or null. Looked up only when the principles changed since the last lookup.
+     */
+    private @Nullable RecipeHolder<CuringRecipe> curingRecipe(Level level) {
+        if (this.curingRecipeStale) {
+            this.curingRecipe = LibationUtils.curing(level, this.principles.contents(), this.vessel.environment()).orElse(null);
+            this.curingRecipeStale = false;
+        }
+        return this.curingRecipe;
+    }
+
+    private void onPrinciplesChanged() {
+        this.curingRecipeStale = true;
     }
 
     /**
@@ -248,6 +266,7 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
+        this.curingRecipeStale = true;
         this.progress = input.getIntOr("progress", 0);
         this.activeRecipe = input.read("active_recipe", RECIPE_ID_CODEC).orElse(null);
         this.curing = input.getBooleanOr("curing", false);
