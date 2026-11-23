@@ -58,7 +58,9 @@ final class GolemMainTab extends GolemTab {
     static final int STATUS_Y = 82;
     static final int STATUS_WIDTH = 122;
     static final int STATUS_HEIGHT = 35;
-    static final int STATUS_TEXT_OFFSET = 23;
+    static final int STATUS_TEXT_OFFSET = 16;
+    static final int STATUS_ICON_SIZE = 11;
+    static final int STATUS_TEXT_RIGHT_PADDING = 2;
     static final int STATUS_ITEM_WIDTH = 18;
     static final int MODE_Y = 56;
     static final int MODE_SIZE = 24;
@@ -160,14 +162,14 @@ final class GolemMainTab extends GolemTab {
      */
     private void buildStatusTablet(ContentRect bounds) {
         this.add(new SpriteWidget(bounds.x() + STATUS_X, bounds.y() + STATUS_Y, STATUS_WIDTH, STATUS_HEIGHT, this.sprite("inset")));
-        this.add(new SpriteWidget(bounds.x() + STATUS_X + 3, bounds.y() + STATUS_Y + 3, 16, 16,
+        this.add(new SpriteWidget(bounds.x() + STATUS_X + 3, bounds.y() + STATUS_Y + 3, STATUS_ICON_SIZE, STATUS_ICON_SIZE,
                 () -> this.sprite(GolemGuiText.statusIcon(this.view().status()))));
 
         this.statusItem = this.add(new ItemIcon(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 3, this::taskDisplay));
         this.headlineLabel = this.add(new LabelWidget(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 3, 96, this::headline)
                 .withStyle(this.style).withMaxLines(1));
-        this.hintLabel = this.add(new LabelWidget(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 14, 96, this::hintLine)
-                .withStyle(this.style).withColor(GuiStyles.TEXT_SECONDARY).withMaxLines(1));
+        this.hintLabel = this.add(new LabelWidget(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 13, 96, this::hintLine)
+                .withStyle(this.style).withColor(GuiStyles.TEXT_SECONDARY).withMaxLines(2));
         this.statusTooltip = this.add(new TooltipArea(bounds.x() + STATUS_X, bounds.y() + STATUS_Y, STATUS_WIDTH, STATUS_HEIGHT, Component.empty()));
     }
 
@@ -206,7 +208,7 @@ final class GolemMainTab extends GolemTab {
         this.statusItem.visible = showItem;
 
         int textX = this.bounds.x() + STATUS_X + STATUS_TEXT_OFFSET + (showItem ? STATUS_ITEM_WIDTH : 0);
-        int textRight = this.bounds.x() + STATUS_X + STATUS_WIDTH - 3;
+        int textRight = this.bounds.x() + STATUS_X + STATUS_WIDTH - STATUS_TEXT_RIGHT_PADDING;
         this.headlineLabel.place(textX, textRight - textX);
         this.hintLabel.place(textX, textRight - textX);
 
