@@ -5,36 +5,38 @@
 package com.klikli_dev.principiamagica.content.libation.item;
 
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
-import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
+import com.klikli_dev.principiamagica.content.principle.PrincipleFluid;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.neoforged.neoforge.transfer.ItemAccessResourceHandler;
 import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 /**
  * {@link net.neoforged.neoforge.transfer.ResourceHandler} for a {@link ClayPhialItem} backed by {@link ItemAccess}.
- * Holds a single {@link PrincipleResource} up to {@link ClayPhialItem#CAPACITY} mB.
+ * Holds a single {@link PrincipleFluid} up to {@link ClayPhialItem#CAPACITY} mB.
  * Clearing the {@code STORED_PRINCIPLES} component when empty ensures empty phials stack identically.
  */
-public class ClayPhialResourceHandler extends ItemAccessResourceHandler<PrincipleResource> {
+public class ClayPhialResourceHandler extends ItemAccessResourceHandler<FluidResource> {
 
     public ClayPhialResourceHandler(ItemAccess itemAccess) {
         super(itemAccess, 1);
     }
 
     @Override
-    protected PrincipleResource getResourceFrom(ItemResource accessResource, int index) {
+    protected FluidResource getResourceFrom(ItemResource accessResource, int index) {
         if (!accessResource.is(ItemRegistry.CLAY_PHIAL.get())) {
-            return PrincipleResource.EMPTY;
+            return FluidResource.EMPTY;
         }
         PrincipleContents contents = accessResource.get(DataComponentRegistry.STORED_PRINCIPLES.get());
         if (contents == null || contents.isEmpty()) {
-            return PrincipleResource.EMPTY;
+            return FluidResource.EMPTY;
         }
-        return PrincipleResource.of(contents.stacks().getFirst().principle());
+        return FluidRegistry.resourceFor(contents.stacks().getFirst().principle());
     }
 
     @Override
@@ -50,21 +52,22 @@ public class ClayPhialResourceHandler extends ItemAccessResourceHandler<Principl
     }
 
     @Override
-    protected @Nullable ItemResource update(ItemResource accessResource, int index, PrincipleResource newResource, int newAmount) {
-        if (newAmount <= 0 || newResource.isEmpty()) {
+    protected @Nullable ItemResource update(ItemResource accessResource, int index, FluidResource newResource, int newAmount) {
+        if (newAmount <= 0 || !FluidRegistry.isPrincipleFluid(newResource)) {
             return accessResource.without(DataComponentRegistry.STORED_PRINCIPLES.get());
         }
+        PrincipleFluid fluid = (PrincipleFluid) newResource.getFluid();
         return accessResource.with(DataComponentRegistry.STORED_PRINCIPLES.get(),
-                PrincipleContents.of(new PrincipleStack(newResource.principle(), newAmount)));
+                PrincipleContents.of(new PrincipleStack(fluid.principle(), newAmount)));
     }
 
     @Override
-    public boolean isValid(int index, PrincipleResource resource) {
-        return this.itemAccess.getResource().is(ItemRegistry.CLAY_PHIAL.get()) && !resource.isEmpty();
+    public boolean isValid(int index, FluidResource resource) {
+        return this.itemAccess.getResource().is(ItemRegistry.CLAY_PHIAL.get()) && FluidRegistry.isPrincipleFluid(resource);
     }
 
     @Override
-    protected int getCapacity(int index, PrincipleResource resource) {
+    protected int getCapacity(int index, FluidResource resource) {
         return ClayPhialItem.CAPACITY;
     }
 }

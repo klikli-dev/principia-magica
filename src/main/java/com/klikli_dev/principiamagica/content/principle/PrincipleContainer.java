@@ -4,7 +4,9 @@
 
 package com.klikli_dev.principiamagica.content.principle;
 
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.ArrayList;
@@ -17,7 +19,7 @@ public interface PrincipleContainer {
 
     PrincipleContents getPrinciples();
 
-    ResourceHandler<PrincipleResource> principleHandler();
+    ResourceHandler<FluidResource> principleHandler();
 
     /**
      * Offers principles to this container.
@@ -32,11 +34,11 @@ public interface PrincipleContainer {
         if (offered.isEmpty()) {
             return PrincipleContents.EMPTY;
         }
-        ResourceHandler<PrincipleResource> handler = this.principleHandler();
+        ResourceHandler<FluidResource> handler = this.principleHandler();
         List<PrincipleStack> accepted = new ArrayList<>();
         try (Transaction tx = Transaction.open(null)) {
             for (PrincipleStack stack : offered.stacks()) {
-                int moved = handler.insert(PrincipleResource.of(stack.principle()), stack.amount(), tx);
+                int moved = handler.insert(FluidRegistry.resourceFor(stack.principle()), stack.amount(), tx);
                 if (moved > 0) {
                     accepted.add(new PrincipleStack(stack.principle(), moved));
                 }

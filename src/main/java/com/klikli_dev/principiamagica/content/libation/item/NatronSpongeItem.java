@@ -9,9 +9,8 @@ import com.klikli_dev.principiamagica.content.libation.PrincipleSelection;
 import com.klikli_dev.principiamagica.content.libation.PrincipleSplashOptions;
 import com.klikli_dev.principiamagica.content.principle.Principle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
-import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
-import com.klikli_dev.principiamagica.registry.PrincipiaMagicaCapabilities;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -27,7 +26,11 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.resource.ResourceStack;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.ArrayList;
@@ -48,7 +51,7 @@ public class NatronSpongeItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        ResourceHandler<PrincipleResource> blockHandler = level.getCapability(PrincipiaMagicaCapabilities.Principle.BLOCK, pos, context.getClickedFace());
+        ResourceHandler<FluidResource> blockHandler = level.getCapability(Capabilities.Fluid.BLOCK, pos, context.getClickedFace());
         if (blockHandler == null) {
             return InteractionResult.PASS;
         }
@@ -75,18 +78,14 @@ public class NatronSpongeItem extends Item {
         return InteractionResult.SUCCESS;
     }
 
-    private static PrincipleContents purgeAll(ResourceHandler<PrincipleResource> handler) {
+    private static PrincipleContents purgeAll(ResourceHandler<FluidResource> handler) {
         List<PrincipleStack> removed = new ArrayList<>();
         try (Transaction tx = Transaction.open(null)) {
-            int size = handler.size();
-            for (int i = 0; i < size; i++) {
-                PrincipleResource resource = handler.getResource(i);
-                int amount = handler.getAmountAsInt(i);
-                if (!resource.isEmpty() && amount > 0) {
-                    int extracted = handler.extract(i, resource, amount, tx);
-                    if (extracted > 0) {
-                        removed.add(new PrincipleStack(resource.principle(), extracted));
-                    }
+            ResourceStack<FluidResource> extracted;
+            while ((extracted = ResourceHandlerUtil.extractFirst(handler, FluidRegistry::isPrincipleFluid, Integer.MAX_VALUE, tx)) != null) {
+                Holder<Principle> principle = FluidRegistry.principleFor(extracted.resource().getFluid());
+                if (principle != null) {
+                    removed.add(new PrincipleStack(principle, extracted.amount()));
                 }
             }
             if (!removed.isEmpty()) {
@@ -96,38 +95,20 @@ public class NatronSpongeItem extends Item {
         return PrincipleContents.of(removed);
     }
 
-    private static PrincipleContents blotSelected(Player player, ResourceHandler<PrincipleResource> handler) {
+    private static PrincipleContents blotSelected(Player player, ResourceHandler<FluidResource> handler) {
         Holder<Principle> selected = PrincipleSelection.get(player);
-        PrincipleResource target = PrincipleResource.EMPTY;
-        if (selected != null) {
-            PrincipleResource candidate = PrincipleResource.of(selected);
-            try (Transaction sim = Transaction.open(null)) {
-                if (handler.extract(candidate, 1, sim) > 0) {
-                    target = candidate;
-                }
-            }
+        ResourceStack<FluidResource> extracted = selected != null
+                ? ResourceHandlerUtil.extractFirst(handler,
+                        r -> r.getFluid() == FluidRegistry.fluidFor(selected), Integer.MAX_VALUE, null)
+                : null;
+        if (extracted == null) {
+            extracted = ResourceHandlerUtil.extractFirst(handler, FluidRegistry::isPrincipleFluid, Integer.MAX_VALUE, null);
         }
-        if (target.isEmpty()) {
-            int size = handler.size();
-            for (int i = 0; i < size; i++) {
-                PrincipleResource resource = handler.getResource(i);
-                if (!resource.isEmpty() && handler.getAmountAsInt(i) > 0) {
-                    target = resource;
-                    break;
-                }
-            }
-        }
-        if (target.isEmpty()) {
+        if (extracted == null) {
             return PrincipleContents.EMPTY;
         }
-        try (Transaction tx = Transaction.open(null)) {
-            int extracted = handler.extract(target, Integer.MAX_VALUE, tx);
-            if (extracted > 0) {
-                tx.commit();
-                return PrincipleContents.of(new PrincipleStack(target.principle(), extracted));
-            }
-        }
-        return PrincipleContents.EMPTY;
+        Holder<Principle> principle = FluidRegistry.principleFor(extracted.resource().getFluid());
+        return principle != null ? PrincipleContents.of(new PrincipleStack(principle, extracted.amount())) : PrincipleContents.EMPTY;
     }
 
     @Override

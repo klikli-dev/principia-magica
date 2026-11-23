@@ -12,15 +12,16 @@ import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
-import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
-import com.klikli_dev.principiamagica.content.principle.PrincipleTransferUtil;
+import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
-import com.klikli_dev.principiamagica.registry.PrincipiaMagicaCapabilities;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
@@ -80,13 +81,13 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     }
 
     @Override
-    public ResourceHandler<PrincipleResource> principleHandler() {
+    public ResourceHandler<FluidResource> principleHandler() {
         return this.principles;
     }
 
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(PrincipiaMagicaCapabilities.Principle.BLOCK, BlockEntityTypeRegistry.WABET_BASIN.get(), (vessel, side) -> vessel.principles);
-        event.registerBlockEntity(PrincipiaMagicaCapabilities.Principle.BLOCK, BlockEntityTypeRegistry.STEEPING_JAR.get(), (vessel, side) -> vessel.principles);
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, BlockEntityTypeRegistry.WABET_BASIN.get(), (vessel, side) -> vessel.principles);
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, BlockEntityTypeRegistry.STEEPING_JAR.get(), (vessel, side) -> vessel.principles);
     }
 
     /**
@@ -158,8 +159,10 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
 
         if (this.progress >= this.vessel.requiredTime(recipe.time(), light)) {
             try (Transaction tx = Transaction.open(null)) {
-                PrincipleTransferUtil.extractAll(this.principles, recipe.inputs(), tx);
-                PrincipleTransferUtil.insertContents(this.principles, PrincipleContents.of(recipe.result()), tx);
+                for (PrincipleStack input : recipe.inputs().stacks()) {
+                    this.principles.extract(FluidRegistry.resourceFor(input.principle()), input.amount(), tx);
+                }
+                this.principles.insert(FluidRegistry.resourceFor(recipe.result().principle()), recipe.result().amount(), tx);
                 tx.commit();
             }
             this.progress = 0;

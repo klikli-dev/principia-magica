@@ -7,12 +7,10 @@ package com.klikli_dev.principiamagica.content.libation.client;
 import com.klikli_dev.principiamagica.content.libation.item.ClayPhialItem;
 import com.klikli_dev.principiamagica.content.libation.item.NatronSpongeItem;
 import com.klikli_dev.principiamagica.content.principle.Principle;
-import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
-import com.klikli_dev.principiamagica.content.principle.PrincipleTransferUtil;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSelectPrinciple;
-import com.klikli_dev.principiamagica.registry.PrincipiaMagicaCapabilities;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -21,11 +19,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -90,12 +91,12 @@ public final class LibationInput {
         }
 
         BlockPos pos = hit.getBlockPos();
-        ResourceHandler<PrincipleResource> handler = level.getCapability(PrincipiaMagicaCapabilities.Principle.BLOCK, pos, hit.getDirection());
+        ResourceHandler<FluidResource> handler = level.getCapability(Capabilities.Fluid.BLOCK, pos, hit.getDirection());
         if (handler == null) {
             return;
         }
 
-        List<PrincipleStack> stacks = PrincipleTransferUtil.snapshot(handler).stacks();
+        List<PrincipleStack> stacks = snapshotPrinciples(handler);
         if (stacks.size() <= 1) {
             return;
         }
@@ -114,6 +115,22 @@ public final class LibationInput {
         selectedPos = pos;
         selectedPrinciple = stacks.get(nextIndex).principle();
         Networking.sendToServer(new MessageSelectPrinciple(Optional.of(selectedPrinciple)));
+    }
+
+    private static List<PrincipleStack> snapshotPrinciples(ResourceHandler<FluidResource> handler) {
+        List<PrincipleStack> stacks = new ArrayList<>();
+        int size = handler.size();
+        for (int i = 0; i < size; i++) {
+            FluidResource resource = handler.getResource(i);
+            int amount = handler.getAmountAsInt(i);
+            if (FluidRegistry.isPrincipleFluid(resource) && amount > 0) {
+                Holder<Principle> principle = FluidRegistry.principleFor(resource.getFluid());
+                if (principle != null) {
+                    stacks.add(new PrincipleStack(principle, amount));
+                }
+            }
+        }
+        return stacks;
     }
 
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {

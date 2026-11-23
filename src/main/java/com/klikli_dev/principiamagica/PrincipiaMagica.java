@@ -25,6 +25,7 @@ import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.DataMapTypeRegistry;
 import com.klikli_dev.principiamagica.registry.EntityDataSerializerRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import com.klikli_dev.principiamagica.registry.GolemJobRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
@@ -57,6 +58,8 @@ public class PrincipiaMagica {
         ResearchTriggerTypeRegistry.bootstrap();
 
         BlockRegistry.BLOCKS.register(modEventBus);
+        FluidRegistry.FLUID_TYPES.register(modEventBus);
+        FluidRegistry.FLUIDS.register(modEventBus);
         ItemRegistry.ITEMS.register(modEventBus);
         BlockEntityTypeRegistry.BLOCK_ENTITY_TYPES.register(modEventBus);
         SoundRegistry.SOUND_EVENTS.register(modEventBus);

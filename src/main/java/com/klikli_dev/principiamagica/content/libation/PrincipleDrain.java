@@ -5,14 +5,15 @@
 package com.klikli_dev.principiamagica.content.libation;
 
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
-import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
-import com.klikli_dev.principiamagica.content.principle.PrincipleTransferUtil;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /**
  * Drains the principles of a storage through an open spout into the drain target below the spout, at the rate of
@@ -72,16 +73,18 @@ public final class PrincipleDrain {
         }
         this.cooldown = 0;
 
-        ResourceHandler<PrincipleResource> target = LibationUtils.drainTarget(level, spout);
+        ResourceHandler<FluidResource> target = LibationUtils.drainTarget(level, spout);
         if (target == null) {
             this.stop();
             return;
         }
-        PrincipleContents accepted = PrincipleTransferUtil.extractUpTo(this.storage, target, LibationFlow.DRAIN_AMOUNT, null);
-        if (accepted.isEmpty()) {
+        PrincipleContents before = this.storage.contents();
+        int moved = ResourceHandlerUtil.move(this.storage, target, FluidRegistry::isPrincipleFluid, LibationFlow.DRAIN_AMOUNT, null);
+        if (moved <= 0) {
             this.stop();
             return;
         }
+        PrincipleContents accepted = before.subtract(this.storage.contents());
         this.color = accepted.blendedColor();
         boolean starting = !this.draining;
         this.draining = !this.storage.isEmpty();
@@ -90,7 +93,7 @@ public final class PrincipleDrain {
         } else {
             this.sync.requestSync();
         }
-        level.blockEvent(spout, level.getBlockState(spout).getBlock(), LibationFlow.EVENT_DRIP, accepted.total());
+        level.blockEvent(spout, level.getBlockState(spout).getBlock(), LibationFlow.EVENT_DRIP, moved);
     }
 
     /**

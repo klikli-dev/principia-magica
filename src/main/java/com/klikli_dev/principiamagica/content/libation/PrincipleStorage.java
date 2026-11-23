@@ -6,13 +6,14 @@ package com.klikli_dev.principiamagica.content.libation;
 
 import com.klikli_dev.principiamagica.content.principle.Principle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
-import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
+import com.klikli_dev.principiamagica.content.principle.PrincipleFluid;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
-import com.klikli_dev.principiamagica.content.principle.PrincipleTransferUtil;
+import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
 import net.minecraft.core.Holder;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
@@ -23,10 +24,10 @@ import java.util.Objects;
 
 /**
  * Principles held by a block entity with a fixed total capacity, exposed as a NeoForge {@link ResourceHandler} of
- * {@link PrincipleResource}. Each registered {@link Principle} occupies its registry-ID slot. Transactional changes
- * sync the owner through its {@link SyncThrottle} on root commit.
+ * {@link FluidResource}. Each registered {@link Principle} occupies its registry-ID slot as its corresponding
+ * {@link PrincipleFluid}. Transactional changes sync the owner through its {@link SyncThrottle} on root commit.
  */
-public class PrincipleStorage implements ResourceHandler<PrincipleResource> {
+public class PrincipleStorage implements ResourceHandler<FluidResource> {
 
     private final int capacity;
     private final SyncThrottle sync;
@@ -70,9 +71,9 @@ public class PrincipleStorage implements ResourceHandler<PrincipleResource> {
     }
 
     @Override
-    public PrincipleResource getResource(int index) {
+    public FluidResource getResource(int index) {
         Holder<Principle> holder = this.holderAt(index);
-        return this.contents.get(holder) > 0 ? PrincipleResource.of(holder) : PrincipleResource.EMPTY;
+        return this.contents.get(holder) > 0 ? FluidRegistry.resourceFor(holder) : FluidResource.EMPTY;
     }
 
     @Override
@@ -82,7 +83,7 @@ public class PrincipleStorage implements ResourceHandler<PrincipleResource> {
     }
 
     @Override
-    public long getCapacityAsLong(int index, PrincipleResource resource) {
+    public long getCapacityAsLong(int index, FluidResource resource) {
         Objects.checkIndex(index, this.size());
         if (!resource.isEmpty() && !this.isValid(index, resource)) {
             return 0L;
@@ -91,13 +92,17 @@ public class PrincipleStorage implements ResourceHandler<PrincipleResource> {
     }
 
     @Override
-    public boolean isValid(int index, PrincipleResource resource) {
+    public boolean isValid(int index, FluidResource resource) {
         Objects.checkIndex(index, this.size());
-        return !resource.isEmpty() && PrincipiaMagicaRegistries.PRINCIPLE.getId(resource.value()) == index;
+        if (!FluidRegistry.isPrincipleFluid(resource)) {
+            return false;
+        }
+        PrincipleFluid fluid = (PrincipleFluid) resource.getFluid();
+        return PrincipiaMagicaRegistries.PRINCIPLE.getId(fluid.principle().value()) == index;
     }
 
     @Override
-    public int insert(int index, PrincipleResource resource, int amount, TransactionContext transaction) {
+    public int insert(int index, FluidResource resource, int amount, TransactionContext transaction) {
         Objects.checkIndex(index, this.size());
         TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
         if (!this.isValid(index, resource)) {
@@ -105,16 +110,21 @@ public class PrincipleStorage implements ResourceHandler<PrincipleResource> {
         }
         int accepted = Math.min(amount, Math.max(0, this.capacity - this.contents.total()));
         if (accepted > 0) {
+            PrincipleFluid fluid = (PrincipleFluid) resource.getFluid();
             this.journal.updateSnapshots(transaction);
-            this.contents = this.contents.add(PrincipleContents.of(new PrincipleStack(resource.principle(), accepted)));
+            this.contents = this.contents.add(PrincipleContents.of(new PrincipleStack(fluid.principle(), accepted)));
         }
         return accepted;
     }
 
     @Override
-    public int insert(PrincipleResource resource, int amount, TransactionContext transaction) {
+    public int insert(FluidResource resource, int amount, TransactionContext transaction) {
         TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
-        int index = PrincipiaMagicaRegistries.PRINCIPLE.getId(resource.value());
+        if (!FluidRegistry.isPrincipleFluid(resource)) {
+            return 0;
+        }
+        PrincipleFluid fluid = (PrincipleFluid) resource.getFluid();
+        int index = PrincipiaMagicaRegistries.PRINCIPLE.getId(fluid.principle().value());
         if (index < 0 || index >= this.size()) {
             return 0;
         }
@@ -122,25 +132,30 @@ public class PrincipleStorage implements ResourceHandler<PrincipleResource> {
     }
 
     @Override
-    public int extract(int index, PrincipleResource resource, int amount, TransactionContext transaction) {
+    public int extract(int index, FluidResource resource, int amount, TransactionContext transaction) {
         Objects.checkIndex(index, this.size());
         TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
         if (!this.isValid(index, resource)) {
             return 0;
         }
-        int current = this.contents.get(resource.principle());
+        PrincipleFluid fluid = (PrincipleFluid) resource.getFluid();
+        int current = this.contents.get(fluid.principle());
         int extracted = Math.min(amount, current);
         if (extracted > 0) {
             this.journal.updateSnapshots(transaction);
-            this.contents = this.contents.subtract(PrincipleContents.of(new PrincipleStack(resource.principle(), extracted)));
+            this.contents = this.contents.subtract(PrincipleContents.of(new PrincipleStack(fluid.principle(), extracted)));
         }
         return extracted;
     }
 
     @Override
-    public int extract(PrincipleResource resource, int amount, TransactionContext transaction) {
+    public int extract(FluidResource resource, int amount, TransactionContext transaction) {
         TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
-        int index = PrincipiaMagicaRegistries.PRINCIPLE.getId(resource.value());
+        if (!FluidRegistry.isPrincipleFluid(resource)) {
+            return 0;
+        }
+        PrincipleFluid fluid = (PrincipleFluid) resource.getFluid();
+        int index = PrincipiaMagicaRegistries.PRINCIPLE.getId(fluid.principle().value());
         if (index < 0 || index >= this.size()) {
             return 0;
         }
@@ -159,7 +174,7 @@ public class PrincipleStorage implements ResourceHandler<PrincipleResource> {
         List<PrincipleStack> accepted = new ArrayList<>();
         try (Transaction tx = Transaction.open(null)) {
             for (PrincipleStack stack : offered.stacks()) {
-                int moved = this.insert(PrincipleResource.of(stack.principle()), stack.amount(), tx);
+                int moved = this.insert(FluidRegistry.resourceFor(stack.principle()), stack.amount(), tx);
                 if (moved > 0) {
                     accepted.add(new PrincipleStack(stack.principle(), moved));
                 }
@@ -169,23 +184,6 @@ public class PrincipleStorage implements ResourceHandler<PrincipleResource> {
             }
         }
         return offered.subtract(PrincipleContents.of(accepted));
-    }
-
-    /**
-     * @return a part of the given contents with at most {@code limit} mB in total, in registry order.
-     */
-    public static PrincipleContents takeUpTo(PrincipleContents contents, int limit) {
-        List<PrincipleStack> taken = new ArrayList<>();
-        int remaining = limit;
-        for (PrincipleStack stack : contents.stacks()) {
-            if (remaining <= 0) {
-                break;
-            }
-            int amount = Math.min(stack.amount(), remaining);
-            taken.add(new PrincipleStack(stack.principle(), amount));
-            remaining -= amount;
-        }
-        return PrincipleContents.of(taken);
     }
 
     private Holder<Principle> holderAt(int index) {
