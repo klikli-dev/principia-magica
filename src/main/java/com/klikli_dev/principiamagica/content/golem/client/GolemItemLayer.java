@@ -10,7 +10,6 @@ import com.geckolib.renderer.layer.builtin.BlockAndItemGeoLayer;
 import com.geckolib.util.RenderUtil;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
@@ -126,10 +125,8 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
     @Override
     protected void submitItemStackRender(PoseStack poseStack, GeoBone bone, ItemStackRenderState stackState, ItemDisplayContext displayContext, GolemRenderState renderState, SubmitNodeCollector renderTasks, int packedLight) {
         poseStack.pushPose();
-        if (BACK_BONE.equals(bone.name())) {
-            // Lay the item flat on the back bone, the sprite is in its own plane and needs turning onto the bone.
-            poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
-        } else if (TORSO_BONE.equals(bone.name())) {
+        // The back item needs no turn: the flat item lies in the plane of the back bone, which is the plane of the back.
+        if (TORSO_BONE.equals(bone.name())) {
             poseStack.translate(0.0F, -CARRY_OFFSET_Y, 0.0F);
         }
 
