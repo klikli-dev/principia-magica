@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
+import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
@@ -63,11 +64,10 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
      */
     private @Nullable ResourceKey<Recipe<?>> activeRecipe;
     /**
-     * The curing recipe of the principles in the vessel, valid while {@link #curingRecipeStale} is false. The environment is
-     * fixed by the vessel, so only the principles can change the recipe.
+     * The curing recipe of the principles in the vessel. The environment is fixed by the vessel, so only the principles can
+     * change the recipe.
      */
-    private @Nullable RecipeHolder<CuringRecipe> curingRecipe;
-    private boolean curingRecipeStale = true;
+    private final RecipeCache<CuringRecipe> curingRecipe = new RecipeCache<>();
 
     public CuringVesselBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, VesselProperties vessel) {
         super(type, pos, state);
@@ -183,18 +183,15 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     }
 
     /**
-     * @return the curing recipe of the principles, or null. Looked up only when the principles changed since the last lookup.
+     * @return the curing recipe of the principles, or null. Looked up only when the principles changed or the recipes reloaded,
+     * see {@link RecipeCache}.
      */
     private @Nullable RecipeHolder<CuringRecipe> curingRecipe(Level level) {
-        if (this.curingRecipeStale) {
-            this.curingRecipe = LibationUtils.curing(level, this.principles.contents(), this.vessel.environment()).orElse(null);
-            this.curingRecipeStale = false;
-        }
-        return this.curingRecipe;
+        return this.curingRecipe.get(level, () -> LibationUtils.curing(level, this.principles.contents(), this.vessel.environment()));
     }
 
     private void onPrinciplesChanged() {
-        this.curingRecipeStale = true;
+        this.curingRecipe.invalidate();
     }
 
     /**
@@ -266,7 +263,7 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
-        this.curingRecipeStale = true;
+        this.curingRecipe.invalidate();
         this.progress = input.getIntOr("progress", 0);
         this.activeRecipe = input.read("active_recipe", RECIPE_ID_CODEC).orElse(null);
         this.curing = input.getBooleanOr("curing", false);

@@ -10,6 +10,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
+import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
@@ -45,6 +46,8 @@ import net.neoforged.neoforge.transfer.resource.ResourceStack;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Optional;
+
 /**
  * Receives principles from the drain target and steeps the single item it holds once the principles are sufficient.
  * <p>
@@ -68,10 +71,9 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
      */
     private final ProgressTracker steeping = new ProgressTracker(this.sync);
     /**
-     * The steeping recipe of the held item and the principles, valid while {@link #steepingRecipeStale} is false.
+     * The steeping recipe of the held item and the principles.
      */
-    private @Nullable RecipeHolder<SteepingRecipe> steepingRecipe;
-    private boolean steepingRecipeStale = true;
+    private final RecipeCache<SteepingRecipe> steepingRecipe = new RecipeCache<>();
     /**
      * Client-only: the principles shown, eased towards the synced principles, see {@link #getDisplayedPrinciples}.
      */
@@ -213,21 +215,17 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
 
     /**
      * @return the steeping recipe of the held item and the principles, or null. Looked up only when the item or the principles
-     * changed since the last lookup.
+     * changed, or the recipes reloaded, see {@link RecipeCache}.
      */
     private @Nullable RecipeHolder<SteepingRecipe> steepingRecipe() {
-        if (this.steepingRecipeStale) {
-            ItemStack item = this.getItem();
-            this.steepingRecipe = item.isEmpty()
-                    ? null
-                    : LibationUtils.steeping(this.level, item, this.principles.contents()).orElse(null);
-            this.steepingRecipeStale = false;
-        }
-        return this.steepingRecipe;
+        ItemStack item = this.getItem();
+        return this.steepingRecipe.get(this.level, () -> item.isEmpty()
+                ? Optional.empty()
+                : LibationUtils.steeping(this.level, item, this.principles.contents()));
     }
 
     private void onPrinciplesChanged() {
-        this.steepingRecipeStale = true;
+        this.steepingRecipe.invalidate();
     }
 
     @Override
@@ -261,7 +259,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
         this.items.deserialize(input.childOrEmpty("items"));
         input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
         this.steeping.load(input);
-        this.steepingRecipeStale = true;
+        this.steepingRecipe.invalidate();
     }
 
     @Override
@@ -293,7 +291,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
 
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
-            CatchTroughBlockEntity.this.steepingRecipeStale = true;
+            CatchTroughBlockEntity.this.steepingRecipe.invalidate();
             CatchTroughBlockEntity.this.steeping.restart();
             CatchTroughBlockEntity.this.sync.syncNow();
         }

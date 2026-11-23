@@ -6,7 +6,9 @@ package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
+import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleSelection;
+import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.item.ClayPhialItem;
@@ -43,6 +45,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
@@ -53,7 +57,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class LibationGameTests {
 
@@ -889,6 +895,40 @@ public class LibationGameTests {
             helper.assertTrue(be.getStored().isEmpty(), "The slab should give up the drawn principles, stored " + be.getStored().total());
             helper.succeed();
         });
+    }
+
+    /**
+     * A recipe cache reuses its recipe for the recipe manager it was looked up with, and looks it up again for another one, as
+     * a datapack reload brings. Missing recipes are cached the same way.
+     */
+    public static void recipeCacheLooksUpAgainAfterRecipeReload(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        RecipeManager current = level.getServer().getRecipeManager();
+        RecipeManager reloaded = new RecipeManager(level.registryAccess());
+        ItemStack stack = new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get());
+        PrincipleContents principles = PrincipleContents.of(new PrincipleStack(PrincipleRegistry.LOAM, STEEPING_PRINCIPLES));
+        int[] lookups = {0};
+        Supplier<Optional<RecipeHolder<SteepingRecipe>>> lookup = () -> {
+            lookups[0]++;
+            return LibationUtils.steeping(level, stack, principles);
+        };
+
+        RecipeCache<SteepingRecipe> cache = new RecipeCache<>();
+        helper.assertTrue(cache.get(current, lookup) != null, "The steeping recipe should be found");
+        helper.assertTrue(lookups[0] == 1, "The first lookup should ask the recipe manager once, asked " + lookups[0]);
+        cache.get(current, lookup);
+        helper.assertTrue(lookups[0] == 1, "The same recipe manager should reuse the recipe, asked " + lookups[0]);
+        cache.get(reloaded, lookup);
+        helper.assertTrue(lookups[0] == 2, "A reloaded recipe manager should look the recipe up again, asked " + lookups[0]);
+        cache.invalidate();
+        cache.get(reloaded, lookup);
+        helper.assertTrue(lookups[0] == 3, "Invalidated contents should look the recipe up again, asked " + lookups[0]);
+
+        RecipeCache<SteepingRecipe> missing = new RecipeCache<>();
+        helper.assertTrue(missing.get(current, Optional::empty) == null, "A missing recipe should be reported as missing");
+        helper.assertTrue(missing.get(reloaded, lookup) != null && lookups[0] == 4,
+                "A missing recipe should be looked up again after a reload, asked " + lookups[0]);
+        helper.succeed();
     }
 
     private static InteractionResult useHeldOn(GameTestHelper helper, Player player, BlockPos relPos) {

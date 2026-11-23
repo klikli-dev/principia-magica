@@ -12,6 +12,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
+import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.libation.item.ClayPhialItem;
 import com.klikli_dev.principiamagica.content.libation.item.NatronSpongeItem;
@@ -49,6 +50,8 @@ import net.neoforged.neoforge.transfer.resource.ResourceStack;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Optional;
+
 /**
  * Holds a stack of one washable item type and water. Water is poured in through the fluid transfer API, so buckets and other
  * fluid containers work. The items dissolve one at a time, as long as the water covers their principles and the internal
@@ -70,10 +73,9 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     private int dissolveSlot = NO_SLOT;
     private final ProgressTracker dissolve = new ProgressTracker(this.sync);
     /**
-     * The libation recipe of the stack on the slab, valid while {@link #dissolveRecipeStale} is false.
+     * The libation recipe of the stack on the slab.
      */
-    private @Nullable RecipeHolder<LibationRecipe> dissolveRecipe;
-    private boolean dissolveRecipeStale = true;
+    private final RecipeCache<LibationRecipe> dissolveRecipe = new RecipeCache<>();
     private int dissolveColor = PrincipleContents.DEFAULT_COLOR;
     private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY, this.sync);
     private final ResourceHandler<FluidResource> principleOutput = new ExtractOnlyResourceHandler<>(this.stored);
@@ -307,15 +309,14 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     }
 
     /**
-     * @return the libation recipe of the stack on the slab, or null. Looked up only when the stack changed since the last lookup.
+     * @return the libation recipe of the stack on the slab, or null. Looked up only when the stack changed or the recipes
+     * reloaded, see {@link RecipeCache}.
      */
     private @Nullable RecipeHolder<LibationRecipe> dissolveRecipe() {
-        if (this.dissolveRecipeStale) {
-            ItemStack stack = this.getStack();
-            this.dissolveRecipe = stack.isEmpty() ? null : LibationUtils.libation(this.level, stack).orElse(null);
-            this.dissolveRecipeStale = false;
-        }
-        return this.dissolveRecipe;
+        ItemStack stack = this.getStack();
+        return this.dissolveRecipe.get(this.level, () -> stack.isEmpty()
+                ? Optional.empty()
+                : LibationUtils.libation(this.level, stack));
     }
 
     /**
@@ -351,7 +352,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.items.deserialize(input.childOrEmpty("items"));
-        this.dissolveRecipeStale = true;
+        this.dissolveRecipe.invalidate();
         this.water.deserialize(input.childOrEmpty("water"));
         this.dissolveSlot = input.getIntOr("dissolve_slot", NO_SLOT);
         this.dissolve.load(input);
@@ -388,7 +389,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
 
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
-            LibationSlabBlockEntity.this.dissolveRecipeStale = true;
+            LibationSlabBlockEntity.this.dissolveRecipe.invalidate();
             LibationSlabBlockEntity.this.sync.syncNow();
         }
     }

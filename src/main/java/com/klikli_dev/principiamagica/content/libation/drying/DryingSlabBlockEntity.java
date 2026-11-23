@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.LibationFlow;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
+import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
@@ -34,6 +35,8 @@ import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Optional;
+
 import static com.klikli_dev.principiamagica.content.libation.drying.DryingSlabItemHandler.INPUT;
 import static com.klikli_dev.principiamagica.content.libation.drying.DryingSlabItemHandler.OUTPUT;
 
@@ -57,10 +60,9 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
      */
     private final ProgressTracker drying = new ProgressTracker(this.sync);
     /**
-     * The drying recipe of the input item, valid while {@link #dryingRecipeStale} is false.
+     * The drying recipe of the input item.
      */
-    private @Nullable RecipeHolder<DryingRecipe> dryingRecipe;
-    private boolean dryingRecipeStale = true;
+    private final RecipeCache<DryingRecipe> dryingRecipe = new RecipeCache<>();
 
     public DryingSlabBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.DRYING_SLAB.get(), pos, state);
@@ -178,15 +180,14 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
     }
 
     /**
-     * @return the drying recipe of the input item, or null. Looked up only when the input item changed since the last lookup.
+     * @return the drying recipe of the input item, or null. Looked up only when the input item changed or the recipes reloaded,
+     * see {@link RecipeCache}.
      */
     private @Nullable RecipeHolder<DryingRecipe> dryingRecipe(Level level) {
-        if (this.dryingRecipeStale) {
-            ItemStack input = this.getInput();
-            this.dryingRecipe = input.isEmpty() ? null : LibationUtils.drying(level, input).orElse(null);
-            this.dryingRecipeStale = false;
-        }
-        return this.dryingRecipe;
+        ItemStack input = this.getInput();
+        return this.dryingRecipe.get(level, () -> input.isEmpty()
+                ? Optional.empty()
+                : LibationUtils.drying(level, input));
     }
 
     /**
@@ -210,7 +211,7 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.items.deserialize(input.childOrEmpty("items"));
-        this.dryingRecipeStale = true;
+        this.dryingRecipe.invalidate();
         this.drying.load(input);
     }
 
@@ -243,7 +244,7 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
             if (index == INPUT) {
-                DryingSlabBlockEntity.this.dryingRecipeStale = true;
+                DryingSlabBlockEntity.this.dryingRecipe.invalidate();
                 if (!ItemStack.isSameItemSameComponents(previousContents, DryingSlabBlockEntity.this.getInput())) {
                     DryingSlabBlockEntity.this.drying.restart();
                 }
