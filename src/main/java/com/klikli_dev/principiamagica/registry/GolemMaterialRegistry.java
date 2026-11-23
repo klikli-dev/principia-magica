@@ -16,12 +16,18 @@ import java.util.List;
 public class GolemMaterialRegistry {
     public static final DeferredRegister<GolemMaterial> GOLEM_MATERIALS = DeferredRegister.create(PrincipiaMagicaRegistries.Keys.GOLEM_MATERIAL, PrincipiaMagica.MODID);
 
+    /**
+     * Wooden golems have 8 max health and regenerate one health every 10 seconds (200 ticks), so a full heal takes 80 seconds.
+     */
+    private static final int WOOD_REGEN_INTERVAL = 200;
+
     public static final DeferredHolder<GolemMaterial, GolemMaterial> WOOD = GOLEM_MATERIALS.register("wood", () -> new GolemMaterial(
             PrincipiaMagica.loc("textures/entity/golem/wooden_golem.png"),
             List.of(
                     GolemMaterial.modifier(Attributes.MAX_HEALTH, -2.0, AttributeModifier.Operation.ADD_VALUE),
                     GolemMaterial.modifier(Attributes.MOVEMENT_SPEED, 0.2, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
                     GolemMaterial.modifier(AttributeRegistry.GOLEM_WORK_SPEED, 0.25, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
-            )));
+            ),
+            WOOD_REGEN_INTERVAL));
 
 }

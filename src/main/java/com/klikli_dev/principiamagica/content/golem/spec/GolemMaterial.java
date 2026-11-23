@@ -15,10 +15,19 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
- * A golem material: the texture of the golem and the attribute modifiers it adds to the base golem.
+ * A golem material: the texture of the golem, the attribute modifiers it adds to the base golem, and whether golems of it regenerate.
  * Materials are registered in the golem material registry, which is the extension point for new materials.
+ *
+ * @param regenInterval the ticks it takes a golem of this material to regenerate one health, 0 if it does not regenerate
  */
-public record GolemMaterial(Identifier texture, List<ModifierEntry> modifiers) {
+public record GolemMaterial(Identifier texture, List<ModifierEntry> modifiers, int regenInterval) {
+
+    /**
+     * A material that does not regenerate. The base golem has no regeneration, materials opt in via the canonical constructor.
+     */
+    public GolemMaterial(Identifier texture, List<ModifierEntry> modifiers) {
+        this(texture, modifiers, 0);
+    }
 
     public record ModifierEntry(Holder<Attribute> attribute, AttributeModifier modifier) {
     }

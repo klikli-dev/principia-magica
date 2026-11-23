@@ -151,6 +151,18 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         super.tick();
         if (this.level().isClientSide()) {
             this.updateToolDisplay();
+        } else {
+            this.regenerate();
+        }
+    }
+
+    /**
+     * Heals one health every {@link GolemMaterial#regenInterval()} ticks, if the material regenerates. Healing caps at max health.
+     */
+    private void regenerate() {
+        int interval = this.getSpec().material().value().regenInterval();
+        if (interval > 0 && this.isAlive() && this.tickCount > 0 && this.tickCount % interval == 0) {
+            this.heal(1.0F);
         }
     }
 
