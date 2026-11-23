@@ -1,0 +1,19 @@
+{
+  "type": "principiamagica:curing",
+  "environment": "light",
+  "inputs": [
+    {
+      "amount": 25,
+      "principle": "principiamagica:gleam"
+    },
+    {
+      "amount": 25,
+      "principle": "principiamagica:ash"
+    }
+  ],
+  "result": {
+    "amount": 25,
+    "principle": "principiamagica:glaze"
+  },
+  "time": 100
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "fact_id": "principiamagica:golem_placed",
+    "id": "principiamagica:golem_placed_hook",
+    "trigger_type": "principiamagica:golem_placed"
+  },
+  {
+    "fact_id": "principiamagica:golem_given_axiom",
+    "id": "principiamagica:golem_given_axiom_hook",
+    "trigger_type": "principiamagica:golem_given_axiom"
+  }
+]

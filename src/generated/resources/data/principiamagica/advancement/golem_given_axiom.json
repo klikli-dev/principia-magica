@@ -1,0 +1,13 @@
+{
+  "criteria": {
+    "golem_given_axiom": {
+      "trigger": "principiamagica:golem_given_axiom"
+    }
+  },
+  "requirements": [
+    [
+      "golem_given_axiom"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

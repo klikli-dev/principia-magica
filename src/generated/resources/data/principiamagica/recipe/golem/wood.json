@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "L": "#minecraft:logs",
+    "P": "#minecraft:planks",
+    "Q": "principiamagica:quickened_clay",
+    "S": "principiamagica:copper_stylus"
+  },
+  "pattern": [
+    " L ",
+    "QLQ",
+    "PSP"
+  ],
+  "result": {
+    "components": {
+      "principiamagica:golem_spec": {
+        "material": "principiamagica:wood"
+      }
+    },
+    "id": "principiamagica:golem"
+  }
+}

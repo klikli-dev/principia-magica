@@ -1,0 +1,354 @@
+{
+    "parent":  "minecraft:block/block",
+    "textures":  {
+                     "particle":  "principiamagica:block/bronze",
+                     "bronze":  "principiamagica:block/bronze"
+                 },
+    "elements":  [
+                     {
+                         "name":  "collar",
+                         "from":  [
+                                      6.5,
+                                      3,
+                                      16
+                                  ],
+                         "to":  [
+                                    9.5,
+                                    6,
+                                    18
+                                ],
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                6.5,
+                                                                10,
+                                                                9.5,
+                                                                13
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               16,
+                                                               10,
+                                                               16,
+                                                               13
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                6.5,
+                                                                10,
+                                                                9.5,
+                                                                13
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               16,
+                                                               10,
+                                                               16,
+                                                               13
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             6.5,
+                                                             16,
+                                                             9.5,
+                                                             16
+                                                         ],
+                                                  "texture":  "#bronze"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               6.5,
+                                                               16,
+                                                               9.5,
+                                                               16
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "pipe",
+                         "from":  [
+                                      7.25,
+                                      4,
+                                      8.75
+                                  ],
+                         "to":  [
+                                    8.75,
+                                    5.5,
+                                    16
+                                ],
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                7.25,
+                                                                10.5,
+                                                                8.75,
+                                                                12
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               8.75,
+                                                               10.5,
+                                                               16,
+                                                               12
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                7.25,
+                                                                10.5,
+                                                                8.75,
+                                                                12
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               8.75,
+                                                               10.5,
+                                                               16,
+                                                               12
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             7.25,
+                                                             8.75,
+                                                             8.75,
+                                                             16
+                                                         ],
+                                                  "texture":  "#bronze"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               7.25,
+                                                               8.75,
+                                                               8.75,
+                                                               16
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "nozzle",
+                         "from":  [
+                                      7.25,
+                                      1.5,
+                                      7.25
+                                  ],
+                         "to":  [
+                                    8.75,
+                                    5.5,
+                                    8.75
+                                ],
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                7.25,
+                                                                10.5,
+                                                                8.75,
+                                                                14.5
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               7.25,
+                                                               10.5,
+                                                               8.75,
+                                                               14.5
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                7.25,
+                                                                10.5,
+                                                                8.75,
+                                                                14.5
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               7.25,
+                                                               10.5,
+                                                               8.75,
+                                                               14.5
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             7.25,
+                                                             7.25,
+                                                             8.75,
+                                                             8.75
+                                                         ],
+                                                  "texture":  "#bronze"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               7.25,
+                                                               7.25,
+                                                               8.75,
+                                                               8.75
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "valve_stem",
+                         "from":  [
+                                      7.5,
+                                      5.5,
+                                      11.5
+                                  ],
+                         "to":  [
+                                    8.5,
+                                    7.5,
+                                    12.5
+                                ],
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                7.5,
+                                                                8.5,
+                                                                8.5,
+                                                                10.5
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               11.5,
+                                                               8.5,
+                                                               12.5,
+                                                               10.5
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                7.5,
+                                                                8.5,
+                                                                8.5,
+                                                                10.5
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               11.5,
+                                                               8.5,
+                                                               12.5,
+                                                               10.5
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             7.5,
+                                                             11.5,
+                                                             8.5,
+                                                             12.5
+                                                         ],
+                                                  "texture":  "#bronze"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               7.5,
+                                                               11.5,
+                                                               8.5,
+                                                               12.5
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                }
+                                   }
+                     },
+                     {
+                         "name":  "valve_handle",
+                         "from":  [
+                                      7.5,
+                                      7.5,
+                                      10
+                                  ],
+                         "to":  [
+                                    8.5,
+                                    8.25,
+                                    14
+                                ],
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                7.5,
+                                                                7.75,
+                                                                8.5,
+                                                                8.5
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               10,
+                                                               7.75,
+                                                               14,
+                                                               8.5
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                7.5,
+                                                                7.75,
+                                                                8.5,
+                                                                8.5
+                                                            ],
+                                                     "texture":  "#bronze"
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               10,
+                                                               7.75,
+                                                               14,
+                                                               8.5
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             7.5,
+                                                             10,
+                                                             8.5,
+                                                             14
+                                                         ],
+                                                  "texture":  "#bronze"
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               7.5,
+                                                               10,
+                                                               8.5,
+                                                               14
+                                                           ],
+                                                    "texture":  "#bronze"
+                                                }
+                                   }
+                     }
+                 ]
+}

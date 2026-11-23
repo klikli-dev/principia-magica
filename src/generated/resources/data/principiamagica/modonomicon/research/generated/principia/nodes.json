@@ -1,0 +1,221 @@
+[
+  {
+    "id": "principiamagica:generated/principia/nodes/item_crafted/principiamagica/copper_stylus",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/item_crafted/principiamagica/copper_stylus"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/item_crafted/principiamagica/axiom_tablet",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/item_crafted/principiamagica/axiom_tablet"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/item_crafted/principiamagica/quickened_clay",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/item_crafted/principiamagica/quickened_clay"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/item_acquired/minecraft/rotten_flesh",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_principia",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "principiamagica:copper_stylus"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.the_wet_clay.principia.stage.wedge.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_principia/stages/wedge",
+        "required_facts": [
+          "principiamagica:generated/principia/facts/item_crafted/principiamagica/copper_stylus"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_stylus",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_stylus"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "minecraft:rotten_flesh"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.the_wet_clay.the_stylus.stage.rotten_flesh.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_stylus/stages/rotten_flesh",
+        "required_facts": [
+          "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_wet_clay",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_wet_clay"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "principiamagica:axiom_tablet"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.the_wet_clay.wet_clay.stage.wet_clay.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_wet_clay/stages/wet_clay",
+        "required_facts": [
+          "principiamagica:generated/principia/facts/item_crafted/principiamagica/axiom_tablet"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_flesh_and_clay",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_flesh_and_clay"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "principiamagica:quickened_clay"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.the_wet_clay.flesh_and_clay.stage.quickened.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_flesh_and_clay/stages/quickened",
+        "required_facts": [
+          "principiamagica:generated/principia/facts/item_crafted/principiamagica/quickened_clay"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_body",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_body"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "principiamagica:golem"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.the_wet_clay.the_body.stage.clay_that_stands.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_body/stages/clay_that_stands",
+        "required_facts": [
+          "principiamagica:golem_placed"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_purpose",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "principiamagica:axiom_of_harvest"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.the_wet_clay.purpose.stage.purpose.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_purpose/stages/purpose",
+        "required_facts": [
+          "principiamagica:golem_given_axiom"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_the_stylus",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_principia",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_principia/stages/wedge"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_wet_clay",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_principia",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_principia/stages/wedge"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_axioms",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_wet_clay",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_wet_clay/stages/wet_clay"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_flesh_and_clay",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_stylus",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_stylus/stages/rotten_flesh"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_the_body",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_flesh_and_clay",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_flesh_and_clay/stages/quickened"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_purpose",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_body",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_body/stages/clay_that_stands"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_kudurru",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_purpose",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_purpose/stages/purpose"
+      }
+    ]
+  }
+]

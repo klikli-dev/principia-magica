@@ -1,0 +1,14 @@
+{
+  "type": "principiamagica:libation",
+  "ingredient": "minecraft:rotten_flesh",
+  "principles": [
+    {
+      "amount": 25,
+      "principle": "principiamagica:sap"
+    },
+    {
+      "amount": 25,
+      "principle": "principiamagica:ash"
+    }
+  ]
+}

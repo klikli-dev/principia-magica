@@ -1,0 +1,77 @@
+// SPDX-FileCopyrightText: 2026 klikli-dev
+//
+// SPDX-License-Identifier: MIT
+
+package com.klikli_dev.principiamagica.datagen.book.wetclay;
+
+import com.klikli_dev.modonomicon.api.datagen.CategoryProvider;
+import com.klikli_dev.modonomicon.api.datagen.ModonomiconProviderBase;
+import com.klikli_dev.modonomicon.api.datagen.book.BookCategoryModel;
+import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
+import net.minecraft.world.item.Items;
+
+public class WetClayCategoryProvider extends CategoryProvider {
+
+    public static final String CATEGORY_ID = "the_wet_clay";
+
+    public WetClayCategoryProvider(ModonomiconProviderBase parent) {
+        super(parent);
+    }
+
+    @Override
+    protected BookCategoryModel additionalSetup(BookCategoryModel category) {
+        // The node screen background is not part of the book theme, so it is set here.
+        return super.additionalSetup(category)
+                .withBackground(this.modLoc("textures/gui/sprites/modonomicon/themes/clay/background.png"))
+                .withBackgroundSize(140, 140);
+    }
+
+    @Override
+    protected void generateEntries() {
+        var principiaEntry = this.add(new PrincipiaEntry(this).generate());
+        this.layout().entry(principiaEntry).at(0, 0);
+
+        var stylusEntry = this.add(new StylusEntry(this).generate());
+        this.layout().entry(stylusEntry).at(1, 0);
+        stylusEntry.withParent(principiaEntry).hideWhileLocked(true);
+
+        var axiomTabletEntry = this.add(new AxiomTabletEntry(this).generate());
+        this.layout().entry(axiomTabletEntry).at(2, 0);
+        axiomTabletEntry.withParent(principiaEntry).hideWhileLocked(true);
+
+        var axiomEntry = this.add(new AxiomEntry(this).generate());
+        this.layout().entry(axiomEntry).at(3, 0);
+        axiomEntry.withParent(axiomTabletEntry).hideWhileLocked(true);
+
+        var fleshAndClayEntry = this.add(new FleshAndClayEntry(this).generate());
+        this.layout().entry(fleshAndClayEntry).at(2, 1);
+        fleshAndClayEntry.withParent(stylusEntry).hideWhileLocked(true);
+
+        var theBodyEntry = this.add(new TheBodyEntry(this).generate());
+        this.layout().entry(theBodyEntry).at(3, 1);
+        theBodyEntry.withParent(fleshAndClayEntry).hideWhileLocked(true);
+
+        var purposeEntry = this.add(new PurposeEntry(this).generate());
+        this.layout().entry(purposeEntry).at(4, 1);
+        purposeEntry.withParent(theBodyEntry).hideWhileLocked(true);
+
+        var kudurruEntry = this.add(new KudurruEntry(this).generate());
+        this.layout().entry(kudurruEntry).at(4, 2);
+        kudurruEntry.withParent(purposeEntry).hideWhileLocked(true);
+    }
+
+    @Override
+    protected String categoryName() {
+        return "The Wet Clay";
+    }
+
+    @Override
+    protected BookIconModel categoryIcon() {
+        return BookIconModel.create(Items.CLAY_BALL);
+    }
+
+    @Override
+    public String categoryId() {
+        return CATEGORY_ID;
+    }
+}

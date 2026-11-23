@@ -1,0 +1,10 @@
+{
+  "type": "principiamagica:libation",
+  "ingredient": "minecraft:glowstone_dust",
+  "principles": [
+    {
+      "amount": 50,
+      "principle": "principiamagica:gleam"
+    }
+  ]
+}

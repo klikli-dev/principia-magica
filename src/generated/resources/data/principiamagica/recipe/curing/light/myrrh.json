@@ -1,0 +1,19 @@
+{
+  "type": "principiamagica:curing",
+  "environment": "light",
+  "inputs": [
+    {
+      "amount": 25,
+      "principle": "principiamagica:gleam"
+    },
+    {
+      "amount": 25,
+      "principle": "principiamagica:sap"
+    }
+  ],
+  "result": {
+    "amount": 25,
+    "principle": "principiamagica:myrrh"
+  },
+  "time": 100
+}

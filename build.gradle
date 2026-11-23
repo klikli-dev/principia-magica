@@ -19,6 +19,9 @@ group = mod_group_id
 sourceSets.main.resources {
     srcDir('src/generated/resources')
     exclude("**/*.bbmodel")
+    // Keep editable source art out of the built jar, only ship the exported pngs.
+    exclude("**/*.psd")
+    exclude("**/*.aseprite")
     exclude("src/generated/**/.cache")
 }
 
@@ -50,7 +53,8 @@ neoForge {
 
         gameTestServer {
             type = "gameTestServer"
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            // Without --tests the GameTestServer runs every registered test, including those of dependencies (e.g. modonomicon).
+            programArguments.addAll('--tests', "${project.mod_id}:*")
         }
 
         data {
@@ -99,14 +103,27 @@ dependencies {
     localRuntime ("maven.modrinth:jade:${jade_version}+neoforge") {transitive=false}
 
     implementation ("com.klikli_dev:modonomicon-${minecraft_version}-neoforge:${modonomicon_version}") {transitive=false}
+
+    implementation ("com.geckolib:geckolib-neoforge-${minecraft_major_version}:${geckolib_version}") {transitive=false}
 }
 
 repositories {
-    mavenLocal()
+    mavenLocal {
+        content {
+            includeGroup 'com.klikli_dev'
+        }
+    }
     maven {
         url = 'https://dl.cloudsmith.io/public/klikli-dev/mods/maven/'
         content {
             includeGroup 'com.klikli_dev'
+        }
+    }
+    maven {
+        name = 'GeckoLib'
+        url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup "com.geckolib"
         }
     }
     maven {
@@ -115,6 +132,7 @@ repositories {
         content {
             includeGroup "mezz.jei"
             includeGroup "com.almostreliable.mods"
+            includeGroup "net.mezzdev.config"
         }
     }
     maven {
@@ -147,6 +165,7 @@ var generateModMetadata = tasks.register('generateModMetadata', ProcessResources
             modonomicon_version    : modonomicon_version,
             code_defined_gui_version: code_defined_gui_version,
             magic_particles_lib_version: magic_particles_lib_version,
+            geckolib_version       : geckolib_version,
             jei_version            : jei_version,
             jade_version            : jade_version,
     ]

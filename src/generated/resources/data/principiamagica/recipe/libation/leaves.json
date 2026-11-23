@@ -1,0 +1,10 @@
+{
+  "type": "principiamagica:libation",
+  "ingredient": "#minecraft:leaves",
+  "principles": [
+    {
+      "amount": 25,
+      "principle": "principiamagica:sap"
+    }
+  ]
+}

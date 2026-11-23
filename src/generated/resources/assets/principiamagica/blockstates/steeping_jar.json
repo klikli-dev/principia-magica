@@ -1,0 +1,17 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "principiamagica:block/steeping_jar"
+      }
+    },
+    {
+      "apply": {
+        "model": "principiamagica:block/steeping_jar_lid"
+      },
+      "when": {
+        "lidded": "true"
+      }
+    }
+  ]
+}

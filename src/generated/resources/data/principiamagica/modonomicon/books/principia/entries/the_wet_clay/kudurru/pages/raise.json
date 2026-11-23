@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "raise",
+  "show_title_separator": true,
+  "sort_number": 4,
+  "text": "book.principiamagica.principia.the_wet_clay.kudurru.raise.text",
+  "title": "book.principiamagica.principia.the_wet_clay.kudurru.raise.title"
+}

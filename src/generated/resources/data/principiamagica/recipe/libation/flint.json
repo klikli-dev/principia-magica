@@ -1,0 +1,10 @@
+{
+  "type": "principiamagica:libation",
+  "ingredient": "minecraft:flint",
+  "principles": [
+    {
+      "amount": 50,
+      "principle": "principiamagica:ash"
+    }
+  ]
+}

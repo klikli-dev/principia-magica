@@ -1,0 +1,8 @@
+{
+  "type": "principiamagica:drying",
+  "ingredient": "principiamagica:axiom_of_felling_unfired_steeped",
+  "result": {
+    "id": "principiamagica:axiom_of_felling"
+  },
+  "time": 400
+}

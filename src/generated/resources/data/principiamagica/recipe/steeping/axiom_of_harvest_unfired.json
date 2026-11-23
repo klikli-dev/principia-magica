@@ -1,0 +1,14 @@
+{
+  "type": "principiamagica:steeping",
+  "ingredient": "principiamagica:axiom_of_harvest_unfired",
+  "principles": [
+    {
+      "amount": 100,
+      "principle": "principiamagica:loam"
+    }
+  ],
+  "result": {
+    "id": "principiamagica:axiom_of_harvest_unfired_steeped"
+  },
+  "time": 100
+}

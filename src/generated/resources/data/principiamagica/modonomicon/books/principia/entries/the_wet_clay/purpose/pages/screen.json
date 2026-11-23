@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_purpose",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_purpose/stages/purpose"
+  },
+  "id": "screen",
+  "show_title_separator": true,
+  "sort_number": 4,
+  "text": "book.principiamagica.principia.the_wet_clay.purpose.screen.text",
+  "title": "book.principiamagica.principia.the_wet_clay.purpose.screen.title"
+}

@@ -1,0 +1,47 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "principiamagica:block/libation_slab"
+      },
+      "when": {
+        "spout": "none"
+      }
+    },
+    {
+      "apply": {
+        "model": "principiamagica:block/libation_slab_spout"
+      },
+      "when": {
+        "spout": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "principiamagica:block/libation_slab_spout",
+        "y": 90
+      },
+      "when": {
+        "spout": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "principiamagica:block/libation_slab_spout",
+        "y": 180
+      },
+      "when": {
+        "spout": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "principiamagica:block/libation_slab_spout",
+        "y": 270
+      },
+      "when": {
+        "spout": "west"
+      }
+    }
+  ]
+}

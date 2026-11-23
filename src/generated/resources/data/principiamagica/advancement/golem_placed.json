@@ -1,0 +1,13 @@
+{
+  "criteria": {
+    "golem_placed": {
+      "trigger": "principiamagica:golem_placed"
+    }
+  },
+  "requirements": [
+    [
+      "golem_placed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

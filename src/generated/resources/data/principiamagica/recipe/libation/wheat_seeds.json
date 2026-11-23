@@ -1,0 +1,10 @@
+{
+  "type": "principiamagica:libation",
+  "ingredient": "minecraft:wheat_seeds",
+  "principles": [
+    {
+      "amount": 25,
+      "principle": "principiamagica:sap"
+    }
+  ]
+}
