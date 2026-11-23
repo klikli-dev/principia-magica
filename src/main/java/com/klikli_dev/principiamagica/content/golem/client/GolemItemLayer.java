@@ -130,6 +130,11 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
             poseStack.translate(0.0F, -CARRY_OFFSET_Y, 0.0F);
         }
 
+        if (BACK_BONE.equals(bone.name())) {
+            // The flat item lies in the plane of the back. It is turned about the normal of the back, so it runs up the spine instead of across it.
+            poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+        }
+
         if (displayContext == ItemDisplayContext.THIRD_PERSON_RIGHT_HAND) {
             // The hand transform of GeckoLib's ItemInHandGeoLayer: the handle is gripped and the head turns across the arm.
             poseStack.mulPose(Axis.XN.rotationDegrees(90.0F));
