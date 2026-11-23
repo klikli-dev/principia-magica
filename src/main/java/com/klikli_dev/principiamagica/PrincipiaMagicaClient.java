@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica;
 
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
+import com.klikli_dev.principiamagica.content.golem.client.ImprintTabletHud;
 import com.klikli_dev.principiamagica.content.golem.client.GolemRenderer;
 import com.klikli_dev.principiamagica.content.golem.client.gui.GolemScreen;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.StylusHud;
@@ -53,6 +54,8 @@ public class PrincipiaMagicaClient {
         WorkplaceOverlayRenderer workplaceOverlay = new WorkplaceOverlayRenderer();
         StylusHud stylusHud = new StylusHud();
         modEventBus.addListener(stylusHud::onRegisterGuiLayers);
+        ImprintTabletHud imprintTabletHud = new ImprintTabletHud();
+        modEventBus.addListener(imprintTabletHud::onRegisterGuiLayers);
         LibationHud libationHud = new LibationHud();
         modEventBus.addListener(libationHud::onRegisterGuiLayers);
         NeoForge.EVENT_BUS.addListener(workplaceOverlay::onRenderLevelStage);

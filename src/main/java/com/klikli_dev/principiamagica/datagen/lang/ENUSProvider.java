@@ -187,6 +187,12 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.stylus.hint.move_corner", "Right-click: pick up and move corner");
         this.add("hud.principiamagica.stylus.hint.erase", "Shift-right-click: erase work area");
         this.add("hud.principiamagica.stylus.hint.corner_options", "Aim at a corner glyph for more options");
+
+        this.add("hud.principiamagica.imprint_tablet.clipboard_empty", "Clipboard: empty");
+        this.add("hud.principiamagica.imprint_tablet.clipboard", "Clipboard: %s footprints, %s container links");
+        this.add("hud.principiamagica.imprint_tablet.hint.copy", "Crouch + Right Click: copy workplace");
+        this.add("hud.principiamagica.imprint_tablet.hint.paste", "Crouch + Right Click: paste clipboard");
+        this.add("hud.principiamagica.imprint_tablet.hint.clear", "Crouch + Right Click: clear clipboard");
         this.add("hud.principiamagica.stylus.hint.cycle_link", "Right-click: cycle link");
         this.add("hud.principiamagica.stylus.hint.unlink", "Shift-right-click: unlink");
         this.add("hud.principiamagica.stylus.hint.select_golem", "Right-click a golem: select");
@@ -275,7 +281,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("tooltip.principiamagica.imprint_tablet.clipboard_empty", "Clipboard: empty");
         this.add("tooltip.principiamagica.imprint_tablet.clipboard", "Clipboard: %s footprints, %s container links");
         this.add("tooltip.principiamagica.imprint_tablet.hint_copy_paste", "Crouch + Right Click golem: copy workplace / paste clipboard");
-        this.add("tooltip.principiamagica.imprint_tablet.hint_clear", "Crouch + Right Click air: clear clipboard");
+        this.add("tooltip.principiamagica.imprint_tablet.hint_clear", "Crouch + Right Click: clear clipboard");
         this.add("message.principiamagica.imprint_tablet.copied", "Copied workplace: %s footprints, %s container links");
         this.add("message.principiamagica.imprint_tablet.pasted", "Pasted workplace");
         this.add("message.principiamagica.imprint_tablet.cleared", "Cleared clipboard");

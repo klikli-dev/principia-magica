@@ -170,6 +170,11 @@
   "gui.principiamagica.golem.zones": "%s zones",
   "gui.principiamagica.golem.zones.description": "Areas carved with the Stylus where this golem works",
   "gui.principiamagica.golem.zones.title": "Work zones: %s",
+  "hud.principiamagica.imprint_tablet.clipboard": "Clipboard: %s footprints, %s container links",
+  "hud.principiamagica.imprint_tablet.clipboard_empty": "Clipboard: empty",
+  "hud.principiamagica.imprint_tablet.hint.clear": "Crouch + Right Click: clear clipboard",
+  "hud.principiamagica.imprint_tablet.hint.copy": "Crouch + Right Click: copy workplace",
+  "hud.principiamagica.imprint_tablet.hint.paste": "Crouch + Right Click: paste clipboard",
   "hud.principiamagica.libation.empty": "Empty",
   "hud.principiamagica.libation.status.curing": "Curing",
   "hud.principiamagica.libation.status.dissolving": "Dissolving",
@@ -349,6 +354,6 @@
   "tooltip.principiamagica.golem.material": "Material: %s",
   "tooltip.principiamagica.imprint_tablet.clipboard": "Clipboard: %s footprints, %s container links",
   "tooltip.principiamagica.imprint_tablet.clipboard_empty": "Clipboard: empty",
-  "tooltip.principiamagica.imprint_tablet.hint_clear": "Crouch + Right Click air: clear clipboard",
+  "tooltip.principiamagica.imprint_tablet.hint_clear": "Crouch + Right Click: clear clipboard",
   "tooltip.principiamagica.imprint_tablet.hint_copy_paste": "Crouch + Right Click golem: copy workplace / paste clipboard"
 }
