@@ -101,7 +101,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("golem_task.principiamagica.harvest", "Harvest %s");
         this.add("golem_task.principiamagica.plant", "Planting %s");
         this.add("golem_task.principiamagica.till", "Tilling %s");
-        this.add("golem_task.principiamagica.bonemeal", "Bonemeal %s");
+        this.add("golem_task.principiamagica.bonemeal", "Fertilise %s");
         this.add("golem_task.principiamagica.clear", "Clearing %s");
         this.add("golem_task.principiamagica.fell", "Felling %s");
         this.add("golem_task.principiamagica.pickup", "Pick up %s");
