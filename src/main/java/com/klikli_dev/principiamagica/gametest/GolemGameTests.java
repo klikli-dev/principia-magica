@@ -392,6 +392,30 @@ public class GolemGameTests {
         helper.succeed();
     }
 
+    /**
+     * Tools in the hand are held, not carried, so only non-tool items make the golem carry. A tool that is not the job's tool stays on the back.
+     */
+    public static void carryIsOnlyNonToolItems(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 2, 1);
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), pos);
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(PrincipiaMagicaRegistries.GOLEM_JOB.get(LumberjackJob.KEY).orElseThrow()));
+
+        golem.setHandItem(new ItemStack(Items.IRON_AXE));
+        helper.assertTrue(!golem.isCarrying(), "A job tool in the hand should be held, not carried");
+
+        golem.setHandItem(new ItemStack(Items.IRON_SWORD));
+        helper.assertTrue(!golem.isCarrying(), "A tool that is not the job's tool should be held, not carried");
+
+        golem.setHandItem(new ItemStack(Items.STONE));
+        helper.assertTrue(golem.isCarrying(), "A block in the hand should be carried");
+
+        golem.setHandItem(ItemStack.EMPTY);
+        golem.setBackItem(new ItemStack(Items.IRON_PICKAXE));
+        helper.assertTrue(!golem.swapToolIntoHand(), "A tool that is not the job's tool should not be swapped into the hand");
+        helper.assertTrue(golem.getBackItem().is(Items.IRON_PICKAXE), "A tool that is not the job's tool should stay on the back");
+        helper.succeed();
+    }
+
     public static void axiomGivenHarvestsField(GameTestHelper helper) {
         for (int x = 1; x <= 5; x++) {
             for (int z = 1; z <= 5; z++) {

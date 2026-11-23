@@ -79,6 +79,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> IN_WORLD_TOOL_EQUIP_SWAPS_TOOLS =
             TEST_FUNCTIONS.register("in_world_tool_equip_swaps_tools", () -> GolemGameTests::inWorldToolEquipSwapsTools);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CARRY_IS_ONLY_NON_TOOL_ITEMS =
+            TEST_FUNCTIONS.register("carry_is_only_non_tool_items", () -> GolemGameTests::carryIsOnlyNonToolItems);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL =
             TEST_FUNCTIONS.register("axiom_given_lumberjack_without_axe_reports_missing_tool", () -> GolemGameTests::axiomGivenLumberjackWithoutAxeReportsMissingTool);
 
@@ -526,6 +529,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, NON_OWNER_CANNOT_GIVE_AXIOM, environment, structure, 40, 0);
         registerTest(event, AXIOM_GIVEN_HARVESTS_FIELD, environment, structure, 2400, 0);
         registerTest(event, IN_WORLD_TOOL_EQUIP_SWAPS_TOOLS, environment, structure, 40, 0);
+        registerTest(event, CARRY_IS_ONLY_NON_TOOL_ITEMS, environment, structure, 40, 0);
         registerTest(event, AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL, environment, structure, 80, 0);
     }
 
