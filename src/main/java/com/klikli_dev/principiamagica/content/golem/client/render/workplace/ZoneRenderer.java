@@ -14,9 +14,11 @@ import net.minecraft.world.phys.Vec3;
 public final class ZoneRenderer {
 
     public static final int COLOR = 0x55FFFF;
+    public static final int HIGHLIGHT_COLOR = 0xFFFFFF;
     public static final float GLYPH_SIZE = 0.8F;
     private static final float CARVED_MARK_SIZE = 0.4F;
-    private static final float REACH_ALPHA = 0.3F;
+    private static final float CORNER_NODE_SIZE = 0.35F;
+    private static final float HIGHLIGHT_CORNER_SIZE = 0.55F;
     private static final float PLUMB_ALPHA = 0.6F;
     private static final float CARVED_MARK_ALPHA = 0.5F;
     private static final double PLUMB_OFFSET = 0.5 + 0.01;
@@ -25,25 +27,40 @@ public final class ZoneRenderer {
     }
 
     /**
-     * Draws a footprint as its solid box, the layer or volume it covers, with the job's reach around it as a faint
-     * outline. The corners of the solid box are marked.
+     * Draws a footprint as a single solid box with 8 interactive corner handles.
      */
-    public static void render(WorkplaceGeometry geometry, WorkFootprint footprint, int below, int above, float alpha, double time) {
+    public static void render(WorkplaceGeometry geometry, WorkFootprint footprint, int targetedCorner, float alpha, double time) {
         AABB box = footprint.zone(0, 0).aabb().inflate(0.01);
         float pulse = WorkplaceGeometry.pulse(time, 0.12, 0.7F);
 
         geometry.boxFaces(box, WorkplaceGeometry.argb(COLOR, alpha * 0.06F * pulse));
         geometry.boxEdges(box, WorkplaceGeometry.argb(COLOR, alpha * pulse));
 
-        if (below != 0 || above != 0) {
-            AABB reach = footprint.zone(below, above).aabb().inflate(0.01);
-            geometry.boxEdges(reach, WorkplaceGeometry.argb(COLOR, alpha * REACH_ALPHA * pulse));
+        for (int i = 0; i < 8; i++) {
+            boolean highlighted = i == targetedCorner;
+            Vec3 vertex = WorkplaceGeometry.boxCorner(box, i);
+            float size = highlighted ? HIGHLIGHT_CORNER_SIZE : CORNER_NODE_SIZE;
+            int rgb = highlighted ? HIGHLIGHT_COLOR : COLOR;
+            float cornerAlpha = highlighted ? alpha : alpha * 0.9F;
+            float xrayAlpha = highlighted ? alpha * 0.55F : alpha * 0.35F;
+            geometry.cornerNode(vertex, size, WorkplaceGeometry.argb(rgb, cornerAlpha), WorkplaceGeometry.argb(rgb, xrayAlpha));
+        }
+    }
+
+    /**
+     * Draws the tether connecting the sticky-locked anchor block/vertex to the moved corner of the box.
+     */
+    public static void renderCornerTether(WorkplaceGeometry geometry, Vec3 anchorVertex, BlockPos anchorBlock, Vec3 currentVertex, float alpha, double time) {
+        if (anchorVertex.distanceToSqr(currentVertex) <= 1.0E-4) {
+            return;
         }
 
-        int corner = WorkplaceGeometry.argb(COLOR, alpha);
-        for (int i = 0; i < 8; i++) {
-            geometry.glyph(WorkplaceGeometry.boxCorner(box, i), 0.3F, WorkplaceGeometry.Glyph.PLUS, corner);
-        }
+        float pulse = WorkplaceGeometry.pulse(time, 0.25, 0.5F);
+        geometry.beam(anchorVertex, currentVertex, WorkplaceGeometry.argb(HIGHLIGHT_COLOR, alpha * 0.75F));
+        geometry.cornerNode(anchorVertex, CORNER_NODE_SIZE,
+                WorkplaceGeometry.argb(COLOR, alpha * 0.8F),
+                WorkplaceGeometry.argb(COLOR, alpha * 0.4F));
+        geometry.boxEdges(new AABB(anchorBlock).inflate(0.005), WorkplaceGeometry.argb(COLOR, alpha * 0.35F * pulse));
     }
 
     /**

@@ -26,7 +26,7 @@ import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Erases a footprint by index, sent when the player sneak-right-clicks a zone box they are targeting with the stylus.
+ * Erases a footprint by index, sent when the player sneak-right-clicks one of a footprint's 8 corners with the stylus.
  */
 public record MessageEraseZone(int entityId, int index) implements Message {
 
@@ -54,16 +54,15 @@ public record MessageEraseZone(int entityId, int index) implements Message {
         }
 
         WorkFootprint footprint = workplace.footprints().get(this.index);
-        if (!GlyphTargeting.isBoxInReach(player.getEyePosition(), footprint.zone(0, 0).aabb())) {
+        if (!GlyphTargeting.isCornerEditable(player.getEyePosition(), footprint)) {
             return;
         }
 
         StylusActions.removeFootprint(workplace, this.index).ifPresent(updated -> {
-            golem.updateWorkplace(current -> updated);
+            StylusItem.applyWorkplaceEdit(player, golem, updated);
             BlockPos center = BlockPos.containing(footprint.zone(0, 0).aabb().getCenter());
             level.playSound(null, center, SoundEvents.CALCITE_BREAK, SoundSource.BLOCKS, 1.0F, 0.8F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_erased"));
-            StylusItem.syncWorkplace(player, golem);
         });
     }
 

@@ -8,8 +8,7 @@ import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceC
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
-import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.GlyphHit;
-import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.ZoneHit;
+import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.CornerHit;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
@@ -20,7 +19,9 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -31,22 +32,45 @@ import java.util.UUID;
 
 /**
  * Client-side queries about what the player is looking at with a stylus held. Shared by the overlay renderer, the input handling
- * and the stylus HUD, so they all agree on the same targeted glyph.
+ * and the stylus HUD, so they all agree on the same targeted corner and sticky corner lock.
  */
 public class WorkplaceTargeting {
 
+    private static final double LOCK_VERTEX_SIZE = 0.65;
+    private static final double LOCK_BLOCK_INFLATE = 0.05;
+
+    @Nullable
+    private static CornerLock cornerLock;
+
     /**
-     * @param golemId the entity id of the golem the glyph belongs to
-     * @param hit     the targeted glyph
+     * Remembers the original corner vertex/block where the player started Shift+scrolling a corner,
+     * keeping the player tethered to that corner until they look away.
      */
-    public record Targeted(int golemId, GlyphHit hit) {
+    public record CornerLock(int golemId, int footprintIndex, int cornerIndex, Vec3 anchorVertex, BlockPos anchorBlock) {
     }
 
     /**
-     * @param golemId the entity id of the golem the footprint belongs to
-     * @param hit     the targeted footprint box
+     * @param golemId        the entity id of the golem the corner belongs to
+     * @param footprintIndex the index of the footprint in the golem's workplace
+     * @param cornerIndex    the box corner index (0..7)
+     * @param footprint      the footprint being targeted
+     * @param vertex         the current 3D vertex of the corner
+     * @param block          the current block coordinate of the corner
+     * @param locked         whether this target is held via a sticky {@link CornerLock}
+     * @param anchorVertex   the original vertex where the lock began (same as {@code vertex} when unlocked)
+     * @param anchorBlock    the original block where the lock began (same as {@code block} when unlocked)
      */
-    public record TargetedZone(int golemId, ZoneHit hit) {
+    public record TargetedCorner(
+            int golemId,
+            int footprintIndex,
+            int cornerIndex,
+            WorkFootprint footprint,
+            Vec3 vertex,
+            BlockPos block,
+            boolean locked,
+            Vec3 anchorVertex,
+            BlockPos anchorBlock
+    ) {
     }
 
     @Nullable
@@ -77,63 +101,60 @@ public class WorkplaceTargeting {
         return hit == null ? null : hit.getBlockPos();
     }
 
-    /**
-     * The glyph of the selected golem under the crosshair, with a stylus held. Blocks in front of the glyph win,
-     * matching what the player sees, and the reach is the same as for the glyph render range.
-     */
-    @Nullable
-    public static Targeted targetedGlyph(Minecraft minecraft) {
-        Player player = minecraft.player;
-        ClientLevel level = minecraft.level;
-        if (player == null || level == null || minecraft.screen != null) {
-            return null;
-        }
-
-        ItemStack stylus = heldStylus(player);
-        if (stylus == null || pendingGlyph(stylus, level) != null) {
-            return null;
-        }
-
-        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
-        GolemEntity golem = findGolem(level, selected);
-        if (golem == null) {
-            return null;
-        }
-
-        List<WorkFootprint> footprints = ClientGolemWorkplaceCache.latest(golem.getId())
-                .map(entry -> entry.workplace().footprints())
-                .orElse(List.of());
-        float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-        Vec3 from = player.getEyePosition(partialTick);
-        Vec3 to = from.add(player.getViewVector(partialTick).scale(GlyphTargeting.MAX_RANGE));
-
-        Optional<GlyphHit> hit = GlyphTargeting.pick(from, to, footprints);
-        if (hit.isEmpty() || !GlyphTargeting.winsOverBlock(hit.get(), blockDistance(level, player, from, to))) {
-            return null;
-        }
-
-        return new Targeted(golem.getId(), hit.get());
+    public static boolean isLookingAtGolem(Minecraft minecraft) {
+        return minecraft.hitResult instanceof EntityHitResult hit && hit.getEntity() instanceof GolemEntity;
     }
 
     /**
-     * The footprint box of the selected golem under the crosshair, with a stylus held and no pending corner.
+     * Mirrors {@code StylusBlockInteraction.placeCorner} so the ghost preview snaps below replaceable ground cover like grass.
+     */
+    public static BlockPos snapReplaceable(ClientLevel level, BlockPos pos) {
+        if (level.getBlockState(pos).canBeReplaced()) {
+            BlockPos below = pos.below();
+            if (!level.getBlockState(below).isAir() && !level.getBlockState(below).canBeReplaced()) {
+                return below;
+            }
+        }
+        return pos;
+    }
+
+    public static void lockCorner(TargetedCorner target) {
+        if (cornerLock != null
+                && cornerLock.golemId() == target.golemId()
+                && cornerLock.footprintIndex() == target.footprintIndex()
+                && cornerLock.cornerIndex() == target.cornerIndex()) {
+            return;
+        }
+        cornerLock = new CornerLock(target.golemId(), target.footprintIndex(), target.cornerIndex(), target.vertex(), target.block());
+    }
+
+    public static void clearCornerLock() {
+        cornerLock = null;
+    }
+
+    /**
+     * The targeted box corner (0..7) of the selected golem under the crosshair, or the active sticky {@link CornerLock}
+     * as long as the player is still looking at the original corner block/vertex where they began moving it.
      */
     @Nullable
-    public static TargetedZone targetedZone(Minecraft minecraft) {
+    public static TargetedCorner targetedCorner(Minecraft minecraft) {
         Player player = minecraft.player;
         ClientLevel level = minecraft.level;
         if (player == null || level == null || minecraft.screen != null) {
+            clearCornerLock();
             return null;
         }
 
         ItemStack stylus = heldStylus(player);
         if (stylus == null || pendingGlyph(stylus, level) != null) {
+            clearCornerLock();
             return null;
         }
 
         UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
         GolemEntity golem = findGolem(level, selected);
         if (golem == null) {
+            clearCornerLock();
             return null;
         }
 
@@ -141,17 +162,57 @@ public class WorkplaceTargeting {
                 .map(entry -> entry.workplace().footprints())
                 .orElse(List.of());
         if (footprints.isEmpty()) {
+            clearCornerLock();
             return null;
         }
 
         float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
         Vec3 from = player.getEyePosition(partialTick);
         Vec3 to = from.add(player.getViewVector(partialTick).scale(GlyphTargeting.MAX_RANGE));
-        double blockDist = blockDistance(level, player, from, to);
 
-        return GlyphTargeting.pickZone(from, to, footprints, blockDist)
-                .map(hit -> new TargetedZone(golem.getId(), hit))
-                .orElse(null);
+        if (cornerLock != null) {
+            if (cornerLock.golemId() == golem.getId()
+                    && cornerLock.footprintIndex() >= 0
+                    && cornerLock.footprintIndex() < footprints.size()
+                    && isRayHittingLock(from, to, cornerLock)) {
+                WorkFootprint footprint = footprints.get(cornerLock.footprintIndex());
+                return new TargetedCorner(
+                        golem.getId(),
+                        cornerLock.footprintIndex(),
+                        cornerLock.cornerIndex(),
+                        footprint,
+                        footprint.cornerVertex(cornerLock.cornerIndex()),
+                        footprint.cornerBlock(cornerLock.cornerIndex()),
+                        true,
+                        cornerLock.anchorVertex(),
+                        cornerLock.anchorBlock()
+                );
+            }
+            clearCornerLock();
+        }
+
+        double blockDist = blockDistance(level, player, from, to);
+        Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, footprints, blockDist);
+        return hit.map(h -> new TargetedCorner(
+                golem.getId(),
+                h.footprintIndex(),
+                h.cornerIndex(),
+                h.footprint(),
+                h.vertex(),
+                h.block(),
+                false,
+                h.vertex(),
+                h.block()
+        )).orElse(null);
+    }
+
+    private static boolean isRayHittingLock(Vec3 from, Vec3 to, CornerLock lock) {
+        AABB vertexBox = AABB.ofSize(lock.anchorVertex(), LOCK_VERTEX_SIZE, LOCK_VERTEX_SIZE, LOCK_VERTEX_SIZE);
+        if (vertexBox.contains(from) || vertexBox.clip(from, to).isPresent()) {
+            return true;
+        }
+        AABB blockBox = new AABB(lock.anchorBlock()).inflate(LOCK_BLOCK_INFLATE);
+        return blockBox.contains(from) || blockBox.clip(from, to).isPresent();
     }
 
     /**

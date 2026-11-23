@@ -4,15 +4,13 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
-import com.klikli_dev.principiamagica.network.Networking;
-import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.Targeted;
-import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedZone;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
-import com.klikli_dev.principiamagica.network.messages.MessageEraseGlyph;
+import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageEraseZone;
-import com.klikli_dev.principiamagica.network.messages.MessageLiftCorner;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftPending;
-import com.klikli_dev.principiamagica.network.messages.MessageShiftZone;
+import com.klikli_dev.principiamagica.network.messages.MessagePickUpCorner;
+import com.klikli_dev.principiamagica.network.messages.MessageResizeCorner;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -20,17 +18,19 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.InputEvent;
 
-import java.util.UUID;
-
 /**
- * Turns the player's clicks and scrolls on a workplace into server messages. Sneak-right-click erases the targeted glyph
- * or zone box, and shift-scroll adjusts the pending corner, the targeted glyph's height, or moves the targeted zone up/down.
+ * Turns the player's clicks and scrolls on a workplace into server messages:
+ * <ul>
+ *     <li>Shift+scroll over a corner: resizes that corner's face up/down and engages a sticky corner lock</li>
+ *     <li>Right-click on a corner: picks up that corner so it can be moved and re-placed</li>
+ *     <li>Shift+right-click on a corner: erases the work area (never triggers on golems or non-corner blocks)</li>
+ * </ul>
  */
 public class WorkplaceInput {
 
     /**
-     * Sneak-right-click on a targeted glyph or zone box erases its footprint.
-     * Linked containers are left to {@code StylusItem.useOn} so they unlink normally.
+     * Handles plain right-click (pick up corner) and sneak-right-click (erase work area) on targeted corners.
+     * Golems are never intercepted so selection and Shift+right-click copy/paste always work.
      */
     public static void onInteractionKeyMapping(InputEvent.InteractionKeyMappingTriggered event) {
         if (!event.isUseItem()) {
@@ -40,7 +40,11 @@ public class WorkplaceInput {
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
         ClientLevel level = minecraft.level;
-        if (player == null || level == null || !player.isShiftKeyDown()) {
+        if (player == null || level == null || minecraft.screen != null) {
+            return;
+        }
+
+        if (WorkplaceTargeting.isLookingAtGolem(minecraft)) {
             return;
         }
 
@@ -54,29 +58,29 @@ public class WorkplaceInput {
             return;
         }
 
-        Targeted glyphTarget = WorkplaceTargeting.targetedGlyph(minecraft);
-        if (glyphTarget != null) {
-            event.setCanceled(true);
-            event.setSwingHand(true);
-            Networking.sendToServer(new MessageEraseGlyph(glyphTarget.golemId(), glyphTarget.hit().glyph().corner()));
+        TargetedCorner corner = WorkplaceTargeting.targetedCorner(minecraft);
+        if (corner == null) {
             return;
         }
 
-        if (WorkplaceTargeting.isHoveredLinkedContainer(minecraft, golem.getId())) {
+        if (!corner.locked() && WorkplaceTargeting.isHoveredLinkedContainer(minecraft, golem.getId())) {
             return;
         }
 
-        TargetedZone zoneTarget = WorkplaceTargeting.targetedZone(minecraft);
-        if (zoneTarget != null) {
-            event.setCanceled(true);
-            event.setSwingHand(true);
-            Networking.sendToServer(new MessageEraseZone(zoneTarget.golemId(), zoneTarget.hit().index()));
+        event.setCanceled(true);
+        event.setSwingHand(true);
+        WorkplaceTargeting.clearCornerLock();
+
+        if (player.isShiftKeyDown()) {
+            Networking.sendToServer(new MessageEraseZone(corner.golemId(), corner.footprintIndex()));
+        } else {
+            Networking.sendToServer(new MessagePickUpCorner(corner.golemId(), corner.footprintIndex(), corner.cornerIndex()));
         }
     }
 
     /**
-     * Shift+scroll with a stylus adjusts the pending corner height if there is one, else the targeted glyph's corner height,
-     * else moves the targeted zone box up or down.
+     * Shift+scroll with a stylus adjusts the pending corner height if there is one, else resizes the targeted (or locked)
+     * corner's face up or down and maintains the sticky lock on the corner's starting block.
      */
     public static void onMouseScrolling(InputEvent.MouseScrollingEvent event) {
         if (event.getScrollDeltaY() == 0.0) {
@@ -102,23 +106,11 @@ public class WorkplaceInput {
             return;
         }
 
-        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
-        GolemEntity golem = WorkplaceTargeting.findGolem(level, selected);
-        if (golem == null) {
-            return;
-        }
-
-        Targeted target = WorkplaceTargeting.targetedGlyph(minecraft);
-        if (target != null) {
+        TargetedCorner corner = WorkplaceTargeting.targetedCorner(minecraft);
+        if (corner != null) {
             event.setCanceled(true);
-            Networking.sendToServer(new MessageLiftCorner(golem.getId(), target.hit().glyph().corner(), delta));
-            return;
-        }
-
-        TargetedZone zoneTarget = WorkplaceTargeting.targetedZone(minecraft);
-        if (zoneTarget != null) {
-            event.setCanceled(true);
-            Networking.sendToServer(new MessageShiftZone(golem.getId(), zoneTarget.hit().index(), delta));
+            WorkplaceTargeting.lockCorner(corner);
+            Networking.sendToServer(new MessageResizeCorner(corner.golemId(), corner.footprintIndex(), corner.cornerIndex(), delta));
         }
     }
 }

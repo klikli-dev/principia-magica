@@ -6,11 +6,11 @@ package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
-import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
@@ -116,20 +116,25 @@ public class StylusHud {
 
         PendingGlyph pending = WorkplaceTargeting.pendingGlyph(stylus, level);
         if (pending != null) {
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.pending_corner")));
+            boolean isMoving = pending.original().isPresent();
+            hints.add(HintLine.neutral(Component.translatable(isMoving
+                    ? "hud.principiamagica.stylus.moving_corner"
+                    : "hud.principiamagica.stylus.pending_corner")));
             BlockHitResult hovered = WorkplaceTargeting.hoveredHit(minecraft);
             if (hovered != null && golem != null) {
                 Workplace workplace = ClientGolemWorkplaceCache.latest(golem.getId())
                         .map(ClientGolemWorkplaceCache.Entry::workplace)
                         .orElse(Workplace.EMPTY);
-                CarvedGlyph ghost = new CarvedGlyph(hovered.getBlockPos(), hovered.getDirection(), pending.ghostLift());
-                EditFailure failure = StylusActions.carveResult(workplace, pending.glyph(), ghost).failure();
+                BlockPos snapped = WorkplaceTargeting.snapReplaceable(level, hovered.getBlockPos());
+                EditFailure failure = StylusActions.placeFootprint(workplace, pending.pos().pos(), snapped.offset(0, pending.ghostLift(), 0)).failure();
                 if (failure != null) {
                     hints.add(HintLine.problem(failureMessage(failure)));
                 }
             }
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_next")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.carve_opposite")));
+            hints.add(HintLine.neutral(Component.translatable(isMoving
+                    ? "hud.principiamagica.stylus.hint.place_moved_corner"
+                    : "hud.principiamagica.stylus.hint.carve_opposite")));
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cancel")));
             return hints;
         }
@@ -139,8 +144,13 @@ public class StylusHud {
             return hints;
         }
 
-        if (WorkplaceTargeting.targetedGlyph(minecraft) != null) {
+        TargetedCorner corner = WorkplaceTargeting.targetedCorner(minecraft);
+        if (corner != null && (corner.locked() || !hoveringLinkedContainer)) {
+            if (corner.locked()) {
+                hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.corner_locked")));
+            }
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_corner")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.move_corner")));
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
             return hints;
         }
@@ -148,12 +158,6 @@ public class StylusHud {
         if (hoveringLinkedContainer) {
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cycle_link")));
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.unlink")));
-            return hints;
-        }
-
-        if (WorkplaceTargeting.targetedZone(minecraft) != null) {
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.move_zone")));
-            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
         }
         return hints;
     }

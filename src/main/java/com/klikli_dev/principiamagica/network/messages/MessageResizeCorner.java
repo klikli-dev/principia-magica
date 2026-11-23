@@ -12,7 +12,6 @@ import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Message;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -26,17 +25,18 @@ import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Moves a whole footprint of a golem up or down with the stylus, while the player holds the stylus with that golem selected and sneaks.
- * Sent when the player scrolls over the footprint box rather than over one of its corner glyphs.
+ * Resizes a footprint vertically by moving one of its 8 corners up or down, sent when the player Shift+scrolls
+ * over a corner (or while locked onto it) with the stylus.
  */
-public record MessageShiftZone(int entityId, int index, int delta) implements Message {
+public record MessageResizeCorner(int entityId, int footprintIndex, int cornerIndex, int delta) implements Message {
 
-    public static final Type<MessageShiftZone> TYPE = new Type<>(PrincipiaMagica.loc("shift_zone"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, MessageShiftZone> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.VAR_INT, MessageShiftZone::entityId,
-            ByteBufCodecs.VAR_INT, MessageShiftZone::index,
-            ByteBufCodecs.VAR_INT, MessageShiftZone::delta,
-            MessageShiftZone::new
+    public static final Type<MessageResizeCorner> TYPE = new Type<>(PrincipiaMagica.loc("resize_corner"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, MessageResizeCorner> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.VAR_INT, MessageResizeCorner::entityId,
+            ByteBufCodecs.VAR_INT, MessageResizeCorner::footprintIndex,
+            ByteBufCodecs.VAR_INT, MessageResizeCorner::cornerIndex,
+            ByteBufCodecs.VAR_INT, MessageResizeCorner::delta,
+            MessageResizeCorner::new
     );
 
     @Override
@@ -51,33 +51,30 @@ public record MessageShiftZone(int entityId, int index, int delta) implements Me
         }
 
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
-        if (this.index < 0 || this.index >= workplace.footprints().size()) {
+        if (this.footprintIndex < 0 || this.footprintIndex >= workplace.footprints().size() || !WorkFootprint.isValidCorner(this.cornerIndex)) {
             return;
         }
 
-        WorkFootprint footprint = workplace.footprints().get(this.index);
-        if (!GlyphTargeting.isBoxInReach(player.getEyePosition(), footprint.zone(0, 0).aabb())) {
+        WorkFootprint footprint = workplace.footprints().get(this.footprintIndex);
+        if (!GlyphTargeting.isCornerEditable(player.getEyePosition(), footprint)) {
             return;
         }
 
-        StylusActions.EditResult result = StylusActions.shiftFootprint(workplace, this.index, this.delta);
+        StylusActions.EditResult result = StylusActions.resizeCornerY(workplace, this.footprintIndex, this.cornerIndex, this.delta);
         if (result.isSuccess()) {
-            Workplace updated = result.workplace();
-            golem.updateWorkplace(current -> updated);
-            int applied = updated.footprints().get(this.index).minY() - footprint.minY();
+            StylusItem.applyWorkplaceEdit(player, golem, result.workplace());
             player.sendOverlayMessage(Component.translatable(
-                    "message.principiamagica.stylus.footprint_moved",
-                    String.format("%+d", applied)));
-            StylusItem.syncWorkplace(player, golem);
+                    "message.principiamagica.stylus.corner_lifted",
+                    String.format("%+d", this.delta)));
             return;
         }
 
-        BlockPos center = BlockPos.containing(footprint.zone(0, 0).aabb().getCenter());
-        level.playSound(null, center, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.5F);
+        level.playSound(null, footprint.cornerBlock(this.cornerIndex), SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.5F);
         switch (result.failure()) {
-            case CORNER_OCCUPIED -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_occupied"));
+            case TOO_LARGE -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_too_large",
+                    WorkFootprint.MAX_SIZE, WorkFootprint.MAX_SIZE));
             case OUT_OF_BOUNDS -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.out_of_bounds"));
-            case TOO_LARGE, NOT_FOUND -> {}
+            case CORNER_OCCUPIED, NOT_FOUND -> {}
             case null -> {}
         }
     }

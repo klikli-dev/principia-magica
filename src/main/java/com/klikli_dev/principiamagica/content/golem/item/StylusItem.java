@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.golem.item;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSyncGolemWorkplace;
@@ -112,8 +113,12 @@ public class StylusItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        if (cancelPending(stack)) {
-            serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_cancelled"));
+        Optional<PendingGlyph> cancelled = cancelPending(stack, serverPlayer);
+        if (cancelled.isPresent()) {
+            String key = cancelled.get().original().isPresent()
+                    ? "message.principiamagica.stylus.corner_move_cancelled"
+                    : "message.principiamagica.stylus.corner_cancelled";
+            serverPlayer.sendOverlayMessage(Component.translatable(key));
             return InteractionResult.SUCCESS;
         }
 
@@ -140,12 +145,40 @@ public class StylusItem extends Item {
     }
 
     /**
+     * Applies a workplace edit, clears stale brain cooldowns so the golem reacts immediately, and syncs to the player.
+     */
+    public static void applyWorkplaceEdit(ServerPlayer player, GolemEntity golem, Workplace updated) {
+        golem.updateWorkplace(current -> updated);
+        golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
+        golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
+        syncWorkplace(player, golem);
+    }
+
+    /**
+     * Cancels the pending corner on the stack, restoring the original footprint if the player was moving an existing corner.
+     *
+     * @return the removed pending glyph, if one was present
+     */
+    public static Optional<PendingGlyph> cancelPending(ItemStack stack, ServerPlayer player) {
+        PendingGlyph removed = stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+        if (removed != null && removed.original().isPresent() && player != null) {
+            WorkFootprint original = removed.original().get();
+            findSelectedGolem(player, stack).ifPresent(golem -> {
+                ServerLevel level = (ServerLevel) golem.level();
+                Workplace current = golem.getWorkplace(level).orElse(Workplace.EMPTY);
+                applyWorkplaceEdit(player, golem, StylusActions.restoreFootprint(current, original));
+            });
+        }
+        return Optional.ofNullable(removed);
+    }
+
+    /**
      * Cancels the pending corner on the stack.
      *
      * @return whether a pending corner was present and removed
      */
     public static boolean cancelPending(ItemStack stack) {
-        return stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()) != null;
+        return cancelPending(stack, null).isPresent();
     }
 
     public static boolean isWithinRange(ServerPlayer player, GolemEntity golem) {

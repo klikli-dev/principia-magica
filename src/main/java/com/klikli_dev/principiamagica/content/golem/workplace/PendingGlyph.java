@@ -12,37 +12,54 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
+import java.util.Optional;
+
 /**
- * The first corner of a footprint that is being carved with a stylus. Stored on the stylus until the second corner is set.
+ * The first corner of a footprint that is being carved with a stylus, or the fixed opposite corner of a footprint
+ * whose corner was picked up to be moved. Stored on the stylus until the second corner is set.
  * The second corner is the ghost: it follows the block under the crosshair and carries its own lift, which the player can
  * change before confirming.
  *
- * @param pos       the block and dimension of the first glyph
+ * @param pos       the block and dimension of the first/fixed corner
  * @param face      the face the first glyph sits on
- * @param ghostLift the lift the second corner gets when it is carved, clamped to [-(MAX_SIZE - 1), MAX_SIZE - 1]
+ * @param ghostLift the lift the second corner gets when it is placed, clamped to [-(MAX_SIZE - 1), MAX_SIZE - 1]
+ * @param original  the original footprint if this pending state came from picking up an existing corner (restored on cancel)
  */
-public record PendingGlyph(GlobalPos pos, Direction face, int ghostLift) {
+public record PendingGlyph(GlobalPos pos, Direction face, int ghostLift, Optional<WorkFootprint> original) {
 
     private static final int MAX_GHOST_LIFT = WorkFootprint.MAX_SIZE - 1;
 
     public static final Codec<PendingGlyph> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             GlobalPos.CODEC.fieldOf("pos").forGetter(PendingGlyph::pos),
             Direction.CODEC.fieldOf("face").forGetter(PendingGlyph::face),
-            Codec.INT.optionalFieldOf("ghost_lift", 0).forGetter(PendingGlyph::ghostLift)
+            Codec.INT.optionalFieldOf("ghost_lift", 0).forGetter(PendingGlyph::ghostLift),
+            WorkFootprint.CODEC.optionalFieldOf("original").forGetter(PendingGlyph::original)
     ).apply(instance, PendingGlyph::new));
 
     public static final StreamCodec<ByteBuf, PendingGlyph> STREAM_CODEC = StreamCodec.composite(
             GlobalPos.STREAM_CODEC, PendingGlyph::pos,
             Direction.STREAM_CODEC, PendingGlyph::face,
             ByteBufCodecs.VAR_INT, PendingGlyph::ghostLift,
+            ByteBufCodecs.optional(WorkFootprint.STREAM_CODEC), PendingGlyph::original,
             PendingGlyph::new
     );
+
+    public PendingGlyph(GlobalPos pos, Direction face, int ghostLift) {
+        this(pos, face, ghostLift, Optional.empty());
+    }
 
     /**
      * A first corner that is not lifted, with an unlifted ghost.
      */
     public static PendingGlyph of(GlobalPos pos, Direction face) {
-        return new PendingGlyph(pos, face, 0);
+        return new PendingGlyph(pos, face, 0, Optional.empty());
+    }
+
+    /**
+     * A pending corner created by picking up one corner of an existing footprint to move it.
+     */
+    public static PendingGlyph moving(GlobalPos anchorPos, int ghostLift, WorkFootprint original) {
+        return new PendingGlyph(anchorPos, Direction.UP, ghostLift, Optional.of(original));
     }
 
     public CarvedGlyph glyph() {
@@ -53,6 +70,6 @@ public record PendingGlyph(GlobalPos pos, Direction face, int ghostLift) {
      * @return the pending glyph with the ghost lifted or lowered by delta, clamped to the max zone height range
      */
     public PendingGlyph withGhostLift(int delta) {
-        return new PendingGlyph(this.pos, this.face, Math.clamp(this.ghostLift + delta, -MAX_GHOST_LIFT, MAX_GHOST_LIFT));
+        return new PendingGlyph(this.pos, this.face, Math.clamp(this.ghostLift + delta, -MAX_GHOST_LIFT, MAX_GHOST_LIFT), this.original);
     }
 }

@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Optional;
@@ -123,6 +124,21 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
                 Math.min(a.corner().getY(), b.corner().getY()),
                 Math.max(a.corner().getY(), b.corner().getY()),
                 List.of(a, b)
+        );
+    }
+
+    /**
+     * A box footprint without carved glyphs, spanned between two corners.
+     */
+    public static WorkFootprint ofBox(BlockPos a, BlockPos b) {
+        return new WorkFootprint(
+                Math.min(a.getX(), b.getX()),
+                Math.min(a.getZ(), b.getZ()),
+                Math.max(a.getX(), b.getX()),
+                Math.max(a.getZ(), b.getZ()),
+                Math.min(a.getY(), b.getY()),
+                Math.max(a.getY(), b.getY()),
+                List.of()
         );
     }
 
@@ -250,6 +266,71 @@ public record WorkFootprint(int minX, int minZ, int maxX, int maxZ, int minY, in
         int low = MIN_Y - this.minY;
         int high = MAX_Y - this.maxY;
         return low > high ? 0 : Math.clamp(delta, low, high);
+    }
+
+    public static boolean isValidCorner(int cornerIndex) {
+        return cornerIndex >= 0 && cornerIndex < 8;
+    }
+
+    public static boolean isTopCorner(int cornerIndex) {
+        return (cornerIndex & 2) != 0;
+    }
+
+    public static int oppositeCorner(int cornerIndex) {
+        return cornerIndex ^ 7;
+    }
+
+    /**
+     * @return the inclusive block coordinate of one of the 8 box corners (bit 0 = X, bit 1 = Y, bit 2 = Z)
+     */
+    public BlockPos cornerBlock(int cornerIndex) {
+        return new BlockPos(
+                (cornerIndex & 1) == 0 ? this.minX : this.maxX,
+                (cornerIndex & 2) == 0 ? this.minY : this.maxY,
+                (cornerIndex & 4) == 0 ? this.minZ : this.maxZ
+        );
+    }
+
+    /**
+     * @return the 3D vertex position of one of the 8 box corners, matching {@code WorkplaceGeometry.boxCorner}
+     */
+    public Vec3 cornerVertex(int cornerIndex) {
+        return new Vec3(
+                (cornerIndex & 1) == 0 ? this.minX : this.maxX + 1.0,
+                (cornerIndex & 2) == 0 ? this.minY : this.maxY + 1.0,
+                (cornerIndex & 4) == 0 ? this.minZ : this.maxZ + 1.0
+        );
+    }
+
+    /**
+     * Moves the Y level of the face containing {@code cornerIndex} by {@code delta}.
+     * On a flat (1-high) footprint, scrolling a top corner down or a bottom corner up pushes the whole flat layer so it
+     * can be shifted vertically without getting stuck.
+     */
+    public WorkFootprint resizeCornerY(int cornerIndex, int delta) {
+        if (delta == 0 || !isValidCorner(cornerIndex)) {
+            return this;
+        }
+
+        int newMinY = this.minY;
+        int newMaxY = this.maxY;
+        if (isTopCorner(cornerIndex)) {
+            if (this.isFlat() && delta < 0) {
+                newMinY += delta;
+                newMaxY += delta;
+            } else {
+                newMaxY = Math.max(this.minY, this.maxY + delta);
+            }
+        } else {
+            if (this.isFlat() && delta > 0) {
+                newMinY += delta;
+                newMaxY += delta;
+            } else {
+                newMinY = Math.min(this.maxY, this.minY + delta);
+            }
+        }
+
+        return new WorkFootprint(this.minX, this.minZ, this.maxX, this.maxZ, newMinY, newMaxY, List.of());
     }
 
     public WorkFootprint offset(int dx, int dy, int dz) {

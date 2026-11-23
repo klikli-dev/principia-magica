@@ -7,12 +7,16 @@ package com.klikli_dev.principiamagica.content.golem.item;
 import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
+import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -91,6 +95,79 @@ public final class StylusActions {
         }
 
         return Optional.of(workplace.withLinks(links).markInitialized());
+    }
+
+    /**
+     * Places a box footprint spanned between any two block corners, enforcing world height bounds and maximum dimensions.
+     */
+    public static EditResult placeFootprint(Workplace workplace, BlockPos firstCorner, BlockPos secondCorner) {
+        WorkFootprint footprint = WorkFootprint.ofBox(firstCorner, secondCorner);
+        if (footprint.isOutOfBounds()) {
+            return EditResult.fail(EditFailure.OUT_OF_BOUNDS);
+        }
+
+        if (footprint.isTooLarge()) {
+            return EditResult.fail(EditFailure.TOO_LARGE);
+        }
+
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.add(footprint);
+        return EditResult.ok(workplace.withFootprints(footprints).markInitialized());
+    }
+
+    /**
+     * Restores a previously removed footprint (e.g. when cancelling a corner move).
+     */
+    public static Workplace restoreFootprint(Workplace workplace, WorkFootprint footprint) {
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.add(footprint);
+        return workplace.withFootprints(footprints).markInitialized();
+    }
+
+    /**
+     * Resizes the footprint at {@code footprintIndex} vertically by moving one of its 8 corners.
+     */
+    public static EditResult resizeCornerY(Workplace workplace, int footprintIndex, int cornerIndex, int delta) {
+        if (footprintIndex < 0 || footprintIndex >= workplace.footprints().size() || !WorkFootprint.isValidCorner(cornerIndex)) {
+            return EditResult.fail(EditFailure.NOT_FOUND);
+        }
+
+        WorkFootprint footprint = workplace.footprints().get(footprintIndex);
+        WorkFootprint updated = footprint.resizeCornerY(cornerIndex, delta);
+        if (updated.isOutOfBounds()) {
+            return EditResult.fail(EditFailure.OUT_OF_BOUNDS);
+        }
+
+        if (updated.isTooLarge()) {
+            return EditResult.fail(EditFailure.TOO_LARGE);
+        }
+
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.set(footprintIndex, updated);
+        return EditResult.ok(workplace.withFootprints(footprints).markInitialized());
+    }
+
+    public record PickUpResult(Workplace workplace, PendingGlyph pending) {
+    }
+
+    /**
+     * Picks up one of the 8 corners of the footprint at {@code footprintIndex}, removing the footprint and returning
+     * a pending state anchored at the opposite diagonal corner with {@code original} preserved for cancellation.
+     */
+    public static Optional<PickUpResult> pickUpCorner(Workplace workplace, ResourceKey<Level> dimension, int footprintIndex, int cornerIndex) {
+        if (footprintIndex < 0 || footprintIndex >= workplace.footprints().size() || !WorkFootprint.isValidCorner(cornerIndex)) {
+            return Optional.empty();
+        }
+
+        WorkFootprint original = workplace.footprints().get(footprintIndex);
+        BlockPos fixedCorner = original.cornerBlock(WorkFootprint.oppositeCorner(cornerIndex));
+        int initialGhostLift = WorkFootprint.isTopCorner(cornerIndex) ? (original.maxY() - original.minY()) : 0;
+
+        List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
+        footprints.remove(footprintIndex);
+        Workplace updated = workplace.withFootprints(footprints).markInitialized();
+        PendingGlyph pending = PendingGlyph.moving(GlobalPos.of(dimension, fixedCorner), initialGhostLift, original);
+        return Optional.of(new PickUpResult(updated, pending));
     }
 
     /**

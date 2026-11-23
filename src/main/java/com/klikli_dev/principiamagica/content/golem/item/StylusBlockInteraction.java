@@ -5,14 +5,13 @@
 package com.klikli_dev.principiamagica.content.golem.item;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
-import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
-import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -32,8 +31,7 @@ import java.util.Optional;
  * <ul>
  *     <li>container, plain: cycles the container link (supply, deposit, both, removed)</li>
  *     <li>container, sneaking: removes the container link</li>
- *     <li>other block, sneaking: erases the footprint at the block</li>
- *     <li>other block, plain: sets or carves the pending corner</li>
+ *     <li>other block, plain: sets or finishes the pending work-area corner</li>
  * </ul>
  */
 final class StylusBlockInteraction {
@@ -54,9 +52,7 @@ final class StylusBlockInteraction {
             removeLink(level, player, golem, workplace, pos);
         } else if (container) {
             cycleLink(level, player, golem, workplace, pos, face);
-        } else if (sneaking) {
-            eraseFootprint(level, player, golem, workplace, pos);
-        } else {
+        } else if (!sneaking) {
             placeCorner(level, player, stack, golem, workplace, pos, face);
         }
 
@@ -67,6 +63,8 @@ final class StylusBlockInteraction {
         Optional<Workplace> updated = StylusActions.removeLink(workplace, pos);
         if (updated.isPresent()) {
             golem.updateWorkplace(current -> updated.get());
+            golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
+            golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
             level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_removed"));
         } else {
@@ -77,6 +75,8 @@ final class StylusBlockInteraction {
     private static void cycleLink(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos, Direction face) {
         Workplace updated = StylusActions.cycleLink(workplace, pos, face);
         golem.updateWorkplace(current -> updated);
+        golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
+        golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
         Optional<ContainerRole> role = updated.links().stream()
                 .filter(link -> link.pos().equals(pos))
                 .map(ContainerLink::role)
@@ -90,21 +90,8 @@ final class StylusBlockInteraction {
         }
     }
 
-    private static void eraseFootprint(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos) {
-        int below = golem.getJob().map(GolemJob::below).orElse(WorkFootprint.DEFAULT_BELOW);
-        int above = golem.getJob().map(GolemJob::above).orElse(WorkFootprint.DEFAULT_ABOVE);
-        Optional<Workplace> updated = StylusActions.removeFootprintAt(workplace, pos, below, above);
-        if (updated.isPresent()) {
-            golem.updateWorkplace(current -> updated.get());
-            level.playSound(null, pos, SoundEvents.CALCITE_BREAK, SoundSource.BLOCKS, 1.0F, 0.8F);
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_erased"));
-        } else {
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
-        }
-    }
-
     /**
-     * The first corner is set on the stylus, the second corner carves the footprint between them.
+     * The first corner is set on the stylus, the second corner places the footprint between them.
      */
     private static void placeCorner(ServerLevel level, ServerPlayer player, ItemStack stack, GolemEntity golem, Workplace workplace, BlockPos pos, Direction face) {
         if (level.getBlockState(pos).canBeReplaced()) {
@@ -118,24 +105,22 @@ final class StylusBlockInteraction {
         Optional<PendingGlyph> pending = Optional.ofNullable(stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()))
                 .filter(glyph -> glyph.pos().dimension().equals(level.dimension()));
         if (pending.isEmpty()) {
-            if (workplace.hasCornerAt(pos)) {
-                level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.5F);
-                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_occupied"));
-                return;
-            }
-
             level.playSound(null, pos, SoundEvents.BRUSH_GRAVEL, SoundSource.BLOCKS, 1.0F, 1.0F);
             stack.set(DataComponentRegistry.STYLUS_PENDING_GLYPH.get(), PendingGlyph.of(GlobalPos.of(level.dimension(), pos), face));
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_set"));
             return;
         }
 
-        StylusActions.EditResult result = StylusActions.carveResult(workplace, pending.get().glyph(), new CarvedGlyph(pos, face, pending.get().ghostLift()));
+        BlockPos secondCorner = pos.offset(0, pending.get().ghostLift(), 0);
+        StylusActions.EditResult result = StylusActions.placeFootprint(workplace, pending.get().pos().pos(), secondCorner);
         if (result.isSuccess()) {
+            boolean wasMove = pending.get().original().isPresent();
             stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
-            golem.updateWorkplace(current -> result.workplace());
+            StylusItem.applyWorkplaceEdit(player, golem, result.workplace());
             level.playSound(null, pos, SoundEvents.BRUSH_GRAVEL, SoundSource.BLOCKS, 1.0F, 1.0F);
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_carved"));
+            player.sendOverlayMessage(Component.translatable(wasMove
+                    ? "message.principiamagica.stylus.corner_moved"
+                    : "message.principiamagica.stylus.footprint_carved"));
             return;
         }
 
