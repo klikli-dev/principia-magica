@@ -80,6 +80,41 @@ public class GolemGameTests {
         helper.succeed();
     }
 
+    public static void quickenedClayHealsGolem(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        golem.setHealth(4.0F);
+
+        Player player = helper.makeMockServerPlayerInLevel();
+        player.getAbilities().instabuild = false;
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.QUICKENED_CLAY.get(), 3));
+        player.interactOn(golem, InteractionHand.MAIN_HAND, golem.position());
+
+        helper.assertTrue(golem.getHealth() == 5.0F, "One clay should heal one health, golem has " + golem.getHealth());
+        helper.assertTrue(player.getMainHandItem().getCount() == 2, "One clay should be used up, " + player.getMainHandItem().getCount() + " left");
+
+        golem.setHealth(golem.getMaxHealth());
+        player.interactOn(golem, InteractionHand.MAIN_HAND, golem.position());
+        helper.assertTrue(player.getMainHandItem().getCount() == 2, "Clay should not be used on a golem at full health");
+
+        golem.setHealth(4.0F);
+        player.getAbilities().instabuild = true;
+        player.interactOn(golem, InteractionHand.MAIN_HAND, golem.position());
+        helper.assertTrue(golem.getHealth() == 5.0F, "Creative players should still heal the golem, golem has " + golem.getHealth());
+        helper.assertTrue(player.getMainHandItem().getCount() == 2, "Creative players should keep their clay, " + player.getMainHandItem().getCount() + " left");
+
+        helper.succeed();
+    }
+
+    public static void woodGolemRegenerates(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
+        golem.setHealth(4.0F);
+
+        helper.succeedWhen(() -> helper.assertTrue(golem.getHealth() >= 5.0F,
+                "Wood golem should regenerate one health within 300 ticks, has " + golem.getHealth()));
+    }
+
     public static void workZoneContainsAndIterates(GameTestHelper helper) {
         WorkZone zone = WorkZone.of(new BlockPos(2, 1, 1), new BlockPos(0, 0, 0));
         helper.assertTrue(zone.min().equals(new BlockPos(0, 0, 0)) && zone.max().equals(new BlockPos(2, 1, 1)), "WorkZone.of should normalize min and max");
