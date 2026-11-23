@@ -28,6 +28,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -681,6 +682,25 @@ public class StylusGameTests {
         List<WorkFootprint> remaining = golem.getWorkplace(helper.getLevel()).orElseThrow().footprints();
         helper.assertTrue(remaining.equals(List.of(netherFootprint)),
                 "Sneak-right-clicking inside the zone should erase the current dimension's footprint and keep other dimensions intact, got " + remaining);
+
+        helper.succeed();
+    }
+
+    /**
+     * A creative player right-clicking a golem with a stylus selects it. Vanilla hands the item a copy of the held stack in creative,
+     * so the selection must be written to the player's held stack.
+     */
+    public static void creativeStylusSelectsGolem(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        player.getAbilities().instabuild = true;
+        golem.setOwnerUUID(player.getUUID());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.COPPER_STYLUS.get()));
+        player.interactOn(golem, InteractionHand.MAIN_HAND, Vec3.ZERO);
+
+        UUID selected = player.getItemInHand(InteractionHand.MAIN_HAND).get(DataComponentRegistry.STYLUS_SELECTION.get());
+        helper.assertTrue(golem.getUUID().equals(selected), "A creative player's right-click should select the golem on the held stylus, got " + selected);
 
         helper.succeed();
     }

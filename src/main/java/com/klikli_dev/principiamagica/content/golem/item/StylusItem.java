@@ -65,7 +65,8 @@ public class StylusItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        return StylusEntityInteraction.interact(stack, serverPlayer, golem);
+        // The held stack, not the one passed in: in creative vanilla passes a copy, and changes to it are lost
+        return StylusEntityInteraction.interact(player.getItemInHand(hand), serverPlayer, golem);
     }
 
     @Override
