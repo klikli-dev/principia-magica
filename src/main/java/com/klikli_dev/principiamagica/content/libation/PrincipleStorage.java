@@ -25,12 +25,14 @@ import java.util.Objects;
 /**
  * Principles held by a block entity with a fixed total capacity, exposed as a NeoForge {@link ResourceHandler} of
  * {@link FluidResource}. Each registered {@link Principle} occupies its registry-ID slot as its corresponding
- * {@link PrincipleFluid}. Transactional changes sync the owner through its {@link SyncThrottle} on root commit.
+ * {@link PrincipleFluid}. Transactional changes sync the owner through its {@link SyncThrottle} on root commit, and
+ * notify the owner's content listener, so that recipes that depend on the principles are re-evaluated.
  */
 public class PrincipleStorage implements ResourceHandler<FluidResource> {
 
     private final int capacity;
     private final SyncThrottle sync;
+    private final Runnable onContentsChanged;
     private final StorageJournal journal = new StorageJournal();
     private PrincipleContents contents = PrincipleContents.EMPTY;
 
@@ -39,8 +41,18 @@ public class PrincipleStorage implements ResourceHandler<FluidResource> {
      * @param sync     the throttle of the owning block entity.
      */
     public PrincipleStorage(int capacity, SyncThrottle sync) {
+        this(capacity, sync, () -> {});
+    }
+
+    /**
+     * @param capacity          the total amount of principles in mB.
+     * @param sync              the throttle of the owning block entity.
+     * @param onContentsChanged runs whenever the contents change, after a transaction commits or the contents are replaced.
+     */
+    public PrincipleStorage(int capacity, SyncThrottle sync, Runnable onContentsChanged) {
         this.capacity = capacity;
         this.sync = sync;
+        this.onContentsChanged = onContentsChanged;
     }
 
     public PrincipleContents contents() {
@@ -48,10 +60,12 @@ public class PrincipleStorage implements ResourceHandler<FluidResource> {
     }
 
     /**
-     * Replaces the contents without notifying the owner, for loading and for moves the owner syncs itself.
+     * Replaces the contents without syncing the owner, for loading and for moves the owner syncs itself. The content listener
+     * still runs, as cached recipes depend on the contents.
      */
     public void set(PrincipleContents contents) {
         this.contents = contents;
+        this.onContentsChanged.run();
     }
 
     public boolean isEmpty() {
@@ -208,6 +222,7 @@ public class PrincipleStorage implements ResourceHandler<FluidResource> {
             if (originalState.equals(PrincipleStorage.this.contents)) {
                 return;
             }
+            PrincipleStorage.this.onContentsChanged.run();
             boolean emptinessChanged = originalState.isEmpty() != PrincipleStorage.this.contents.isEmpty();
             if (emptinessChanged) {
                 PrincipleStorage.this.sync.syncNow();
