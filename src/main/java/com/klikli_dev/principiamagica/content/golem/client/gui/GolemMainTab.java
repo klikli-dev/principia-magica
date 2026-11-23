@@ -46,6 +46,9 @@ final class GolemMainTab extends GolemTab {
      */
     static final int PORTRAIT_X = 8;
     static final int PORTRAIT_Y = 26;
+    static final int PORTRAIT_WIDTH = 50;
+    static final int PORTRAIT_HEIGHT = 66;
+    static final int PORTRAIT_SCALE = 30;
     static final int HEALTH_X = 8;
     static final int HEALTH_Y = 109;
     static final int JOB_X = 104;
@@ -98,6 +101,9 @@ final class GolemMainTab extends GolemTab {
     @Override
     protected void build(ContentRect bounds) {
         this.add(new SpriteWidget(bounds.x() + PORTRAIT_X, bounds.y() + PORTRAIT_Y, 58, 80, this.sprite("portrait_frame")));
+        // The niche interior is 4 px in from the frame's left and 10 px down from its top.
+        this.add(new GolemPortrait(bounds.x() + PORTRAIT_X + 4, bounds.y() + PORTRAIT_Y + 10, PORTRAIT_WIDTH, PORTRAIT_HEIGHT, PORTRAIT_SCALE,
+                () -> this.view().golem()));
 
         this.health = this.add(new ProgressBar(bounds.x() + HEALTH_X, bounds.y() + HEALTH_Y, 58, 7, this::healthFraction).withStyle(this.style));
 

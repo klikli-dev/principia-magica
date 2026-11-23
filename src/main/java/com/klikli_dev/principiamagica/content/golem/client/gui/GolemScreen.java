@@ -54,13 +54,6 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     private static final int CARTOUCHE_Y = 6;
     private static final int CARTOUCHE_WIDTH = 188;
     private static final int CARTOUCHE_HEIGHT = 16;
-    private static final int NAME_TEXT_Y = CARTOUCHE_Y + (CARTOUCHE_HEIGHT - 8) / 2;
-    private static final int PORTRAIT_X = GolemMenuLayout.panelX(GolemMainTab.PORTRAIT_X + 4);
-    private static final int PORTRAIT_Y = GolemMenuLayout.panelY(GolemMainTab.PORTRAIT_Y + 10);
-    private static final int PORTRAIT_WIDTH = 50;
-    private static final int PORTRAIT_HEIGHT = 66;
-    private static final int PORTRAIT_SCALE = 30;
-    private static final float PORTRAIT_OFFSET_Y = 0.0625F;
 
     private GolemView view;
     private @Nullable TabHost tabs;
@@ -155,31 +148,16 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     }
 
     /**
-     * Draws the golem's name in the cartouche, the portrait of the golem, and the inventory label. Vanilla's title and inventory labels are
-     * replaced by these, so they never collide with the panels. Coordinates are relative to the screen, like vanilla's labels.
+     * Draws the golem's name in the cartouche. Vanilla's title and inventory labels are replaced by this, so they never collide with the panels.
+     * The name is centred on the cartouche, both ways, without shadow. Coordinates are relative to the screen, like vanilla's labels.
      */
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        // The name is drawn without shadow, in the dark text colour of the cartouche.
         String name = this.font.plainSubstrByWidth(GolemGuiText.golemName(this.view).getString(), CARTOUCHE_WIDTH - 2 * CARTOUCHE_X);
+        int cartoucheTop = GolemMenuLayout.CONTENT_Y + CARTOUCHE_Y;
+        int nameY = cartoucheTop + (CARTOUCHE_HEIGHT - this.font.lineHeight) / 2;
         int nameX = GolemMenuLayout.PANEL_X + GolemMenuLayout.PANEL_WIDTH / 2;
-        graphics.text(this.font, name, nameX - this.font.width(name) / 2, NAME_TEXT_Y, GuiStyles.TEXT_PRIMARY, false);
-
-        if (this.showsGolemPreview() && this.view.golem() != null) {
-            int right = PORTRAIT_X + PORTRAIT_WIDTH;
-            int bottom = PORTRAIT_Y + PORTRAIT_HEIGHT;
-            graphics.enableScissor(PORTRAIT_X, PORTRAIT_Y, right, bottom);
-            GolemPortrait.extract(graphics, this.view.golem(), PORTRAIT_X, PORTRAIT_Y, right, bottom,
-                    PORTRAIT_SCALE, PORTRAIT_OFFSET_Y, mouseX - this.leftPos, mouseY - this.topPos);
-            graphics.disableScissor();
-        }
-    }
-
-    /**
-     * The portrait is drawn on the golem tab's root page only, so it disappears with the golem tab's widgets.
-     */
-    private boolean showsGolemPreview() {
-        return this.menu.activeTab() == GolemMenuTab.GOLEM;
+        graphics.text(this.font, name, nameX - this.font.width(name) / 2, nameY, GuiStyles.TEXT_PRIMARY, false);
     }
 
     private void selectTab(GolemMenuTab tab) {
