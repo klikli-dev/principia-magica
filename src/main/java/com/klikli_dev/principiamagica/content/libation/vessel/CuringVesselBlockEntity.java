@@ -155,22 +155,20 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
             this.activeRecipe = holder.id();
             this.progress = 0;
         }
-        this.progress++;
+        int requiredTime = this.vessel.requiredTime(recipe.time(), light);
+        // Capped, so that a paused completion (see below) does not keep counting past the required time.
+        this.progress = Math.min(this.progress + 1, requiredTime);
 
-        if (this.progress >= this.vessel.requiredTime(recipe.time(), light)) {
-            try (Transaction tx = Transaction.open(null)) {
-                for (PrincipleStack input : recipe.inputs().stacks()) {
-                    this.principles.extract(FluidRegistry.resourceFor(input.principle()), input.amount(), tx);
-                }
-                this.principles.insert(FluidRegistry.resourceFor(recipe.result().principle()), recipe.result().amount(), tx);
-                tx.commit();
+        if (this.progress >= requiredTime) {
+            if (this.completeCuring(recipe)) {
+                this.progress = 0;
+                this.activeRecipe = null;
+                this.level.playSound(null, pos, SoundRegistry.VESSEL_CURE.get(), SoundSource.BLOCKS, 0.4F, 1.0F);
+                this.setCuring(true);
+                this.sync.syncNow();
+                return;
             }
-            this.progress = 0;
-            this.activeRecipe = null;
-            this.level.playSound(null, pos, SoundRegistry.VESSEL_CURE.get(), SoundSource.BLOCKS, 0.4F, 1.0F);
-            this.setCuring(true);
-            this.sync.syncNow();
-            return;
+            // Paused: the progress stays at the required time and the completion is retried every tick until there is room.
         }
 
         if (!this.curing) {
@@ -178,6 +176,29 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
             this.sync.syncNow();
         } else {
             this.sync.requestSync();
+        }
+    }
+
+    /**
+     * Consumes the inputs of the recipe and inserts its result, all or nothing.
+     *
+     * @return true if the recipe was completed. False if the inputs are not fully available or the result does not fully fit,
+     * in which case nothing is changed.
+     */
+    private boolean completeCuring(CuringRecipe recipe) {
+        try (Transaction tx = Transaction.open(null)) {
+            for (PrincipleStack input : recipe.inputs().stacks()) {
+                int extracted = this.principles.extract(FluidRegistry.resourceFor(input.principle()), input.amount(), tx);
+                if (extracted != input.amount()) {
+                    return false;
+                }
+            }
+            int inserted = this.principles.insert(FluidRegistry.resourceFor(recipe.result().principle()), recipe.result().amount(), tx);
+            if (inserted != recipe.result().amount()) {
+                return false;
+            }
+            tx.commit();
+            return true;
         }
     }
 
