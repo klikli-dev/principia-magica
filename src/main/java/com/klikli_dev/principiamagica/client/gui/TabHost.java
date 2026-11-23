@@ -46,7 +46,7 @@ public final class TabHost {
         for (int i = 0; i < this.tabs.size(); i++) {
             Tab tab = this.tabs.get(i);
             int index = i;
-            buttons.add(new TabButton(0, 0, tab.icon(), tab.title(), () -> this.select(index)));
+            buttons.add(new TabButton(0, 0, tab.icon(), tab.title(), () -> this.select(index)).withClipX(area.x()));
             this.stacks.add(new PageStack(tab, new WidgetGroup(host), area));
         }
 

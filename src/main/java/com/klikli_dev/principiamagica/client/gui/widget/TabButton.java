@@ -35,9 +35,12 @@ public class TabButton extends AbstractWidget {
     private final TabIcon icon;
     private final Component title;
     private final Runnable onPress;
+    private static final int NO_CLIP = Integer.MIN_VALUE;
+
     private StyleContext style = WidgetParts.defaultStyle();
     private boolean selected;
     private Component unavailableTooltip = Component.empty();
+    private int clipX = NO_CLIP;
 
     /**
      * @param x left edge
@@ -56,6 +59,17 @@ public class TabButton extends AbstractWidget {
 
     public TabButton withStyle(StyleContext style) {
         this.style = style;
+        return this;
+    }
+
+    /**
+     * Clips the tab at a vertical edge, so an unselected tab does not draw over the panel it is attached to. The selected tab is not clipped:
+     * it overlaps the panel's border on purpose and reads as part of the panel.
+     *
+     * @param clipX the screen x of the edge, the tab is drawn left of it
+     */
+    public TabButton withClipX(int clipX) {
+        this.clipX = clipX;
         return this;
     }
 
@@ -102,8 +116,17 @@ public class TabButton extends AbstractWidget {
             sprite = sprite.tinted(DISABLED_TINT);
         }
 
+        boolean clip = !this.selected && this.clipX != NO_CLIP;
+        if (clip) {
+            graphics.enableScissor(this.getX(), this.getY(), this.clipX, this.getY() + this.getHeight());
+        }
+
         sprite.extractRenderState(graphics, this.getX(), this.getY(), this.getWidth(), this.getHeight());
         this.icon.extract(graphics, this.getX() + ICON_X, this.getY() + ICON_Y);
+
+        if (clip) {
+            graphics.disableScissor();
+        }
     }
 
     @Override
