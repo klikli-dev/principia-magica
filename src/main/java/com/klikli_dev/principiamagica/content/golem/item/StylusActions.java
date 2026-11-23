@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Pure workplace edits used by the golem stylus. No world access, so they can be unit tested as gametests.
@@ -96,6 +97,22 @@ public final class StylusActions {
         }
 
         return Optional.of(workplace.withLinks(links).markInitialized());
+    }
+
+    /**
+     * Drops the links whose position is marked stale by the predicate, e.g. because the container there was broken.
+     *
+     * @return the workplace without the stale links, or the same workplace if none was stale
+     */
+    public static Workplace pruneLinks(Workplace workplace, Predicate<BlockPos> stale) {
+        List<ContainerLink> links = workplace.links().stream()
+                .filter(link -> !stale.test(link.pos()))
+                .toList();
+        if (links.size() == workplace.links().size()) {
+            return workplace;
+        }
+
+        return workplace.withLinks(links).markInitialized();
     }
 
     /**

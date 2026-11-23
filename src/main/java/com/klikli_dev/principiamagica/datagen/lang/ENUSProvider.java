@@ -289,6 +289,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("message.principiamagica.stylus.corner_lifted", "Corner lifted %s");
         this.add("message.principiamagica.stylus.nothing_to_remove", "Nothing to remove here");
         this.add("message.principiamagica.stylus.link_set", "Container link: %s");
+        this.add("message.principiamagica.stylus.link_set_pruned", "Container link: %s, removed %s unavailable container link(s)");
         this.add("message.principiamagica.stylus.link_removed", "Container link removed");
         this.add("message.principiamagica.stylus.picked_up", "Golem picked up, its workplace is kept");
 

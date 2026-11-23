@@ -91,8 +91,17 @@ final class StylusBlockInteraction {
         }
     }
 
+    /**
+     * Setting a new link drops the links whose container is gone. Stale positions in unloaded chunks are kept, as they cannot be checked.
+     */
     private static void cycleLink(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos, Direction face) {
-        Workplace updated = StylusActions.cycleLink(workplace, pos, face);
+        boolean isNewLink = workplace.links().stream().noneMatch(link -> link.pos().equals(pos));
+        Workplace pruned = isNewLink
+                ? StylusActions.pruneLinks(workplace, stalePos -> isUnavailable(level, stalePos))
+                : workplace;
+        int removed = workplace.links().size() - pruned.links().size();
+
+        Workplace updated = StylusActions.cycleLink(pruned, pos, face);
         golem.updateWorkplace(current -> updated);
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
@@ -102,7 +111,12 @@ final class StylusBlockInteraction {
                 .findFirst();
         if (role.isPresent()) {
             level.playSound(null, pos, linkSound(role.get()), SoundSource.BLOCKS, 1.0F, 1.0F);
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set", Component.translatable("golem_role.principiamagica." + role.get().getSerializedName())));
+            Component roleName = Component.translatable("golem_role.principiamagica." + role.get().getSerializedName());
+            if (removed > 0) {
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set_pruned", roleName, removed));
+            } else {
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set", roleName));
+            }
         } else {
             level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_removed"));
@@ -151,6 +165,13 @@ final class StylusBlockInteraction {
                     WorkFootprint.MAX_SIZE, WorkFootprint.MAX_SIZE));
             case null -> {}
         }
+    }
+
+    /**
+     * @return whether the position is loaded and has no item container anymore. Unloaded positions are never judged.
+     */
+    private static boolean isUnavailable(ServerLevel level, BlockPos pos) {
+        return level.isLoaded(pos) && !ContainerAccess.hasItemCapability(level, pos);
     }
 
     private static SoundEvent linkSound(ContainerRole role) {

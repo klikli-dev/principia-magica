@@ -295,6 +295,7 @@
   "message.principiamagica.stylus.golem_not_found": "The selected golem is not nearby",
   "message.principiamagica.stylus.link_removed": "Container link removed",
   "message.principiamagica.stylus.link_set": "Container link: %s",
+  "message.principiamagica.stylus.link_set_pruned": "Container link: %s, removed %s unavailable container link(s)",
   "message.principiamagica.stylus.no_golem_selected": "Select a golem first by right-clicking it",
   "message.principiamagica.stylus.not_owner": "You do not own this golem",
   "message.principiamagica.stylus.nothing_to_remove": "Nothing to remove here",
