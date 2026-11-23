@@ -155,6 +155,7 @@
   "gui.principiamagica.golem.no_deposit": "No deposit",
   "gui.principiamagica.golem.no_supply": "No supply",
   "gui.principiamagica.golem.none_linked": "None linked",
+  "gui.principiamagica.golem.status.currently": "Currently: %s",
   "gui.principiamagica.golem.status_hint.deposit_full": "Deposit full: empty or relink",
   "gui.principiamagica.golem.status_hint.missing_tool": "Missing tool: add one to slot",
   "gui.principiamagica.golem.status_hint.needs_supplies": "Needs supplies: stock a chest",
