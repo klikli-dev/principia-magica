@@ -107,8 +107,6 @@
   "entity.principiamagica.golem": "Golem",
   "golem_job.principiamagica.farming": "Farming",
   "golem_job.principiamagica.lumberjack": "Lumberjack",
-  "golem_material.principiamagica.metal": "Metal",
-  "golem_material.principiamagica.stone": "Stone",
   "golem_material.principiamagica.wood": "Wooden",
   "golem_mode.principiamagica.follow": "Follow",
   "golem_mode.principiamagica.stay": "Stay",
