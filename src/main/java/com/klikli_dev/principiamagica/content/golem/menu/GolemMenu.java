@@ -180,11 +180,11 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     }
 
     /**
-     * The back accepts any tool, the job's tool or not. A tool that is not the job's tool stays on the back and is never swapped into the hand
-     * for work.
+     * The back accepts any tool, the job's tool or not, once the golem has a job. A tool that is not the job's tool stays on the back and is
+     * never swapped into the hand for work. Without a job a golem cannot use a tool at all.
      */
     boolean canPlaceTool(ItemStack stack) {
-        return this.golem != null && this.golem.isHeldTool(stack);
+        return this.hasAxiom() && this.golem.isHeldTool(stack);
     }
 
     @Override
