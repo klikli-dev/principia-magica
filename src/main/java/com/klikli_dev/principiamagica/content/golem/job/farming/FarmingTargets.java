@@ -136,8 +136,8 @@ public final class FarmingTargets {
     }
 
     /**
-     * Seeds have a target while the zone has a free farmland spot, bone meal while it has a crop it can grow. The check scans the zone, so
-     * the golem only fetches supplies the job can use.
+     * Seeds have a target while the zone has a free farmland spot the seed can grow on, bone meal while it has a crop it can grow. The check
+     * scans the zone, so the golem only fetches supplies the job can use.
      */
     public static boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
         if (template.is(Items.BONE_MEAL)) {
@@ -149,9 +149,25 @@ public final class FarmingTargets {
             });
         }
 
+        if (!workplace.options().get(REPLANT) || !isPlantSeed(template)) {
+            return false;
+        }
+
+        Item seed = template.getItem();
         // A farmland spot with an obstruction the job clears is a planting spot too, the golem clears it first.
-        return workplace.options().get(REPLANT) && isPlantSeed(template) && anyInZone(workplace, pos -> isPlantableSoil(level, pos)
-                || (workplace.options().get(CLEAR_OBSTRUCTIONS) && isFarmSoil(level, pos) && level.getBlockState(pos.above()).is(CLEARABLE)));
+        return anyInZone(workplace, pos -> (isPlantableSoil(level, pos)
+                || (workplace.options().get(CLEAR_OBSTRUCTIONS) && isFarmSoil(level, pos) && level.getBlockState(pos.above()).is(CLEARABLE)))
+                && seedFitsSpot(level, workplace, seed, pos));
+    }
+
+    /**
+     * Mirrors {@link #seedToPlant} for a seed that is not in the hand yet: a spot that remembers a crop only takes that crop, and the seed
+     * must survive on the spot.
+     */
+    private static boolean seedFitsSpot(ServerLevel level, Workplace workplace, Item seed, BlockPos soilPos) {
+        BlockPos plantPos = soilPos.above();
+        Holder<Item> remembered = workplace.itemMemory().get(plantPos);
+        return (remembered == null || remembered.value() == seed) && survives(level, plantPos, seed);
     }
 
     private static boolean anyInZone(Workplace workplace, Predicate<BlockPos> test) {
