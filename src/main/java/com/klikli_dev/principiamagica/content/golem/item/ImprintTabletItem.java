@@ -26,8 +26,8 @@ import net.minecraft.world.level.Level;
 import java.util.function.Consumer;
 
 /**
- * Imprint tablet: copies the workplace of an owned golem and pastes it onto another one. Crouch-right-clicking a golem copies
- * its workplace if the tablet has no clipboard, else pastes the clipboard onto the golem. Crouch-right-clicking air clears the clipboard.
+ * Imprint tablet: copies the workplace of an owned golem and pastes it onto another one. Right-clicking a golem copies its
+ * workplace if the tablet has no clipboard, else pastes the clipboard onto the golem. Crouch-right-clicking clears the clipboard.
  */
 public class ImprintTabletItem extends Item {
 
@@ -35,9 +35,14 @@ public class ImprintTabletItem extends Item {
         super(properties);
     }
 
+    /**
+     * Right-click on an owned golem copies its workplace, or pastes the clipboard if it is set. Crouch-right-click clears the clipboard.
+     * Vanilla tries the golem's own interaction first, which passes for a held non-tool, so this is reached for every right-click.
+     * The clipboard is written to the held stack from the player, not the stack passed in: in creative mode vanilla passes a copy.
+     */
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target, InteractionHand hand) {
-        if (!(target instanceof GolemEntity golem) || !player.isShiftKeyDown()) {
+        if (!(target instanceof GolemEntity golem)) {
             return InteractionResult.PASS;
         }
 
@@ -50,7 +55,12 @@ public class ImprintTabletItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        copyOrPaste(stack, serverPlayer, golem);
+        ItemStack held = player.getItemInHand(hand);
+        if (player.isShiftKeyDown()) {
+            clear(held, serverPlayer);
+        } else {
+            copyOrPaste(held, serverPlayer, golem);
+        }
         return InteractionResult.SUCCESS;
     }
 
@@ -60,11 +70,17 @@ public class ImprintTabletItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        if (player.isShiftKeyDown() && player.getItemInHand(hand).remove(DataComponentRegistry.IMPRINT_CLIPBOARD.get()) != null) {
-            serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.imprint_tablet.cleared"));
+        if (player.isShiftKeyDown()) {
+            clear(player.getItemInHand(hand), serverPlayer);
         }
 
         return InteractionResult.SUCCESS;
+    }
+
+    private static void clear(ItemStack stack, ServerPlayer player) {
+        if (stack.remove(DataComponentRegistry.IMPRINT_CLIPBOARD.get()) != null) {
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.imprint_tablet.cleared"));
+        }
     }
 
     /**
@@ -94,7 +110,7 @@ public class ImprintTabletItem extends Item {
                 ? Component.translatable("tooltip.principiamagica.imprint_tablet.clipboard_empty").withStyle(ChatFormatting.GRAY)
                 : Component.translatable("tooltip.principiamagica.imprint_tablet.clipboard", clipboard.footprints().size(), clipboard.links().size()).withStyle(ChatFormatting.GRAY));
 
-        adder.accept(Component.translatable("tooltip.principiamagica.imprint_tablet.hint_copy_paste", KeyCombo.CROUCH_RIGHT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
+        adder.accept(Component.translatable("tooltip.principiamagica.imprint_tablet.hint_copy_paste", KeyCombo.RIGHT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
         adder.accept(Component.translatable("tooltip.principiamagica.imprint_tablet.hint_clear", KeyCombo.CROUCH_RIGHT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
     }
 }

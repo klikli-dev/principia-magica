@@ -74,8 +74,9 @@ public class ImprintTabletHud {
                 && player.getUUID().equals(golem.getOwnerUUID())) {
             hints.add(Component.translatable(hasClipboard
                     ? "hud.principiamagica.imprint_tablet.hint.paste"
-                    : "hud.principiamagica.imprint_tablet.hint.copy", KeyCombo.CROUCH_RIGHT_CLICK.component()));
-        } else if (hasClipboard) {
+                    : "hud.principiamagica.imprint_tablet.hint.copy", KeyCombo.RIGHT_CLICK.component()));
+        }
+        if (hasClipboard) {
             hints.add(Component.translatable("hud.principiamagica.imprint_tablet.hint.clear", KeyCombo.CROUCH_RIGHT_CLICK.component()));
         }
         return hints;

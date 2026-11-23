@@ -167,6 +167,9 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT =
             TEST_FUNCTIONS.register("sneak_right_click_inside_footprint_erases_footprint", () -> StylusGameTests::sneakRightClickInsideFootprintErasesFootprint);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> IMPRINT_TABLET_COPIES_PASTES_AND_CLEARS =
+            TEST_FUNCTIONS.register("imprint_tablet_copies_pastes_and_clears", () -> StylusGameTests::imprintTabletCopiesPastesAndClears);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS =
             TEST_FUNCTIONS.register("work_area_dimension_prevents_cross_dimension_weirdness", () -> StylusGameTests::workAreaDimensionPreventsCrossDimensionWeirdness);
 
@@ -545,6 +548,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, CORNER_RESIZE_MOVES_COPLANAR_CORNERS_AND_PUSHES_FLAT_BOX, environment, structure, 40, 0);
         registerTest(event, PICK_UP_MOVE_AND_CANCEL_CORNER, environment, structure, 40, 0);
         registerTest(event, SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, IMPRINT_TABLET_COPIES_PASTES_AND_CLEARS, environment, structure, 40, 0);
         registerTest(event, WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS, environment, structure, 40, 0);
     }
 

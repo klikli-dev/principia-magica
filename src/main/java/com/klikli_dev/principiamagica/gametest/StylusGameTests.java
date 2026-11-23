@@ -36,6 +36,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.TriState;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
@@ -680,6 +681,43 @@ public class StylusGameTests {
         List<WorkFootprint> remaining = golem.getWorkplace(helper.getLevel()).orElseThrow().footprints();
         helper.assertTrue(remaining.equals(List.of(netherFootprint)),
                 "Sneak-right-clicking inside the zone should erase the current dimension's footprint and keep other dimensions intact, got " + remaining);
+
+        helper.succeed();
+    }
+
+    /**
+     * Right-click on golems with the imprint tablet goes through the player's interaction, as in game: copy from the first golem,
+     * paste onto the second, and crouch-right-click clears the clipboard without touching the golem.
+     */
+    public static void imprintTabletCopiesPastesAndClears(GameTestHelper helper) {
+        GolemEntity source = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        GolemEntity target = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(6, 2, 2));
+        Player player = helper.makeMockServerPlayerInLevel();
+        source.setOwnerUUID(player.getUUID());
+        target.setOwnerUUID(player.getUUID());
+
+        WorkFootprint footprint = WorkFootprint.ofBox(helper.absolutePos(new BlockPos(1, 1, 1)), helper.absolutePos(new BlockPos(3, 1, 3)), helper.getLevel().dimension());
+        source.updateWorkplace(current -> Workplace.EMPTY.withFootprints(List.of(footprint)).markInitialized());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.IMPRINT_TABLET.get()));
+
+        player.setShiftKeyDown(false);
+        InteractionResult copied = player.interactOn(source, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        ItemStack tablet = player.getItemInHand(InteractionHand.MAIN_HAND);
+        helper.assertTrue(copied.consumesAction(), "Right-click on an owned golem should be consumed by the tablet, got " + copied);
+        helper.assertTrue(tablet.get(DataComponentRegistry.IMPRINT_CLIPBOARD.get()) != null, "Right-click on a golem should copy its workplace");
+
+        InteractionResult pasted = player.interactOn(target, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        helper.assertTrue(pasted.consumesAction(), "Right-click on a second golem should be consumed by the tablet, got " + pasted);
+        List<WorkFootprint> targetFootprints = target.getWorkplace(helper.getLevel()).orElseThrow().footprints();
+        helper.assertTrue(targetFootprints.size() == 1, "Right-click on a golem with a clipboard should paste it, got " + targetFootprints);
+
+        player.setShiftKeyDown(true);
+        player.interactOn(target, InteractionHand.MAIN_HAND, Vec3.ZERO);
+        helper.assertTrue(player.getItemInHand(InteractionHand.MAIN_HAND).get(DataComponentRegistry.IMPRINT_CLIPBOARD.get()) == null,
+                "Crouch-right-click should clear the clipboard");
+        helper.assertTrue(target.getWorkplace(helper.getLevel()).orElseThrow().footprints().size() == 1,
+                "Crouch-right-click should not paste onto the golem");
 
         helper.succeed();
     }
