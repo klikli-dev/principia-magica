@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.GlyphHit;
+import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.ZoneHit;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
@@ -39,6 +40,13 @@ public class WorkplaceTargeting {
      * @param hit     the targeted glyph
      */
     public record Targeted(int golemId, GlyphHit hit) {
+    }
+
+    /**
+     * @param golemId the entity id of the golem the footprint belongs to
+     * @param hit     the targeted footprint box
+     */
+    public record TargetedZone(int golemId, ZoneHit hit) {
     }
 
     @Nullable
@@ -82,7 +90,11 @@ public class WorkplaceTargeting {
         }
 
         ItemStack stylus = heldStylus(player);
-        UUID selected = stylus == null ? null : stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
+        if (stylus == null || pendingGlyph(stylus, level) != null) {
+            return null;
+        }
+
+        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
         GolemEntity golem = findGolem(level, selected);
         if (golem == null) {
             return null;
@@ -101,6 +113,59 @@ public class WorkplaceTargeting {
         }
 
         return new Targeted(golem.getId(), hit.get());
+    }
+
+    /**
+     * The footprint box of the selected golem under the crosshair, with a stylus held and no pending corner.
+     */
+    @Nullable
+    public static TargetedZone targetedZone(Minecraft minecraft) {
+        Player player = minecraft.player;
+        ClientLevel level = minecraft.level;
+        if (player == null || level == null || minecraft.screen != null) {
+            return null;
+        }
+
+        ItemStack stylus = heldStylus(player);
+        if (stylus == null || pendingGlyph(stylus, level) != null) {
+            return null;
+        }
+
+        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
+        GolemEntity golem = findGolem(level, selected);
+        if (golem == null) {
+            return null;
+        }
+
+        List<WorkFootprint> footprints = ClientGolemWorkplaceCache.latest(golem.getId())
+                .map(entry -> entry.workplace().footprints())
+                .orElse(List.of());
+        if (footprints.isEmpty()) {
+            return null;
+        }
+
+        float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        Vec3 from = player.getEyePosition(partialTick);
+        Vec3 to = from.add(player.getViewVector(partialTick).scale(GlyphTargeting.MAX_RANGE));
+        double blockDist = blockDistance(level, player, from, to);
+
+        return GlyphTargeting.pickZone(from, to, footprints, blockDist)
+                .map(hit -> new TargetedZone(golem.getId(), hit))
+                .orElse(null);
+    }
+
+    /**
+     * @return whether the crosshair block is currently linked as a container to the given golem
+     */
+    public static boolean isHoveredLinkedContainer(Minecraft minecraft, int golemId) {
+        BlockPos hovered = hoveredBlock(minecraft);
+        if (hovered == null) {
+            return false;
+        }
+
+        return ClientGolemWorkplaceCache.latest(golemId)
+                .map(entry -> entry.workplace().links().stream().anyMatch(link -> link.pos().equals(hovered)))
+                .orElse(false);
     }
 
     private static double blockDistance(ClientLevel level, Player player, Vec3 from, Vec3 to) {

@@ -8,9 +8,14 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
+import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
+import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
+import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
+import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -82,48 +87,82 @@ public class StylusHud {
         role.ifPresent(found -> graphics.text(font, roleName(found), x, y, TEXT_COLOR, true));
 
         int hintY = y + (role.isPresent() ? LINE_HEIGHT : 0);
-        List<Component> hints = workplaceHints(minecraft, stylus, level);
+        List<HintLine> hints = workplaceHints(minecraft, stylus, level, role.isPresent());
         for (int i = 0; i < hints.size(); i++) {
-            graphics.text(font, hints.get(i), x, hintY + i * LINE_HEIGHT, NEUTRAL_COLOR, true);
+            HintLine line = hints.get(i);
+            graphics.text(font, line.text(), x, hintY + i * LINE_HEIGHT, line.color(), true);
+        }
+    }
+
+    private record HintLine(Component text, int color) {
+        static HintLine neutral(Component text) {
+            return new HintLine(text, NEUTRAL_COLOR);
+        }
+
+        static HintLine problem(Component text) {
+            return new HintLine(text, PROBLEM_COLOR);
         }
     }
 
     /**
      * Context hints for the crosshair target while the stylus has a golem selected: the pending corner, the targeted glyph,
-     * or the footprint body under the cursor.
+     * a hovered linked container, or the targeted zone box.
      */
-    private static List<Component> workplaceHints(Minecraft minecraft, ItemStack stylus, ClientLevel level) {
-        List<Component> hints = new ArrayList<>();
+    private static List<HintLine> workplaceHints(Minecraft minecraft, ItemStack stylus, ClientLevel level, boolean hoveringLinkedContainer) {
+        List<HintLine> hints = new ArrayList<>();
+        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
+        GolemEntity golem = WorkplaceTargeting.findGolem(level, selected);
+
         PendingGlyph pending = WorkplaceTargeting.pendingGlyph(stylus, level);
         if (pending != null) {
-            boolean pickedUp = !pending.restore().isEmpty();
-            hints.add(Component.translatable(pickedUp ? "hud.principiamagica.stylus.picked_up" : "hud.principiamagica.stylus.pending_corner"));
-            hints.add(Component.translatable("hud.principiamagica.stylus.hint.lift_next"));
-            hints.add(Component.translatable(pickedUp ? "hud.principiamagica.stylus.hint.place_picked_up" : "hud.principiamagica.stylus.hint.carve_opposite"));
-            hints.add(Component.translatable("hud.principiamagica.stylus.hint.cancel"));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.pending_corner")));
+            BlockHitResult hovered = WorkplaceTargeting.hoveredHit(minecraft);
+            if (hovered != null && golem != null) {
+                Workplace workplace = ClientGolemWorkplaceCache.latest(golem.getId())
+                        .map(ClientGolemWorkplaceCache.Entry::workplace)
+                        .orElse(Workplace.EMPTY);
+                CarvedGlyph ghost = new CarvedGlyph(hovered.getBlockPos(), hovered.getDirection(), pending.ghostLift());
+                EditFailure failure = StylusActions.carveResult(workplace, pending.glyph(), ghost).failure();
+                if (failure != null) {
+                    hints.add(HintLine.problem(failureMessage(failure)));
+                }
+            }
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_next")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.carve_opposite")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cancel")));
             return hints;
         }
 
-        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
-        GolemEntity golem = WorkplaceTargeting.findGolem(level, selected);
         if (golem == null) {
             return hints;
         }
 
         if (WorkplaceTargeting.targetedGlyph(minecraft) != null) {
-            hints.add(Component.translatable("hud.principiamagica.stylus.hint.lift_corner"));
-            hints.add(Component.translatable("hud.principiamagica.stylus.hint.pick_up"));
-            hints.add(Component.translatable("hud.principiamagica.stylus.hint.erase"));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.lift_corner")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
             return hints;
         }
 
-        BlockPos hovered = WorkplaceTargeting.hoveredBlock(minecraft);
-        if (hovered != null && ClientGolemWorkplaceCache.latest(golem.getId())
-                .map(entry -> entry.workplace().footprintIndexAt(hovered) >= 0)
-                .orElse(false)) {
-            hints.add(Component.translatable("hud.principiamagica.stylus.hint.move_zone"));
+        if (hoveringLinkedContainer) {
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cycle_link")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.unlink")));
+            return hints;
+        }
+
+        if (WorkplaceTargeting.targetedZone(minecraft) != null) {
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.move_zone")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
         }
         return hints;
+    }
+
+    private static Component failureMessage(EditFailure failure) {
+        return switch (failure) {
+            case CORNER_OCCUPIED -> Component.translatable("message.principiamagica.stylus.corner_occupied");
+            case OUT_OF_BOUNDS -> Component.translatable("message.principiamagica.stylus.out_of_bounds");
+            case TOO_LARGE, NOT_FOUND -> Component.translatable("message.principiamagica.stylus.footprint_too_large",
+                    WorkFootprint.MAX_SIZE, WorkFootprint.MAX_SIZE);
+        };
     }
 
     private void renderGolem(GuiGraphicsExtractor graphics, Font font, GolemEntity golem, int x, int y) {
