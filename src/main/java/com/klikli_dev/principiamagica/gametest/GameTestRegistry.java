@@ -28,6 +28,12 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GOLEM_SPAWNS_WITH_BRAIN =
             TEST_FUNCTIONS.register("golem_spawns_with_brain", () -> GolemGameTests::spawnsWithBrain);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> QUICKENED_CLAY_HEALS_GOLEM =
+            TEST_FUNCTIONS.register("quickened_clay_heals_golem", () -> GolemGameTests::quickenedClayHealsGolem);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WOOD_GOLEM_REGENERATES =
+            TEST_FUNCTIONS.register("wood_golem_regenerates", () -> GolemGameTests::woodGolemRegenerates);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORK_ZONE_CONTAINS_AND_ITERATES =
             TEST_FUNCTIONS.register("work_zone_contains_and_iterates", () -> GolemGameTests::workZoneContainsAndIterates);
 
@@ -527,6 +533,8 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
 
     private static void registerGolemCoreTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
         registerTest(event, GOLEM_SPAWNS_WITH_BRAIN, environment, structure, 40, 0);
+        registerTest(event, QUICKENED_CLAY_HEALS_GOLEM, environment, structure, 40, 0);
+        registerTest(event, WOOD_GOLEM_REGENERATES, environment, structure, 300, 0);
         registerTest(event, WORK_ZONE_CONTAINS_AND_ITERATES, environment, structure, 40, 0);
         registerTest(event, FLAT_AND_VOLUME_ZONES, environment, structure, 40, 0);
         registerTest(event, BREAKING_GLYPH_KEEPS_FOOTPRINT, environment, structure, 40, 0);
