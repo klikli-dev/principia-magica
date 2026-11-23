@@ -56,11 +56,11 @@ final class GolemGuiText {
      * @return the key of the status icon: ok, idle (no purpose), warning (the golem can be fixed in its setup) or problem (it is blocked)
      */
     static String statusIcon(GolemStatus status) {
-        return switch (status) {
+        return switch (status.severity()) {
             case OK -> "status_ok";
-            case NO_PURPOSE -> "status_idle";
-            case MISSING_TOOL, NEEDS_SUPPLIES -> "status_warning";
-            case NO_ZONE, NO_DEPOSIT, DEPOSIT_FULL -> "status_problem";
+            case IDLE -> "status_idle";
+            case WARNING -> "status_warning";
+            case PROBLEM -> "status_problem";
         };
     }
 
@@ -109,10 +109,10 @@ final class GolemGuiText {
     }
 
     private static int headlineColor(GolemStatus status) {
-        return switch (status) {
-            case OK, NO_PURPOSE -> TEXT_COLOR;
-            case MISSING_TOOL, NEEDS_SUPPLIES -> WARNING_COLOR;
-            case NO_ZONE, NO_DEPOSIT, DEPOSIT_FULL -> PROBLEM_COLOR;
+        return switch (status.severity()) {
+            case OK, IDLE -> TEXT_COLOR;
+            case WARNING -> WARNING_COLOR;
+            case PROBLEM -> PROBLEM_COLOR;
         };
     }
 

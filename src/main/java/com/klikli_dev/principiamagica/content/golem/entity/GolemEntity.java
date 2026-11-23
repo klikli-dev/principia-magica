@@ -368,10 +368,6 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         GolemAi.updateActivity(this);
         super.customServerAiStep(level);
 
-        if (this.getStatus().isProblem() && this.tickCount % 80 == 0) {
-            level.sendParticles(ParticleTypes.ANGRY_VILLAGER, this.getX(), this.getY() + this.getBbHeight() + 0.3, this.getZ(), 1, 0.0, 0.0, 0.0, 0.0);
-        }
-
         // The golem GUI shows the workplace live, so players with it open get the workplace every few ticks.
         if (this.tickCount % WORKPLACE_SYNC_TICKS == 0) {
             for (ServerPlayer player : level.players()) {

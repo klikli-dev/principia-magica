@@ -7,6 +7,7 @@ package com.klikli_dev.principiamagica.content.golem.client;
 import com.geckolib.constant.DataTickets;
 import com.geckolib.constant.dataticket.DataTicket;
 import com.geckolib.renderer.base.GeoRenderState;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 
@@ -14,6 +15,11 @@ import java.util.Map;
 
 public class GolemRenderState extends LivingEntityRenderState implements GeoRenderState {
     private final Map<DataTicket<?>, Object> geckolibData = new Reference2ObjectOpenHashMap<>();
+
+    /**
+     * How severe the golem's status is. Decides the icon floating above the golem, see {@link GolemRenderer}.
+     */
+    public GolemStatus.Severity statusSeverity = GolemStatus.Severity.OK;
 
     @Override
     public <D> void addGeckolibData(DataTicket<D> dataTicket, D data) {
