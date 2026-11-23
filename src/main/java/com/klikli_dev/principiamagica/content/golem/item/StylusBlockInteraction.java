@@ -96,12 +96,21 @@ final class StylusBlockInteraction {
      */
     private static void cycleLink(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos, Direction face) {
         boolean isNewLink = workplace.links().stream().noneMatch(link -> link.pos().equals(pos));
+        // A new link queries the clicked face if it exposes the item handler, otherwise another face that does.
+        // Existing links keep the side they were linked with.
+        Direction side = isNewLink ? ContainerAccess.usableSide(level, pos, face) : face;
+        if (side == null) {
+            level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
+            return;
+        }
+
         Workplace pruned = isNewLink
                 ? StylusActions.pruneLinks(workplace, stalePos -> isUnavailable(level, stalePos))
                 : workplace;
         int removed = workplace.links().size() - pruned.links().size();
 
-        Workplace updated = StylusActions.cycleLink(pruned, pos, face);
+        Workplace updated = StylusActions.cycleLink(pruned, pos, side);
         golem.updateWorkplace(current -> updated);
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());

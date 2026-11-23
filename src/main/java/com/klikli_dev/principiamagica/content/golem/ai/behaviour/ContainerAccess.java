@@ -36,20 +36,41 @@ public final class ContainerAccess {
     }
 
     /**
-     * @return whether the block at pos exposes an item handler on any side, or without a side. A block that was broken or replaced has none.
+     * @return whether the block at pos exposes an item handler on at least one side. A block that was broken or replaced has none.
+     * A handler without a side cannot be linked, as links always query a side.
      */
     public static boolean hasItemCapability(ServerLevel level, BlockPos pos) {
-        if (level.getCapability(Capabilities.Item.BLOCK, pos, null) != null) {
-            return true;
+        return usableSide(level, pos, null) != null;
+    }
+
+    /**
+     * @return the side a container link should query: the preferred side if it exposes an item handler, otherwise the first side that does
+     * @see #resolveSide(Direction, Predicate)
+     */
+    public static @Nullable Direction usableSide(ServerLevel level, BlockPos pos, @Nullable Direction preferred) {
+        return resolveSide(preferred, side -> level.getCapability(Capabilities.Item.BLOCK, pos, side) != null);
+    }
+
+    /**
+     * Picks the side a container link queries. The preferred side (e.g. the face the stylus clicked) is kept if it is exposed, so
+     * containers exposing all faces keep the clicked face. Otherwise the first exposed side in {@link Direction} order is used.
+     *
+     * @param preferred the side to prefer, or null for none
+     * @param exposes   whether the container exposes an item handler on the side
+     * @return the side to link, or null if no side is exposed
+     */
+    public static @Nullable Direction resolveSide(@Nullable Direction preferred, Predicate<Direction> exposes) {
+        if (preferred != null && exposes.test(preferred)) {
+            return preferred;
         }
 
         for (Direction side : Direction.values()) {
-            if (level.getCapability(Capabilities.Item.BLOCK, pos, side) != null) {
-                return true;
+            if (exposes.test(side)) {
+                return side;
             }
         }
 
-        return false;
+        return null;
     }
 
     public static @Nullable Container containerAt(ServerLevel level, BlockPos pos) {

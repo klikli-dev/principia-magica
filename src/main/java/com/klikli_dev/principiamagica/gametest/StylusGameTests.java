@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
@@ -59,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 public class StylusGameTests {
 
@@ -854,6 +856,36 @@ public class StylusGameTests {
         List<ContainerLink> links = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
         helper.assertTrue(links.size() == 1 && links.get(0).pos().equals(chest) && links.get(0).role() == ContainerRole.SUPPLY,
                 "Linking a new container should drop the broken link and keep only the new one, got " + links);
+
+        helper.succeed();
+    }
+
+    /**
+     * A link queries a side, so it must be a side that exposes the item handler. The clicked face is kept when it exposes it, otherwise
+     * the link falls back to a face that does. A block exposing no side cannot be linked at all.
+     */
+    public static void linkSideFallsBackToExposedFace(GameTestHelper helper) {
+        Predicate<Direction> westOnly = side -> side == Direction.WEST;
+        helper.assertTrue(ContainerAccess.resolveSide(Direction.WEST, westOnly) == Direction.WEST, "An exposed clicked face should be kept");
+        helper.assertTrue(ContainerAccess.resolveSide(Direction.NORTH, westOnly) == Direction.WEST, "An unexposed clicked face should fall back to an exposed one");
+        helper.assertTrue(ContainerAccess.resolveSide(null, westOnly) == Direction.WEST, "Without a clicked face the first exposed face should be used");
+        helper.assertTrue(ContainerAccess.resolveSide(Direction.UP, side -> false) == null, "A block exposing no face should not be linkable");
+
+        BlockPos chest = helper.absolutePos(new BlockPos(3, 2, 3));
+        helper.setBlock(new BlockPos(3, 2, 3), Blocks.CHEST);
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        Player player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2))));
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+        player.setShiftKeyDown(false);
+        stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(chest), Direction.EAST, chest, false)));
+
+        List<ContainerLink> links = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(links.size() == 1 && links.get(0).side() == Direction.EAST,
+                "A new link on a chest should store the clicked face, got " + links);
 
         helper.succeed();
     }

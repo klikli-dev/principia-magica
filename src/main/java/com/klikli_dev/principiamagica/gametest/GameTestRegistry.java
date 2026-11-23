@@ -197,6 +197,9 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> NEW_LINK_PRUNES_BROKEN_CONTAINER_LINKS =
             TEST_FUNCTIONS.register("new_link_prunes_broken_container_links", () -> StylusGameTests::newLinkPrunesBrokenContainerLinks);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LINK_SIDE_FALLS_BACK_TO_EXPOSED_FACE =
+            TEST_FUNCTIONS.register("link_side_falls_back_to_exposed_face", () -> StylusGameTests::linkSideFallsBackToExposedFace);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PRUNE_KEEPS_LINKS_IT_CANNOT_JUDGE =
             TEST_FUNCTIONS.register("prune_keeps_links_it_cannot_judge", () -> StylusGameTests::pruneKeepsLinksItCannotJudge);
 
@@ -610,6 +613,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, STYLUS_UNLINKS_BROKEN_CONTAINER, environment, structure, 40, 0);
         registerTest(event, NEW_LINK_PRUNES_BROKEN_CONTAINER_LINKS, environment, structure, 40, 0);
         registerTest(event, PRUNE_KEEPS_LINKS_IT_CANNOT_JUDGE, environment, structure, 40, 0);
+        registerTest(event, LINK_SIDE_FALLS_BACK_TO_EXPOSED_FACE, environment, structure, 40, 0);
         registerTest(event, WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS, environment, structure, 40, 0);
     }
 
