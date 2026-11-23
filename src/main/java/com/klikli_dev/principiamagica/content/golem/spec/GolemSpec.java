@@ -12,11 +12,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 import java.util.Optional;
-import java.util.function.BiConsumer;
 
 public record GolemSpec(Holder<GolemMaterial> material, Optional<Holder<GolemJob>> job) {
 
@@ -41,9 +38,5 @@ public record GolemSpec(Holder<GolemMaterial> material, Optional<Holder<GolemJob
 
     public GolemSpec withoutJob() {
         return new GolemSpec(this.material, Optional.empty());
-    }
-
-    public void collectModifiers(BiConsumer<Holder<Attribute>, AttributeModifier> consumer) {
-        this.material.value().collectModifiers(consumer);
     }
 }

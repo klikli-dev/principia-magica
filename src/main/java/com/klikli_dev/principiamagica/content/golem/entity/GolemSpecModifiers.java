@@ -33,7 +33,7 @@ public class GolemSpecModifiers {
         }
         this.applied.clear();
 
-        spec.collectModifiers((attribute, modifier) -> {
+        spec.material().value().collectModifiers((attribute, modifier) -> {
             AttributeInstance instance = golem.getAttribute(attribute);
             if (instance != null) {
                 instance.addOrUpdateTransientModifier(modifier);

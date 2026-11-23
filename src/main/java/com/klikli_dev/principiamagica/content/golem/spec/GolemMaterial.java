@@ -14,34 +14,19 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class GolemMaterial implements StatContributor {
+/**
+ * A golem material: the texture of the golem and the attribute modifiers it adds to the base golem.
+ * Materials are registered in the golem material registry, which is the extension point for new materials.
+ */
+public record GolemMaterial(Identifier texture, List<ModifierEntry> modifiers) {
 
     public record ModifierEntry(Holder<Attribute> attribute, AttributeModifier modifier) {
-    }
-
-    private final Identifier texture;
-    private final boolean fireImmune;
-    private final List<ModifierEntry> modifiers;
-
-    public GolemMaterial(Identifier texture, boolean fireImmune, List<ModifierEntry> modifiers) {
-        this.texture = texture;
-        this.fireImmune = fireImmune;
-        this.modifiers = modifiers;
     }
 
     public static ModifierEntry modifier(Holder<Attribute> attribute, double amount, AttributeModifier.Operation operation) {
         return new ModifierEntry(attribute, new AttributeModifier(PrincipiaMagica.loc("material"), amount, operation));
     }
 
-    public Identifier texture() {
-        return this.texture;
-    }
-
-    public boolean fireImmune() {
-        return this.fireImmune;
-    }
-
-    @Override
     public void collectModifiers(BiConsumer<Holder<Attribute>, AttributeModifier> consumer) {
         for (ModifierEntry entry : this.modifiers) {
             consumer.accept(entry.attribute(), entry.modifier());

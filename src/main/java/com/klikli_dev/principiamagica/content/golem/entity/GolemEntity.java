@@ -338,11 +338,6 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     }
 
     @Override
-    public boolean fireImmune() {
-        return this.getSpec().material().value().fireImmune();
-    }
-
-    @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
         return false;
     }
