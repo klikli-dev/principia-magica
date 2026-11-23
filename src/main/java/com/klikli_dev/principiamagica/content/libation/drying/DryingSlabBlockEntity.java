@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.LibationFlow;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
+import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
@@ -47,12 +48,13 @@ import static com.klikli_dev.principiamagica.content.libation.drying.DryingSlabI
  */
 public class DryingSlabBlockEntity extends LibationBlockEntity {
 
+    private final SyncThrottle sync = new SyncThrottle(this);
     private final ItemStacksResourceHandler items = new ItemHandler();
     private final ResourceHandler<ItemResource> itemCapability = new DryingSlabItemHandler(this.items);
     /**
      * The drying of the first input item. Its rate is the light divided by {@link LibationFlow#FULL_LIGHT}.
      */
-    private final ProgressTracker drying = new ProgressTracker(() -> LibationUtils.sync(this));
+    private final ProgressTracker drying = new ProgressTracker(this.sync);
 
     public DryingSlabBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.DRYING_SLAB.get(), pos, state);
@@ -94,6 +96,7 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
             return;
         }
         blockEntity.tickDrying(level, pos);
+        blockEntity.sync.tick();
     }
 
     @Override
@@ -110,6 +113,10 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
         }
 
         boolean wasEmpty = this.getInput().isEmpty();
+        if (wasEmpty) {
+            // Restart before the insert, its item sync carries the restarted progress.
+            this.drying.restart();
+        }
         int inserted;
         try (Transaction transaction = Transaction.open(null)) {
             inserted = this.items.insert(INPUT, ItemResource.of(held), held.getCount(), transaction);
@@ -117,9 +124,6 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
         }
         if (inserted == 0) {
             return InteractionResult.PASS;
-        }
-        if (wasEmpty) {
-            this.drying.restart();
         }
         held.shrink(inserted);
         return InteractionResult.SUCCESS;
@@ -214,7 +218,8 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
     }
 
     /**
-     * Holds the input and the output. Changes sync to the clients. Only drying inputs are valid in the input slot.
+     * Holds the input and the output. Changes sync to the clients at once, as the items are visible. Only drying inputs are
+     * valid in the input slot.
      */
     private final class ItemHandler extends ItemStacksResourceHandler {
         private ItemHandler() {
@@ -229,7 +234,7 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
 
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
-            LibationUtils.sync(DryingSlabBlockEntity.this);
+            DryingSlabBlockEntity.this.sync.syncNow();
         }
     }
 }

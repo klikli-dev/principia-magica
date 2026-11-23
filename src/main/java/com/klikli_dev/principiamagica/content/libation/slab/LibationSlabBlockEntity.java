@@ -10,6 +10,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
+import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.recipe.LibationRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
@@ -52,15 +53,16 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     public static final int DISSOLVE_TIME = 40;
     public static final int NO_SLOT = -1;
 
+    private final SyncThrottle sync = new SyncThrottle(this);
     private final ItemStacksResourceHandler items = new ItemHandler();
     private final FluidStacksResourceHandler water = new WaterHandler();
     private final ResourceHandler<FluidResource> waterInput = new InsertOnlyResourceHandler<>(this.water);
     private final ResourceHandler<ItemResource> itemInput = new InsertOnlyResourceHandler<>(this.items);
     private int dissolveSlot = NO_SLOT;
-    private final ProgressTracker dissolve = new ProgressTracker(() -> LibationUtils.sync(this));
+    private final ProgressTracker dissolve = new ProgressTracker(this.sync);
     private int dissolveColor = PrincipleContents.DEFAULT_COLOR;
-    private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY, () -> LibationUtils.sync(this));
-    private final PrincipleDrain drain = new PrincipleDrain(this.stored);
+    private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY, this.sync);
+    private final PrincipleDrain drain = new PrincipleDrain(this.stored, this.sync);
 
     public LibationSlabBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.LIBATION_SLAB.get(), pos, state);
@@ -132,6 +134,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         }
         blockEntity.drain.tick(blockEntity);
         blockEntity.tickDissolve();
+        blockEntity.sync.tick();
     }
 
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
@@ -153,7 +156,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
             if (this.getWater() > waterBefore) {
                 this.level.playSound(null, this.worldPosition, SoundRegistry.LIBATION_SLAB_POUR.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             }
-            LibationUtils.sync(this);
+            this.sync.syncNow();
             return InteractionResult.SUCCESS;
         }
         if (!FluidUtil.getFirstStackContained(held).isEmpty()) {
@@ -240,7 +243,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         this.dissolveSlot = 0;
         this.dissolve.restart();
         this.dissolveColor = recipe.get().value().principles().blendedColor();
-        LibationUtils.sync(this);
+        this.sync.syncNow();
     }
 
     /**
@@ -313,7 +316,8 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     }
 
     /**
-     * Holds one item type up to its max stack size, limited to washable items. Changes sync to the clients.
+     * Holds one item type up to its max stack size, limited to washable items. Changes sync to the clients at once, as the
+     * items are visible.
      */
     private final class ItemHandler extends ItemStacksResourceHandler {
         private ItemHandler() {
@@ -327,12 +331,12 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
 
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
-            LibationUtils.sync(LibationSlabBlockEntity.this);
+            LibationSlabBlockEntity.this.sync.syncNow();
         }
     }
 
     /**
-     * Holds water in mB. Only water is accepted. Changes sync to the clients.
+     * Holds water in mB. Only water is accepted. Water that appears or runs out syncs at once, the level changes are requested.
      */
     private final class WaterHandler extends FluidStacksResourceHandler {
         private WaterHandler() {
@@ -346,7 +350,12 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
 
         @Override
         protected void onContentsChanged(int index, FluidStack previousContents) {
-            LibationUtils.sync(LibationSlabBlockEntity.this);
+            boolean emptinessChanged = previousContents.isEmpty() != (LibationSlabBlockEntity.this.getWater() == 0);
+            if (emptinessChanged) {
+                LibationSlabBlockEntity.this.sync.syncNow();
+            } else {
+                LibationSlabBlockEntity.this.sync.requestSync();
+            }
         }
     }
 }

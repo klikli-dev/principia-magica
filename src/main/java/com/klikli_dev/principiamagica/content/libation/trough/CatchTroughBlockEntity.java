@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
+import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.recipe.SteepingRecipe;
@@ -43,11 +44,12 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
     public static final int CAPACITY = 500;
     public static final int EVENT_STEEP = 1;
 
-    private final PrincipleStorage principles = new PrincipleStorage(CAPACITY, () -> LibationUtils.sync(this));
+    private final SyncThrottle sync = new SyncThrottle(this);
+    private final PrincipleStorage principles = new PrincipleStorage(CAPACITY, this.sync);
     /**
      * The steeping of the held item. Its progress is reset whenever the item or the principles no longer match a recipe.
      */
-    private final ProgressTracker steeping = new ProgressTracker(() -> LibationUtils.sync(this));
+    private final ProgressTracker steeping = new ProgressTracker(this.sync);
     private ItemStack item = ItemStack.EMPTY;
 
     public CatchTroughBlockEntity(BlockPos pos, BlockState state) {
@@ -94,7 +96,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
             this.item = held.copyWithCount(1);
             this.steeping.restart();
             held.shrink(1);
-            LibationUtils.sync(this);
+            this.sync.syncNow();
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
@@ -112,7 +114,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
         player.getInventory().placeItemBackInInventory(this.item);
         this.item = ItemStack.EMPTY;
         this.steeping.restart();
-        LibationUtils.sync(this);
+        this.sync.syncNow();
         return InteractionResult.SUCCESS;
     }
 
@@ -121,6 +123,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
             return;
         }
         blockEntity.tickSteeping();
+        blockEntity.sync.tick();
     }
 
     /**

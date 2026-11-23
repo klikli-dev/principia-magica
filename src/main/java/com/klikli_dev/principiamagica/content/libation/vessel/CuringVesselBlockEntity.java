@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
+import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
@@ -32,8 +33,8 @@ import java.util.Optional;
  * spout, at the rate of {@link LibationFlow}. What the vessel is, is defined by its {@link VesselProperties}.
  */
 public class CuringVesselBlockEntity extends LibationBlockEntity implements PrincipleContainer {
-    public static final int SYNC_INTERVAL = 20;
 
+    private final SyncThrottle sync = new SyncThrottle(this);
     private final VesselProperties vessel;
     private final PrincipleStorage principles;
     private final PrincipleDrain drain;
@@ -44,8 +45,8 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     public CuringVesselBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, VesselProperties vessel) {
         super(type, pos, state);
         this.vessel = vessel;
-        this.principles = new PrincipleStorage(vessel.capacity(), () -> LibationUtils.sync(this));
-        this.drain = new PrincipleDrain(this.principles);
+        this.principles = new PrincipleStorage(vessel.capacity(), this.sync);
+        this.drain = new PrincipleDrain(this.principles, this.sync);
     }
 
     public VesselProperties properties() {
@@ -90,6 +91,7 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
         }
         blockEntity.drain.tick(blockEntity);
         blockEntity.tickCuring(level, pos);
+        blockEntity.sync.tick();
     }
 
     private void tickCuring(Level level, BlockPos pos) {
@@ -118,15 +120,15 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
             this.activeRecipe = null;
             this.level.playSound(null, pos, SoundRegistry.VESSEL_CURE.get(), SoundSource.BLOCKS, 0.4F, 1.0F);
             this.setCuring(true);
-            LibationUtils.sync(this);
+            this.sync.syncNow();
             return;
         }
 
         if (!this.curing) {
             this.setCuring(true);
-            LibationUtils.sync(this);
-        } else if (this.progress % SYNC_INTERVAL == 0) {
-            LibationUtils.sync(this);
+            this.sync.syncNow();
+        } else {
+            this.sync.requestSync();
         }
     }
 
@@ -136,7 +138,7 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
         this.activeRecipe = null;
         this.setCuring(false);
         if (wasCuring) {
-            LibationUtils.sync(this);
+            this.sync.syncNow();
         }
     }
 

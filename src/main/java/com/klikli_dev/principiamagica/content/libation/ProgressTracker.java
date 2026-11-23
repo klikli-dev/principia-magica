@@ -10,21 +10,16 @@ import net.minecraft.world.level.storage.ValueOutput;
 /**
  * Progress of a recipe that advances by a rate per tick, for block entities that process one item.
  * <p>
- * The progress is synced when the rate changes, and otherwise every {@link #SYNC_INTERVAL} ticks. Clients interpolate the
- * progress between syncs, see {@link #display}.
+ * The rate changes and the completion are synced at once. The progress in between is requested, so it is synced at the
+ * {@link SyncThrottle#SYNC_INTERVAL} of the owner. Clients interpolate the progress between syncs, see {@link #display}.
  */
 public final class ProgressTracker {
-
-    /**
-     * Ticks between the syncs of a progress that advances at a constant rate.
-     */
-    public static final int SYNC_INTERVAL = 20;
 
     private static final String PROGRESS_KEY = "progress";
     private static final String RATE_KEY = "rate";
     private static final String SYNC_TICK_KEY = "sync_tick";
 
-    private final Runnable sync;
+    private final SyncThrottle sync;
     private float progress;
     /**
      * The progress per tick. Zero while the progress is paused or stalled.
@@ -34,12 +29,11 @@ public final class ProgressTracker {
      * The game time at which the progress and rate were saved, set on the client when the data is loaded.
      */
     private long syncTick;
-    private int syncCooldown;
 
     /**
-     * @param sync syncs the owning block entity to the clients.
+     * @param sync the throttle of the owning block entity, which syncs it to the clients.
      */
-    public ProgressTracker(Runnable sync) {
+    public ProgressTracker(SyncThrottle sync) {
         this.sync = sync;
     }
 
@@ -66,29 +60,29 @@ public final class ProgressTracker {
     }
 
     /**
-     * Stops the progress and its rate, for when there is nothing to progress. Syncs if either was set.
+     * Stops the progress and its rate, for when there is nothing to progress. Syncs now if either was set.
      */
     public void stop() {
         if (this.progress != 0 || this.rate != 0) {
             this.progress = 0;
             this.rate = 0;
-            this.sync.run();
+            this.sync.syncNow();
         }
     }
 
     /**
-     * Pauses the rate while the progress waits, for example because the output is full. Syncs if the rate was set.
+     * Pauses the rate while the progress waits, for example because the output is full. Syncs now if the rate was set.
      */
     public void pause() {
         if (this.rate != 0) {
             this.rate = 0;
-            this.sync.run();
+            this.sync.syncNow();
         }
     }
 
     /**
      * Advances the progress by one tick at the given rate. When the progress reaches the required amount, it restarts from
-     * zero, runs the completion and syncs. Otherwise it syncs when the rate changed or the sync interval passed.
+     * zero, runs the completion and syncs now. A change of the rate syncs now too. Otherwise the progress is requested.
      *
      * @param newRate  the progress per tick.
      * @param required the progress at which the recipe completes.
@@ -100,15 +94,16 @@ public final class ProgressTracker {
             this.progress = 0;
             this.rate = newRate;
             onComplete.run();
-            this.sync.run();
+            this.sync.syncNow();
             return;
         }
 
         boolean rateChanged = this.rate != newRate;
         this.rate = newRate;
-        if (rateChanged || ++this.syncCooldown >= SYNC_INTERVAL) {
-            this.syncCooldown = 0;
-            this.sync.run();
+        if (rateChanged) {
+            this.sync.syncNow();
+        } else {
+            this.sync.requestSync();
         }
     }
 

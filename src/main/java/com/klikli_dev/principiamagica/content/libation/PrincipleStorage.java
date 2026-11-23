@@ -11,22 +11,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Principles held by a block entity with a fixed total capacity. The change callback runs whenever principles are inserted,
- * so the owning block entity can sync itself to the clients.
+ * Principles held by a block entity with a fixed total capacity. Insertions sync the owner through its {@link SyncThrottle}:
+ * at once when they fill an empty storage, otherwise as a request.
  */
 public class PrincipleStorage {
 
     private final int capacity;
-    private final Runnable onInsert;
+    private final SyncThrottle sync;
     private PrincipleContents contents = PrincipleContents.EMPTY;
 
     /**
      * @param capacity the total amount of principles in mB.
-     * @param onInsert runs after every insertion that is not simulated.
+     * @param sync     the throttle of the owning block entity.
      */
-    public PrincipleStorage(int capacity, Runnable onInsert) {
+    public PrincipleStorage(int capacity, SyncThrottle sync) {
         this.capacity = capacity;
-        this.onInsert = onInsert;
+        this.sync = sync;
     }
 
     public PrincipleContents contents() {
@@ -59,9 +59,14 @@ public class PrincipleStorage {
     public PrincipleContents insert(PrincipleContents offered, boolean simulate) {
         int space = Math.max(0, this.capacity - this.contents.total());
         PrincipleContents accepted = takeUpTo(offered, space);
-        if (!simulate) {
+        if (!simulate && !accepted.isEmpty()) {
+            boolean wasEmpty = this.contents.isEmpty();
             this.contents = this.contents.add(accepted);
-            this.onInsert.run();
+            if (wasEmpty) {
+                this.sync.syncNow();
+            } else {
+                this.sync.requestSync();
+            }
         }
         return offered.subtract(accepted);
     }

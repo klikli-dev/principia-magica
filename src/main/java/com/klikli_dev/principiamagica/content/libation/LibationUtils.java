@@ -126,8 +126,8 @@ public final class LibationUtils {
     }
 
     /**
-     * Progress that advances at a constant rate per tick is synced only when the rate changes. Clients use this to show the
-     * progress between syncs, see {@link ProgressTracker#display}.
+     * Progress that advances at a constant rate per tick is synced when the rate changes and at the sync interval. Clients use
+     * this to show the progress between syncs, see {@link ProgressTracker#display}.
      *
      * @param progress    the progress at the time of the sync.
      * @param rate        the progress per tick since the sync.
