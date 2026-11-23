@@ -5,8 +5,8 @@
 package com.klikli_dev.principiamagica.content.libation;
 
 import com.klikli_dev.principiamagica.content.libation.spout.SpoutBlock;
-import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
+import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe.CuringEnvironment;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe.CuringRecipeInput;
@@ -14,7 +14,9 @@ import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.LibationRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.SteepingRecipe;
 import com.klikli_dev.principiamagica.content.principle.recipe.SteepingRecipe.SteepingRecipeInput;
+import com.klikli_dev.principiamagica.registry.PrincipiaMagicaCapabilities;
 import com.klikli_dev.principiamagica.registry.RecipeTypeRegistry;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -68,10 +70,10 @@ public final class LibationUtils {
     }
 
     /**
-     * @return the principle container below the spout, which receives its drain, or null.
+     * @return the principle handler below the spout, which receives its drain, or null.
      */
-    public static @Nullable PrincipleContainer drainTarget(Level level, BlockPos spout) {
-        return level.getBlockEntity(spout.below()) instanceof PrincipleContainer container ? container : null;
+    public static @Nullable ResourceHandler<PrincipleResource> drainTarget(Level level, BlockPos spout) {
+        return level.getCapability(PrincipiaMagicaCapabilities.Principle.BLOCK, spout.below(), Direction.UP);
     }
 
     public static Optional<RecipeHolder<LibationRecipe>> libation(Level level, ItemStack stack) {

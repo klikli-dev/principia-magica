@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.libation.slab;
 
 import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
+import com.klikli_dev.principiamagica.content.libation.ExtractOnlyResourceHandler;
 import com.klikli_dev.principiamagica.content.libation.LibationFlow;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
@@ -13,8 +14,11 @@ import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
+import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
+import com.klikli_dev.principiamagica.content.principle.PrincipleTransferUtil;
 import com.klikli_dev.principiamagica.content.principle.recipe.LibationRecipe;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
+import com.klikli_dev.principiamagica.registry.PrincipiaMagicaCapabilities;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
@@ -63,6 +67,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     private final ProgressTracker dissolve = new ProgressTracker(this.sync);
     private int dissolveColor = PrincipleContents.DEFAULT_COLOR;
     private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY, this.sync);
+    private final ResourceHandler<PrincipleResource> principleOutput = new ExtractOnlyResourceHandler<>(this.stored);
     private final PrincipleDrain drain = new PrincipleDrain(this.stored, this.sync);
     /**
      * Client-only: the water level shown, eased towards the synced water, see {@link #getDisplayedWater}.
@@ -154,6 +159,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, BlockEntityTypeRegistry.LIBATION_SLAB.get(), (slab, side) -> slab.waterInput);
         event.registerBlockEntity(Capabilities.Item.BLOCK, BlockEntityTypeRegistry.LIBATION_SLAB.get(), (slab, side) -> slab.itemInput);
+        event.registerBlockEntity(PrincipiaMagicaCapabilities.Principle.BLOCK, BlockEntityTypeRegistry.LIBATION_SLAB.get(), (slab, side) -> slab.principleOutput);
     }
 
     @Override
@@ -277,9 +283,9 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         try (Transaction transaction = Transaction.open(null)) {
             this.items.extract(0, ItemResource.of(stack), 1, transaction);
             this.water.extract(0, FluidResource.of(Fluids.WATER), waterCost(principles), transaction);
+            PrincipleTransferUtil.insertContents(this.stored, principles, transaction);
             transaction.commit();
         }
-        this.stored.insert(principles, false);
         this.dissolveColor = principles.blendedColor();
         this.dissolveSlot = NO_SLOT;
 
@@ -297,7 +303,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
      * @return true if the water covers the principles and the internal storage has room for all of them.
      */
     private boolean canDissolve(PrincipleContents principles) {
-        return waterCost(principles) <= this.getWater() && this.stored.insert(principles, true).isEmpty();
+        return waterCost(principles) <= this.getWater() && PrincipleTransferUtil.canInsertAll(this.stored, principles);
     }
 
     @Override

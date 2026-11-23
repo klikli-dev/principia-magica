@@ -12,9 +12,16 @@ import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
+import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
+import com.klikli_dev.principiamagica.content.principle.PrincipleTransferUtil;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
+import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.klikli_dev.principiamagica.registry.PrincipiaMagicaCapabilities;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentGetter;
@@ -70,6 +77,16 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
 
     public PrincipleContents getPrinciples() {
         return this.principles.contents();
+    }
+
+    @Override
+    public ResourceHandler<PrincipleResource> principleHandler() {
+        return this.principles;
+    }
+
+    public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(PrincipiaMagicaCapabilities.Principle.BLOCK, BlockEntityTypeRegistry.WABET_BASIN.get(), (vessel, side) -> vessel.principles);
+        event.registerBlockEntity(PrincipiaMagicaCapabilities.Principle.BLOCK, BlockEntityTypeRegistry.STEEPING_JAR.get(), (vessel, side) -> vessel.principles);
     }
 
     /**
@@ -140,7 +157,11 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
         this.progress++;
 
         if (this.progress >= this.vessel.requiredTime(recipe.time(), light)) {
-            this.principles.set(this.principles.contents().subtract(recipe.inputs()).add(PrincipleContents.of(recipe.result())));
+            try (Transaction tx = Transaction.open(null)) {
+                PrincipleTransferUtil.extractAll(this.principles, recipe.inputs(), tx);
+                PrincipleTransferUtil.insertContents(this.principles, PrincipleContents.of(recipe.result()), tx);
+                tx.commit();
+            }
             this.progress = 0;
             this.activeRecipe = null;
             this.level.playSound(null, pos, SoundRegistry.VESSEL_CURE.get(), SoundSource.BLOCKS, 0.4F, 1.0F);

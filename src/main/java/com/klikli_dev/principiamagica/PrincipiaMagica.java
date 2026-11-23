@@ -9,6 +9,8 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.trough.CatchTroughBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.gametest.GameTestRegistry;
 import com.klikli_dev.principiamagica.registry.ActivityRegistry;
@@ -87,6 +89,8 @@ public class PrincipiaMagica {
         modEventBus.addListener(GameTestRegistry::onRegisterGameTests);
         modEventBus.addListener(LibationSlabBlockEntity::onRegisterCapabilities);
         modEventBus.addListener(DryingSlabBlockEntity::onRegisterCapabilities);
+        modEventBus.addListener(CuringVesselBlockEntity::onRegisterCapabilities);
+        modEventBus.addListener(CatchTroughBlockEntity::onRegisterCapabilities);
         modEventBus.addListener(PrincipiaMagicaDataGenerators::onGatherData);
     }
 

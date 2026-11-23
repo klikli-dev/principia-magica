@@ -4,13 +4,15 @@
 
 package com.klikli_dev.principiamagica.content.libation;
 
-import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
+import com.klikli_dev.principiamagica.content.principle.PrincipleResource;
+import com.klikli_dev.principiamagica.content.principle.PrincipleTransferUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 
 /**
  * Drains the principles of a storage through an open spout into the drain target below the spout, at the rate of
@@ -70,18 +72,16 @@ public final class PrincipleDrain {
         }
         this.cooldown = 0;
 
-        PrincipleContainer target = LibationUtils.drainTarget(level, spout);
+        ResourceHandler<PrincipleResource> target = LibationUtils.drainTarget(level, spout);
         if (target == null) {
             this.stop();
             return;
         }
-        PrincipleContents portion = PrincipleStorage.takeUpTo(this.storage.contents(), LibationFlow.DRAIN_AMOUNT);
-        PrincipleContents accepted = portion.subtract(target.insert(portion, false));
+        PrincipleContents accepted = PrincipleTransferUtil.extractUpTo(this.storage, target, LibationFlow.DRAIN_AMOUNT, null);
         if (accepted.isEmpty()) {
             this.stop();
             return;
         }
-        this.storage.set(this.storage.contents().subtract(accepted));
         this.color = accepted.blendedColor();
         boolean starting = !this.draining;
         this.draining = !this.storage.isEmpty();
