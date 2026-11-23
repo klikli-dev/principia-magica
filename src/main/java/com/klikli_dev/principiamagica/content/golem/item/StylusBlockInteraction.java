@@ -135,8 +135,9 @@ final class StylusBlockInteraction {
         switch (result.failure()) {
             case CORNER_OCCUPIED -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_occupied"));
             case OUT_OF_BOUNDS -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.out_of_bounds"));
-            case TOO_LARGE, NOT_FOUND, null -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_too_large",
+            case TOO_LARGE, NOT_FOUND -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_too_large",
                     WorkFootprint.MAX_SIZE, WorkFootprint.MAX_SIZE));
+            case null -> {}
         }
     }
 

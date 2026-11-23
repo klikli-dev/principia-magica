@@ -42,7 +42,7 @@ public class KudurruEntry extends PrincipiaEntryProvider {
                 .withText(this.context().pageText()));
         this.pageTitle("Carving the Boundary");
         this.pageText("""
-                Right-click a block face with the stylus to carve the first corner. Right-click a second face to carve the opposite corner. Together the two glyphs mark a rectangle, no wider and no deeper than 64 blocks, and every corner can be lifted later on its own.
+                Right-click a block face with the stylus to carve the first corner. Right-click a second face to carve the opposite corner. Together the two glyphs mark a rectangle, no wider, deeper, or taller than 64 blocks. You can carve multiple overlapping boundaries, as long as no two corners occupy the same block.
                 """
         );
 
@@ -51,7 +51,7 @@ public class KudurruEntry extends PrincipiaEntryProvider {
                 .withText(this.context().pageText()));
         this.pageTitle("Lifting a Corner");
         this.pageText("""
-                Hold shift and scroll over a corner glyph with the stylus to lift that corner. It rises on its own plumb line, from the block it was carved into. A corner can be lifted up to sixteen blocks, or sunk down to eight blocks below its block. When the corners sit at different heights, the boundary is a box, and the golem works the whole box, reaching as far as its axiom allows.
+                Hold shift and scroll over a corner glyph with the stylus to lift or lower that corner along its plumb line, up to the 64-block boundary height limit. When the corners sit at different heights, the boundary is a box, and the golem works the whole box, reaching as far as its axiom allows.
                 """
         );
 
@@ -60,16 +60,7 @@ public class KudurruEntry extends PrincipiaEntryProvider {
                 .withText(this.context().pageText()));
         this.pageTitle("Moving a Boundary");
         this.pageText("""
-                Hold shift and scroll over the body of a boundary to move all of it up or down at once. Its corners keep their blocks and move with it. A flat boundary stays flat, and the golem decides how far it reaches from its level.
-                """
-        );
-
-        this.page("resize", () -> BookTextPageModel.create()
-                .withTitle(this.context().pageTitle())
-                .withText(this.context().pageText()));
-        this.pageTitle("Moving a Corner");
-        this.pageText("""
-                Right-click a glyph with the stylus to pick it up. The corner follows your crosshair. Right-click a block to carve it there again, and the boundary takes the new corner, keeping its lift. Right-click air to cancel, and the boundary goes back where it was.
+                Aim at a boundary box and hold shift while scrolling to move all of it up or down at once. Its corners keep their blocks and move with it, as long as they do not collide with another corner. A flat boundary stays flat, and the golem decides how far it reaches from its level.
                 """
         );
 
@@ -78,7 +69,7 @@ public class KudurruEntry extends PrincipiaEntryProvider {
                 .withText(this.context().pageText()));
         this.pageTitle("Erasing a Boundary");
         this.pageText("""
-                Shift-right-click a carved glyph with the stylus to erase its boundary, and the field it belonged to is gone. You can do this from a distance: aim at a glyph and it glows, then shift-right-click it to erase. Shift-right-click inside a boundary also erases it. Breaking the block a glyph is carved into does not erase it. The glyph stays on the face where the block was, and the boundary holds until the stylus removes it.
+                Shift-right-click a carved glyph or anywhere on a boundary box with the stylus to erase it, and the field it belonged to is gone. You can do this from a distance: aim at a glyph or box and it highlights, then shift-right-click to erase. Breaking the block a glyph is carved into does not erase it.
                 """
         );
 

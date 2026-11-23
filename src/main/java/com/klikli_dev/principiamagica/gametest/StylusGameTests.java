@@ -6,14 +6,18 @@ package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
+import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
+import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditResult;
+import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.GlyphHit;
-import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
+import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.ZoneHit;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,16 +29,23 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.TriState;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class StylusGameTests {
 
@@ -260,7 +271,8 @@ public class StylusGameTests {
     }
 
     /**
-     * Erasing by glyph matches both the block and the face, and only removes the footprint that carries the glyph.
+     * Erasing by corner matches the 3D corner position, including when one corner was lifted away from its base block
+     * and another footprint carved a new corner on that vacated base block.
      */
     public static void removeFootprintWithGlyphMatchesBlockAndFace(GameTestHelper helper) {
         CarvedGlyph first = new CarvedGlyph(new BlockPos(0, 1, 0), Direction.UP);
@@ -271,18 +283,22 @@ public class StylusGameTests {
         WorkFootprint secondFootprint = WorkFootprint.of(otherFirst, otherSecond);
         Workplace workplace = Workplace.EMPTY.withFootprints(List.of(firstFootprint, secondFootprint));
 
-        helper.assertTrue(StylusActions.removeFootprintWithGlyph(workplace, new CarvedGlyph(first.pos(), Direction.NORTH)).isEmpty(),
-                "A glyph on the same block but another face should not erase the footprint");
-        helper.assertTrue(StylusActions.removeFootprintWithGlyph(workplace, new CarvedGlyph(new BlockPos(2, 1, 2), Direction.UP)).isEmpty(),
-                "A position without a glyph should not erase anything");
+        helper.assertTrue(StylusActions.removeFootprintByCorner(workplace, new BlockPos(2, 1, 2)).isEmpty(),
+                "A position without a corner should not erase anything");
 
-        Workplace afterSecond = StylusActions.removeFootprintWithGlyph(workplace, otherSecond).orElseThrow();
+        Workplace afterSecond = StylusActions.removeFootprintByCorner(workplace, otherSecond.corner()).orElseThrow();
         helper.assertTrue(afterSecond.footprints().equals(List.of(firstFootprint)),
-                "Erasing a glyph should remove only its footprint, got " + afterSecond.footprints());
+                "Erasing a corner should remove only its footprint, got " + afterSecond.footprints());
 
-        Workplace afterFirst = StylusActions.removeFootprintWithGlyph(workplace, first).orElseThrow();
-        helper.assertTrue(afterFirst.footprints().equals(List.of(secondFootprint)), "The other footprint should stay");
-        helper.assertTrue(afterFirst.initialized(), "Erasing a glyph should mark the workplace initialized");
+        Workplace lifted = StylusActions.liftCorner(workplace, first.corner(), 2).toOptional().orElseThrow();
+        Workplace withVacatedBase = StylusActions.carve(lifted,
+                new CarvedGlyph(first.pos(), Direction.NORTH),
+                new CarvedGlyph(new BlockPos(1, 1, 1), Direction.UP)).orElseThrow();
+        Workplace afterLiftedRemoved = StylusActions.removeFootprintByCorner(withVacatedBase, first.pos().above(2)).orElseThrow();
+        helper.assertTrue(afterLiftedRemoved.footprints().size() == 2
+                        && afterLiftedRemoved.hasCornerAt(first.pos())
+                        && !afterLiftedRemoved.hasCornerAt(first.pos().above(2)),
+                "Erasing by 3D corner should remove only the footprint owning that 3D corner");
 
         helper.assertTrue(GlyphTargeting.isInReach(new Vec3(0.5, 60.0, 0.5), new BlockPos(0, 60, 40)),
                 "A glyph 40 blocks away should be in reach");
@@ -315,117 +331,176 @@ public class StylusGameTests {
     }
 
     /**
-     * A lifted corner moves only its Y: it stays on the plumb line of its carved block. The lift is clamped to the lift range.
+     * A lifted corner moves only its Y: it stays on the plumb line of its carved block.
+     * Corners can be lifted beyond 16 blocks up to MAX_SIZE, and cannot exceed MAX_SIZE or world height limits.
      */
     public static void cornerLiftKeepsPlumbLineAndClamps(GameTestHelper helper) {
-        BlockPos first = helper.absolutePos(new BlockPos(2, 1, 2));
-        BlockPos second = helper.absolutePos(new BlockPos(6, 1, 5));
+        BlockPos first = new BlockPos(2, 0, 2);
+        BlockPos second = new BlockPos(6, 0, 5);
         Workplace workplace = StylusActions.carve(Workplace.EMPTY,
                 new CarvedGlyph(first, Direction.UP), new CarvedGlyph(second, Direction.NORTH)).orElseThrow();
 
-        Workplace lifted = StylusActions.liftCorner(workplace, second, Direction.NORTH, 4).orElseThrow();
+        Workplace lifted = StylusActions.liftCorner(workplace, second, 20).toOptional().orElseThrow();
         WorkFootprint footprint = lifted.footprints().getFirst();
-        CarvedGlyph corner = footprint.findGlyph(second, Direction.NORTH).orElseThrow();
-        helper.assertTrue(corner.lift() == 4 && corner.corner().equals(second.above(4)),
-                "Lifting should raise the corner by the lift, got " + corner);
+        CarvedGlyph corner = footprint.findGlyphByCorner(second.above(20)).orElseThrow();
+        helper.assertTrue(corner.lift() == 20 && corner.corner().equals(second.above(20)),
+                "Lifting should raise the corner by 20, got " + corner);
         helper.assertTrue(corner.corner().getX() == second.getX() && corner.corner().getZ() == second.getZ(),
                 "A lifted corner should stay on its carved block's column");
-        helper.assertTrue(footprint.minX() == first.getX() && footprint.maxX() == second.getX() && footprint.minZ() == first.getZ() && footprint.maxZ() == second.getZ(),
-                "Lifting should not change the rectangle");
-        helper.assertTrue(footprint.minY() == first.getY() && footprint.maxY() == second.getY() + 4,
+        helper.assertTrue(footprint.minY() == 0 && footprint.maxY() == 20,
                 "The box should span both corners, got " + footprint.minY() + " to " + footprint.maxY());
         helper.assertTrue(!footprint.isFlat(), "A lifted corner should make a volume");
 
-        helper.assertTrue(StylusActions.liftCorner(workplace, second, Direction.NORTH, 100).orElseThrow()
-                        .footprints().getFirst().findGlyph(second, Direction.NORTH).orElseThrow().lift() == WorkFootprint.MAX_LIFT,
-                "Lifting should be clamped to the maximum");
-        helper.assertTrue(StylusActions.liftCorner(workplace, second, Direction.NORTH, -100).orElseThrow()
-                        .footprints().getFirst().findGlyph(second, Direction.NORTH).orElseThrow().lift() == WorkFootprint.MIN_LIFT,
-                "Lowering should be clamped to the minimum");
+        EditResult tooTall = StylusActions.liftCorner(workplace, second, WorkFootprint.MAX_SIZE);
+        helper.assertTrue(!tooTall.isSuccess() && tooTall.failure() == EditFailure.TOO_LARGE,
+                "Lifting past MAX_SIZE height should fail with TOO_LARGE");
 
-        helper.assertTrue(StylusActions.liftCorner(workplace, second, Direction.UP, 1).isEmpty(), "A corner should only be found on its own face");
-        helper.assertTrue(StylusActions.liftCorner(workplace, helper.absolutePos(new BlockPos(9, 1, 9)), Direction.UP, 1).isEmpty(),
-                "A position without a corner should be rejected");
+        EditResult outOfBounds = StylusActions.liftCorner(workplace, second, WorkFootprint.MIN_Y - 1);
+        helper.assertTrue(!outOfBounds.isSuccess() && outOfBounds.failure() == EditFailure.OUT_OF_BOUNDS,
+                "Lowering past MIN_Y should fail with OUT_OF_BOUNDS");
+
+        EditResult missing = StylusActions.liftCorner(workplace, new BlockPos(9, 1, 9), 1);
+        helper.assertTrue(!missing.isSuccess() && missing.failure() == EditFailure.NOT_FOUND,
+                "A position without a corner should fail with NOT_FOUND");
 
         helper.succeed();
     }
 
     /**
-     * Moving a flat footprint keeps it flat and moves all its corners. A volume cannot move past its most extreme corner.
+     * Moving a flat or volume footprint moves all its corners and clamps to world build limits [MIN_Y, MAX_Y].
      */
     public static void wholeMoveClampsCorners(GameTestHelper helper) {
-        BlockPos first = helper.absolutePos(new BlockPos(2, 1, 2));
-        BlockPos second = helper.absolutePos(new BlockPos(6, 1, 5));
+        BlockPos first = new BlockPos(2, 10, 2);
+        BlockPos second = new BlockPos(6, 10, 5);
         WorkFootprint flat = WorkFootprint.of(new CarvedGlyph(first, Direction.UP), new CarvedGlyph(second, Direction.NORTH));
 
-        WorkFootprint moved = flat.moved(3);
-        helper.assertTrue(moved.isFlat() && moved.minY() == first.getY() + 3, "Moving a flat footprint should keep it flat, got " + moved.minY());
-        helper.assertTrue(moved.glyphs().stream().allMatch(glyph -> glyph.lift() == 3), "Moving should lift every corner by the move");
+        WorkFootprint moved = flat.moved(25);
+        helper.assertTrue(moved.isFlat() && moved.minY() == 35, "Moving a flat footprint should keep it flat, got " + moved.minY());
+        helper.assertTrue(moved.glyphs().stream().allMatch(glyph -> glyph.lift() == 25), "Moving should lift every corner by 25");
 
-        helper.assertTrue(flat.moved(100).minY() == first.getY() + WorkFootprint.MAX_LIFT, "Moving up should be clamped to the lift range");
-        helper.assertTrue(flat.moved(-100).minY() == first.getY() + WorkFootprint.MIN_LIFT, "Moving down should be clamped to the lift range");
+        helper.assertTrue(flat.moved(1000).minY() == WorkFootprint.MAX_Y, "Moving up should clamp to MAX_Y");
+        helper.assertTrue(flat.moved(-1000).minY() == WorkFootprint.MIN_Y, "Moving down should clamp to MIN_Y");
 
-        WorkFootprint volume = flat.liftGlyph(new CarvedGlyph(second, Direction.NORTH), WorkFootprint.MAX_LIFT);
-        helper.assertTrue(volume.moved(5).equals(volume), "A volume with a corner at the top of the lift range should not move further up");
-        helper.assertTrue(volume.moved(-5).minY() == first.getY() - 5 && volume.moved(-5).maxY() == second.getY() + WorkFootprint.MAX_LIFT - 5,
-                "A volume should move down as a whole, got " + volume.moved(-5).minY() + " to " + volume.moved(-5).maxY());
-
-        helper.succeed();
-    }
-
-    /**
-     * Picking up a corner removes its footprint and keeps the other corner and the lift. Re-carving with them keeps the lift.
-     */
-    public static void pickUpAndRecarveKeepsLift(GameTestHelper helper) {
-        BlockPos first = helper.absolutePos(new BlockPos(2, 1, 2));
-        BlockPos second = helper.absolutePos(new BlockPos(6, 1, 5));
-        Workplace workplace = StylusActions.carve(Workplace.EMPTY,
-                new CarvedGlyph(first, Direction.UP), new CarvedGlyph(second, Direction.NORTH)).orElseThrow();
-        workplace = StylusActions.liftCorner(workplace, second, Direction.NORTH, 3).orElseThrow();
-
-        StylusActions.PickUp pickUp = StylusActions.pickUpGlyph(workplace, second, Direction.NORTH).orElseThrow();
-        helper.assertTrue(pickUp.workplace().footprints().isEmpty(), "Picking up a corner should remove its footprint");
-        helper.assertTrue(pickUp.remaining().isSameGlyph(new CarvedGlyph(first, Direction.UP)), "The other corner should stay as the first corner");
-        helper.assertTrue(pickUp.picked().lift() == 3, "The picked corner's lift should be returned, got " + pickUp.picked().lift());
-        helper.assertTrue(StylusActions.pickUpGlyph(pickUp.workplace(), second, Direction.NORTH).isEmpty(), "A removed corner should not be picked up again");
-
-        BlockPos target = helper.absolutePos(new BlockPos(8, 1, 8));
-        Workplace recarved = StylusActions.carve(pickUp.workplace(), pickUp.remaining(), new CarvedGlyph(target, Direction.UP, pickUp.picked().lift())).orElseThrow();
-        WorkFootprint footprint = recarved.footprints().getFirst();
-        helper.assertTrue(footprint.maxX() == target.getX() && footprint.maxZ() == target.getZ(), "Re-carving should move the corner to the new block");
-        helper.assertTrue(footprint.maxY() == target.getY() + 3 && footprint.minY() == first.getY(),
-                "Re-carving should keep the picked corner's lift, got " + footprint.minY() + " to " + footprint.maxY());
+        WorkFootprint volume = flat.liftGlyph(new CarvedGlyph(second, Direction.NORTH), 10);
+        WorkFootprint topClamped = volume.moved(1000);
+        helper.assertTrue(topClamped.maxY() == WorkFootprint.MAX_Y && topClamped.minY() == WorkFootprint.MAX_Y - 10,
+                "A volume moved to MAX_Y should preserve its height, got " + topClamped.minY() + " to " + topClamped.maxY());
 
         helper.succeed();
     }
 
-    /**
-     * Cancelling a pick-up puts the footprint back. The pending corner keeps it through the component codec, so a
-     * reloaded stylus restores it too.
-     */
-    public static void pickUpCancelRestoresFootprint(GameTestHelper helper) {
-        BlockPos first = helper.absolutePos(new BlockPos(2, 1, 2));
-        BlockPos second = helper.absolutePos(new BlockPos(6, 1, 5));
-        Workplace workplace = StylusActions.carve(Workplace.EMPTY,
-                new CarvedGlyph(first, Direction.UP), new CarvedGlyph(second, Direction.NORTH)).orElseThrow();
-        workplace = StylusActions.liftCorner(workplace, second, Direction.NORTH, 3).orElseThrow();
-        WorkFootprint original = workplace.footprints().getFirst();
+    public static void cornerCollisionBlockedOnPlacement(GameTestHelper helper) {
+        BlockPos a = new BlockPos(0, 1, 0);
+        BlockPos b = new BlockPos(4, 1, 4);
+        BlockPos c = new BlockPos(1, 1, 1);
+        BlockPos d = new BlockPos(5, 1, 5);
 
-        StylusActions.PickUp pickUp = StylusActions.pickUpGlyph(workplace, second, Direction.NORTH).orElseThrow();
-        helper.assertTrue(pickUp.workplace().footprints().isEmpty(), "Picking up a corner should remove its footprint");
+        EditResult sameCorner = StylusActions.carveResult(Workplace.EMPTY,
+                new CarvedGlyph(a, Direction.UP), new CarvedGlyph(a, Direction.NORTH));
+        helper.assertTrue(!sameCorner.isSuccess() && sameCorner.failure() == EditFailure.CORNER_OCCUPIED,
+                "Carving both corners on the same block should be rejected");
 
-        PendingGlyph pending = StylusActions.pendingOf(helper.getLevel().dimension(), pickUp);
-        Workplace restored = StylusActions.restorePickUp(pickUp.workplace(), pending);
-        helper.assertTrue(restored.footprints().equals(List.of(original)),
-                "Cancelling the pick-up should restore the original footprint, got " + restored.footprints());
+        Workplace first = StylusActions.carve(Workplace.EMPTY,
+                new CarvedGlyph(a, Direction.UP), new CarvedGlyph(b, Direction.UP)).orElseThrow();
 
-        Tag saved = PendingGlyph.CODEC.encodeStart(NbtOps.INSTANCE, pending).getOrThrow();
-        PendingGlyph loaded = PendingGlyph.CODEC.parse(NbtOps.INSTANCE, saved).getOrThrow();
-        helper.assertTrue(StylusActions.restorePickUp(pickUp.workplace(), loaded).footprints().equals(List.of(original)),
-                "The restore should survive the pending component's codec");
+        Workplace overlapping = StylusActions.carve(first,
+                new CarvedGlyph(c, Direction.UP), new CarvedGlyph(d, Direction.UP)).orElseThrow();
+        helper.assertTrue(overlapping.footprints().size() == 2,
+                "Overlapping footprints with distinct corners should be allowed");
 
-        helper.assertTrue(StylusActions.restorePickUp(restored, PendingGlyph.of(pending.pos(), pending.face())).equals(restored),
-                "A fresh pending corner should restore nothing");
+        EditResult collidingFirst = StylusActions.carveResult(first,
+                new CarvedGlyph(a, Direction.NORTH), new CarvedGlyph(c, Direction.UP));
+        helper.assertTrue(!collidingFirst.isSuccess() && collidingFirst.failure() == EditFailure.CORNER_OCCUPIED,
+                "Carving a corner onto an occupied 3D block should be rejected");
+
+        EditResult collidingSecond = StylusActions.carveResult(first,
+                new CarvedGlyph(c, Direction.UP), new CarvedGlyph(b, Direction.SOUTH));
+        helper.assertTrue(!collidingSecond.isSuccess() && collidingSecond.failure() == EditFailure.CORNER_OCCUPIED,
+                "Carving the second corner onto an occupied 3D block should be rejected");
+
+        helper.succeed();
+    }
+
+    public static void cornerCollisionBlockedOnLiftAndShift(GameTestHelper helper) {
+        BlockPos base = new BlockPos(0, 10, 0);
+        Workplace pillar = StylusActions.carve(Workplace.EMPTY,
+                new CarvedGlyph(base, Direction.UP, 0), new CarvedGlyph(base, Direction.UP, 1)).orElseThrow();
+
+        EditResult selfCollision = StylusActions.liftCorner(pillar, base, 1);
+        helper.assertTrue(!selfCollision.isSuccess() && selfCollision.failure() == EditFailure.CORNER_OCCUPIED,
+                "Lifting a corner into the other corner of the same footprint should be rejected");
+
+        BlockPos a1 = new BlockPos(2, 10, 2);
+        BlockPos a2 = new BlockPos(4, 10, 4);
+        BlockPos b1 = new BlockPos(2, 12, 2);
+        BlockPos b2 = new BlockPos(5, 12, 5);
+        Workplace twoZones = StylusActions.carve(Workplace.EMPTY,
+                new CarvedGlyph(a1, Direction.UP), new CarvedGlyph(a2, Direction.UP)).orElseThrow();
+        twoZones = StylusActions.carve(twoZones,
+                new CarvedGlyph(b1, Direction.UP), new CarvedGlyph(b2, Direction.UP)).orElseThrow();
+
+        EditResult liftCollision = StylusActions.liftCorner(twoZones, a1, 2);
+        helper.assertTrue(!liftCollision.isSuccess() && liftCollision.failure() == EditFailure.CORNER_OCCUPIED,
+                "Lifting a corner into another footprint's corner should be rejected");
+
+        EditResult shiftCollision = StylusActions.shiftFootprint(twoZones, 0, 2);
+        helper.assertTrue(!shiftCollision.isSuccess() && shiftCollision.failure() == EditFailure.CORNER_OCCUPIED,
+                "Shifting a footprint so a corner collides with another footprint's corner should be rejected");
+
+        helper.succeed();
+    }
+
+    public static void zoneBoxTargetingPicksNearestAndFloatingBoxes(GameTestHelper helper) {
+        WorkFootprint near = WorkFootprint.of(
+                new CarvedGlyph(new BlockPos(2, 10, 2), Direction.UP),
+                new CarvedGlyph(new BlockPos(4, 12, 4), Direction.UP));
+        WorkFootprint far = WorkFootprint.of(
+                new CarvedGlyph(new BlockPos(10, 10, 2), Direction.UP),
+                new CarvedGlyph(new BlockPos(12, 12, 4), Direction.UP));
+        WorkFootprint outer = WorkFootprint.of(
+                new CarvedGlyph(new BlockPos(0, 8, 0), Direction.UP),
+                new CarvedGlyph(new BlockPos(14, 14, 6), Direction.UP));
+
+        Vec3 from = new Vec3(-5.0, 11.5, 3.5);
+        Vec3 to = new Vec3(20.0, 11.5, 3.5);
+
+        Optional<ZoneHit> hit = GlyphTargeting.pickZone(from, to, List.of(far, near), 100.0);
+        helper.assertTrue(hit.isPresent() && hit.get().index() == 1 && !hit.get().inside(),
+                "Ray should hit the nearer floating box first");
+
+        Optional<ZoneHit> blocked = GlyphTargeting.pickZone(from, to, List.of(far, near), 3.0);
+        helper.assertTrue(blocked.isEmpty(), "A solid block nearer than the box should win");
+
+        Vec3 insideEye = new Vec3(3.5, 11.5, 3.5);
+        Optional<ZoneHit> insideHit = GlyphTargeting.pickZone(insideEye, insideEye.add(10.0, 0.0, 0.0), List.of(outer, near), 100.0);
+        helper.assertTrue(insideHit.isPresent() && insideHit.get().index() == 1 && insideHit.get().inside(),
+                "When eyes are inside nested boxes, the smallest containing box should win");
+
+        helper.assertTrue(GlyphTargeting.isBoxInReach(from, near.zone(0, 0).aabb()),
+                "A box 7 blocks away should be in reach");
+        helper.assertTrue(!GlyphTargeting.isBoxInReach(new Vec3(-100.0, 11.5, 3.5), near.zone(0, 0).aabb()),
+                "A box 100 blocks away should be out of reach");
+
+        helper.succeed();
+    }
+
+    public static void rightClickBlockSuppressesBlockUseWhenGolemSelected(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+        BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
+
+        PlayerInteractEvent.RightClickBlock unselected = new PlayerInteractEvent.RightClickBlock(player, InteractionHand.MAIN_HAND, pos, hit);
+        StylusItem.onRightClickBlock(unselected);
+        helper.assertTrue(unselected.getUseBlock() == TriState.DEFAULT,
+                "Without a selected golem, block interaction should not be suppressed");
+
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), UUID.randomUUID());
+        PlayerInteractEvent.RightClickBlock selected = new PlayerInteractEvent.RightClickBlock(player, InteractionHand.MAIN_HAND, pos, hit);
+        StylusItem.onRightClickBlock(selected);
+        helper.assertTrue(selected.getUseBlock() == TriState.FALSE,
+                "With a selected golem, block interaction should be suppressed so containers link on right-click");
 
         helper.succeed();
     }

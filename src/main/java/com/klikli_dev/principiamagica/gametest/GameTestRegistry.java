@@ -137,14 +137,20 @@ CORNER_LIFT_KEEPS_PLUMB_LINE_AND_CLAMPS =
 WHOLE_MOVE_CLAMPS_CORNERS =
             TEST_FUNCTIONS.register("whole_move_clamps_corners", () -> StylusGameTests::wholeMoveClampsCorners);
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> 
-PICK_UP_AND_RECARVE_KEEPS_LIFT =
-            TEST_FUNCTIONS.register("pick_up_and_recarve_keeps_lift", () -> StylusGameTests::pickUpAndRecarveKeepsLift);
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> 
 LEGACY_FOOTPRINT_LOADS_FLAT =
             TEST_FUNCTIONS.register("legacy_footprint_loads_flat", () -> StylusGameTests::legacyFootprintLoadsFlat);
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> 
-PICK_UP_CANCEL_RESTORES_FOOTPRINT =
-            TEST_FUNCTIONS.register("pick_up_cancel_restores_footprint", () -> StylusGameTests::pickUpCancelRestoresFootprint);
+CORNER_COLLISION_BLOCKED_ON_PLACEMENT =
+            TEST_FUNCTIONS.register("corner_collision_blocked_on_placement", () -> StylusGameTests::cornerCollisionBlockedOnPlacement);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> 
+CORNER_COLLISION_BLOCKED_ON_LIFT_AND_SHIFT =
+            TEST_FUNCTIONS.register("corner_collision_blocked_on_lift_and_shift", () -> StylusGameTests::cornerCollisionBlockedOnLiftAndShift);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> 
+ZONE_BOX_TARGETING_PICKS_NEAREST_AND_FLOATING_BOXES =
+            TEST_FUNCTIONS.register("zone_box_targeting_picks_nearest_and_floating_boxes", () -> StylusGameTests::zoneBoxTargetingPicksNearestAndFloatingBoxes);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> 
+RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
+            TEST_FUNCTIONS.register("right_click_block_suppresses_block_use_when_golem_selected", () -> StylusGameTests::rightClickBlockSuppressesBlockUseWhenGolemSelected);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES =
             TEST_FUNCTIONS.register("copper_stylus_returned_by_crafting_recipes", () -> StylusGameTests::copperStylusReturnedByCraftingRecipes);
@@ -499,9 +505,11 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT, environment, structure, 40, 0);
         registerTest(event, CORNER_LIFT_KEEPS_PLUMB_LINE_AND_CLAMPS, environment, structure, 40, 0);
         registerTest(event, WHOLE_MOVE_CLAMPS_CORNERS, environment, structure, 40, 0);
-        registerTest(event, PICK_UP_AND_RECARVE_KEEPS_LIFT, environment, structure, 40, 0);
         registerTest(event, LEGACY_FOOTPRINT_LOADS_FLAT, environment, structure, 40, 0);
-        registerTest(event, PICK_UP_CANCEL_RESTORES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, CORNER_COLLISION_BLOCKED_ON_PLACEMENT, environment, structure, 40, 0);
+        registerTest(event, CORNER_COLLISION_BLOCKED_ON_LIFT_AND_SHIFT, environment, structure, 40, 0);
+        registerTest(event, ZONE_BOX_TARGETING_PICKS_NEAREST_AND_FLOATING_BOXES, environment, structure, 40, 0);
+        registerTest(event, RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED, environment, structure, 40, 0);
         registerTest(event, COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES, environment, structure, 40, 0);
     }
 

@@ -77,7 +77,8 @@ public record MessageShiftZone(int entityId, int index, int delta) implements Me
         switch (result.failure()) {
             case CORNER_OCCUPIED -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_occupied"));
             case OUT_OF_BOUNDS -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.out_of_bounds"));
-            case TOO_LARGE, NOT_FOUND, null -> {}
+            case TOO_LARGE, NOT_FOUND -> {}
+            case null -> {}
         }
     }
 

@@ -68,7 +68,8 @@ public record MessageLiftCorner(int entityId, BlockPos cornerPos, int delta) imp
                 case TOO_LARGE -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_too_large",
                         WorkFootprint.MAX_SIZE, WorkFootprint.MAX_SIZE));
                 case OUT_OF_BOUNDS -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.out_of_bounds"));
-                case NOT_FOUND, null -> {}
+                case NOT_FOUND -> {}
+                case null -> {}
             }
         });
     }
