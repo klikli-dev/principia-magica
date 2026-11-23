@@ -20,7 +20,6 @@ import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
@@ -28,17 +27,21 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
  * The job tab: the axiom and the job's name, the job's options as switches in a scrollable list, and a summary of the workplace.
  * The tab is only enabled while the golem has an axiom.
+ * <p>
+ * Each part of the summary has its own hover area. Its tooltip names what the icon means, lists the linked containers, and ends with the
+ * hint to edit them with the Stylus.
  */
 final class JobTab extends GolemTab {
 
@@ -52,6 +55,9 @@ final class JobTab extends GolemTab {
 
     private final StyleContext style = WidgetParts.defaultStyle();
     private ScrollList<JobOption> optionList;
+    private TooltipArea zoneHint;
+    private TooltipArea depositHint;
+    private TooltipArea supplyHint;
 
     JobTab(Supplier<GolemView> viewSupplier) {
         super(viewSupplier);
@@ -85,15 +91,20 @@ final class JobTab extends GolemTab {
         this.add(new SpriteWidget(bounds.x() + 8, bounds.y() + 95, 188, 3, this.sprite("divider")));
 
         this.add(new SpriteWidget(bounds.x() + 8, bounds.y() + 99, 188, 22, this.sprite("inset")));
+
         this.add(new SpriteWidget(bounds.x() + 12, bounds.y() + 102, 16, 16, this.sprite("icon_zone")));
-        this.add(new LabelWidget(bounds.x() + 31, bounds.y() + 105, 48, this::zoneText).withStyle(this.style).withMaxLines(1));
+        this.add(new LabelWidget(bounds.x() + 31, bounds.y() + 105, 40, this::zoneText).withStyle(this.style).withMaxLines(1));
+        this.zoneHint = this.add(new TooltipArea(bounds.x() + 8, bounds.y() + 99, 60, 22, Component.empty()));
+
         this.add(new SpriteWidget(bounds.x() + 80, bounds.y() + 102, 16, 16, this.sprite("icon_deposit")));
-        this.add(new LabelWidget(bounds.x() + 99, bounds.y() + 105, 40, () -> this.linkText(ContainerRole::canDeposit, "gui.principiamagica.golem.no_deposit"))
+        this.add(new LabelWidget(bounds.x() + 99, bounds.y() + 105, 32, () -> this.linkSummary(ContainerRole::canDeposit, "gui.principiamagica.golem.no_deposit"))
                 .withStyle(this.style).withMaxLines(1));
+        this.depositHint = this.add(new TooltipArea(bounds.x() + 76, bounds.y() + 99, 60, 22, Component.empty()));
+
         this.add(new SpriteWidget(bounds.x() + 140, bounds.y() + 102, 16, 16, this.sprite("icon_supply")));
-        this.add(new LabelWidget(bounds.x() + 159, bounds.y() + 105, 33, () -> this.linkText(ContainerRole::canSupply, "gui.principiamagica.golem.no_supply"))
+        this.add(new LabelWidget(bounds.x() + 159, bounds.y() + 105, 29, () -> this.linkSummary(ContainerRole::canSupply, "gui.principiamagica.golem.no_supply"))
                 .withStyle(this.style).withMaxLines(1));
-        this.add(new TooltipArea(bounds.x() + 8, bounds.y() + 99, 188, 22, Component.translatable("gui.principiamagica.golem.workplace.tooltip")));
+        this.supplyHint = this.add(new TooltipArea(bounds.x() + 136, bounds.y() + 99, 52, 22, Component.empty()));
     }
 
     @Override
@@ -101,6 +112,14 @@ final class JobTab extends GolemTab {
         List<JobOption> options = this.view().job().map(job -> job.value().options()).orElse(List.of());
         this.optionList.setEntries(options);
         this.optionList.tick();
+
+        int zones = this.view().workplace().footprints().size();
+        this.zoneHint.setText(hint(Component.translatable("gui.principiamagica.golem.zones.title", zones),
+                "gui.principiamagica.golem.zones.description", null));
+        this.depositHint.setText(hint(Component.translatable("gui.principiamagica.golem.deposit.title"),
+                "gui.principiamagica.golem.deposit.description", this.linkNames(ContainerRole::canDeposit)));
+        this.supplyHint.setText(hint(Component.translatable("gui.principiamagica.golem.supply.title"),
+                "gui.principiamagica.golem.supply.description", this.linkNames(ContainerRole::canSupply)));
     }
 
     private ItemStack axiomStack() {
@@ -135,17 +154,62 @@ final class JobTab extends GolemTab {
     }
 
     /**
-     * @return the name of the first linked container with the role, or the empty text if there is none
+     * @return the first linked container with the role, followed by how many more there are, or the empty text if there is none
      */
-    private Component linkText(Predicate<ContainerRole> role, String emptyKey) {
-        Workplace workplace = this.view().workplace();
-        Optional<ContainerLink> link = workplace.links().stream().filter(candidate -> role.test(candidate.role())).findFirst();
-        Level level = Minecraft.getInstance().level;
-        if (link.isEmpty() || level == null) {
+    private Component linkSummary(Predicate<ContainerRole> role, String emptyKey) {
+        List<Component> names = this.linkNames(role);
+        if (names.isEmpty()) {
             return Component.translatable(emptyKey);
         }
 
-        return level.getBlockState(link.get().pos()).getBlock().getName();
+        if (names.size() == 1) {
+            return names.getFirst();
+        }
+
+        return Component.empty().append(names.getFirst()).append(" +" + (names.size() - 1));
+    }
+
+    /**
+     * @return the names of all linked containers with the role, in the order they were linked
+     */
+    private List<Component> linkNames(Predicate<ContainerRole> role) {
+        Level level = Minecraft.getInstance().level;
+        if (level == null) {
+            return List.of();
+        }
+
+        List<Component> names = new ArrayList<>();
+        for (ContainerLink link : this.view().workplace().links()) {
+            if (role.test(link.role())) {
+                names.add(level.getBlockState(link.pos()).getBlock().getName());
+            }
+        }
+
+        return names;
+    }
+
+    /**
+     * The tooltip of a summary part: its title, the linked containers if it lists them, what the part means, and the Stylus hint.
+     *
+     * @param title the title, e.g. "Deposit" or "Work zones: 2"
+     * @param descriptionKey the lang key of what the part means
+     * @param names the linked containers, or null if the part does not list containers
+     */
+    private static Component hint(Component title, String descriptionKey, List<Component> names) {
+        MutableComponent tooltip = Component.empty().append(title);
+        if (names != null) {
+            if (names.isEmpty()) {
+                tooltip.append("\n").append(Component.translatable("gui.principiamagica.golem.none_linked"));
+            }
+
+            for (Component name : names) {
+                tooltip.append("\n").append(Component.literal("- ")).append(name);
+            }
+        }
+
+        return tooltip
+                .append("\n").append(Component.translatable(descriptionKey))
+                .append("\n").append(Component.translatable("gui.principiamagica.golem.workplace.tooltip"));
     }
 
     private GuiSprite sprite(String name) {

@@ -162,6 +162,13 @@ public class ENUSProvider extends LanguageProvider {
         this.add("gui.principiamagica.golem.no_deposit", "No deposit");
         this.add("gui.principiamagica.golem.no_supply", "No supply");
         this.add("gui.principiamagica.golem.workplace.tooltip", "Edit with the Stylus");
+        this.add("gui.principiamagica.golem.none_linked", "None linked");
+        this.add("gui.principiamagica.golem.zones.title", "Work zones: %s");
+        this.add("gui.principiamagica.golem.zones.description", "Areas carved with the Stylus where this golem works");
+        this.add("gui.principiamagica.golem.deposit.title", "Deposit");
+        this.add("gui.principiamagica.golem.deposit.description", "Containers where the golem stores its output");
+        this.add("gui.principiamagica.golem.supply.title", "Supply");
+        this.add("gui.principiamagica.golem.supply.description", "Containers the golem takes seeds, saplings and bone meal from");
         this.add("gui.principiamagica.golem.mode.work.tooltip", "The golem works its job");
         this.add("gui.principiamagica.golem.mode.work.disabled", "Work needs an axiom");
         this.add("gui.principiamagica.golem.mode.follow.tooltip", "The golem follows you");
