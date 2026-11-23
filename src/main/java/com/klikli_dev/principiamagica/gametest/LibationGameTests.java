@@ -525,7 +525,8 @@ public class LibationGameTests {
         ItemStack bucket = new ItemStack(Items.WATER_BUCKET);
         player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
         slab.useItemOn(bucket, player, InteractionHand.MAIN_HAND);
-        slab.useItemOn(new ItemStack(Items.BONE), player, InteractionHand.MAIN_HAND);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.BONE));
+        slab.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
         helper.assertTrue(slab.getWater() == LibationSlabBlockEntity.WATER_CAPACITY, "A water bucket should fill the slab, got " + slab.getWater());
         return slab;
     }
