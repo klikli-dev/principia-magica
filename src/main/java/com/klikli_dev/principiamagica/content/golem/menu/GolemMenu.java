@@ -180,10 +180,11 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
     }
 
     /**
-     * A golem without a job has no tool, so nothing is a tool before an axiom.
+     * The back accepts any tool, the job's tool or not. A tool that is not the job's tool stays on the back and is never swapped into the hand
+     * for work.
      */
     boolean canPlaceTool(ItemStack stack) {
-        return this.golem != null && this.golem.isTool(stack);
+        return this.golem != null && this.golem.isHeldTool(stack);
     }
 
     @Override
@@ -235,8 +236,8 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
 
     /**
      * Moves a stack from the player inventory to the golem side. Vanilla merges into matching stacks without checking the target, so every
-     * target is gated here: nothing moves while the golem side is inactive. Axioms go to the axiom slot. A tool goes to the hand if the hand
-     * is free, otherwise to the back. Other items go to the hand.
+     * target is gated here: nothing moves while the golem side is inactive. Axioms go to the axiom slot. The job's tool goes to the hand if
+     * the hand is free, otherwise to the back. Another tool goes to the back if it is free, otherwise to the hand. Other items go to the hand.
      */
     private boolean moveToGolemSide(ItemStack stack) {
         if (!this.isGolemSideActive()) {
@@ -247,9 +248,14 @@ public class GolemMenu extends AbstractContainerMenu implements LayoutMenuView {
             return true;
         }
 
-        if (this.canPlaceTool(stack)) {
+        if (this.golem != null && this.golem.isTool(stack)) {
             return this.moveItemStackTo(stack, HAND_SLOT, HAND_SLOT + 1, false)
                     || this.moveItemStackTo(stack, BACK_SLOT, BACK_SLOT + 1, false);
+        }
+
+        if (this.canPlaceTool(stack)) {
+            return this.moveItemStackTo(stack, BACK_SLOT, BACK_SLOT + 1, false)
+                    || this.moveItemStackTo(stack, HAND_SLOT, HAND_SLOT + 1, false);
         }
 
         return this.moveItemStackTo(stack, HAND_SLOT, HAND_SLOT + 1, false);

@@ -8,8 +8,8 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * The hand or back slot of the golem menu. The hand accepts any item except an axiom, the back only accepts the job's tool,
- * since a non-tool item on the back would never be used. Only shown and usable on the golem tab.
+ * The hand or back slot of the golem menu. The hand accepts any item except an axiom, the back only accepts tools, since a non-tool item on the
+ * back would never be used. Only shown and usable on the golem tab.
  */
 class GolemCarrySlot extends GolemSideSlot {
     private final boolean back;
