@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.CornerHit;
+import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.ZoneHit;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
@@ -32,21 +33,27 @@ import java.util.UUID;
 
 /**
  * Client-side queries about what the player is looking at with a stylus held. Shared by the overlay renderer, the input handling
- * and the stylus HUD, so they all agree on the same targeted corner and sticky corner lock.
+ * and the stylus HUD, so they all agree on the same targeted corner, targeted zone box, and sticky corner lock.
  */
 public class WorkplaceTargeting {
 
-    private static final double LOCK_VERTEX_SIZE = 0.65;
-    private static final double LOCK_BLOCK_INFLATE = 0.05;
+    private static final double LOCK_BLOCK_INFLATE = 0.08;
 
     @Nullable
     private static CornerLock cornerLock;
 
     /**
-     * Remembers the original corner vertex/block where the player started Shift+scrolling a corner,
-     * keeping the player tethered to that corner until they look away.
+     * Remembers the original virtual corner block where the player started Shift+scrolling a corner,
+     * keeping the player tethered to that corner until they look away—even when crossing past the opposite Y bound.
      */
-    public record CornerLock(int golemId, int footprintIndex, int cornerIndex, Vec3 anchorVertex, BlockPos anchorBlock) {
+    public record CornerLock(
+            int golemId,
+            int footprintIndex,
+            int cornerIndex,
+            BlockPos anchorBlock,
+            int movingY,
+            int fixedY
+    ) {
     }
 
     /**
@@ -54,23 +61,26 @@ public class WorkplaceTargeting {
      * @param footprintIndex the index of the footprint in the golem's workplace
      * @param cornerIndex    the box corner index (0..7)
      * @param footprint      the footprint being targeted
-     * @param vertex         the current 3D vertex of the corner
-     * @param block          the current block coordinate of the corner
+     * @param block          the current virtual block coordinate of the corner
      * @param locked         whether this target is held via a sticky {@link CornerLock}
-     * @param anchorVertex   the original vertex where the lock began (same as {@code vertex} when unlocked)
-     * @param anchorBlock    the original block where the lock began (same as {@code block} when unlocked)
+     * @param anchorBlock    the original virtual block where the lock began (same as {@code block} when unlocked)
      */
     public record TargetedCorner(
             int golemId,
             int footprintIndex,
             int cornerIndex,
             WorkFootprint footprint,
-            Vec3 vertex,
             BlockPos block,
             boolean locked,
-            Vec3 anchorVertex,
             BlockPos anchorBlock
     ) {
+    }
+
+    /**
+     * @param golemId the entity id of the golem the footprint belongs to
+     * @param hit     the targeted footprint box
+     */
+    public record TargetedZone(int golemId, ZoneHit hit) {
     }
 
     @Nullable
@@ -118,14 +128,38 @@ public class WorkplaceTargeting {
         return pos;
     }
 
-    public static void lockCorner(TargetedCorner target) {
-        if (cornerLock != null
-                && cornerLock.golemId() == target.golemId()
-                && cornerLock.footprintIndex() == target.footprintIndex()
-                && cornerLock.cornerIndex() == target.cornerIndex()) {
-            return;
+    /**
+     * Engages (or advances) the sticky corner lock for a Shift+scroll step, returning the corner index to send for
+     * this step so rapid scrolling stays in sync even when crossing past {@code fixedY}.
+     */
+    public static int lockAndAdvanceCorner(TargetedCorner target, int delta) {
+        if (cornerLock == null
+                || cornerLock.golemId() != target.golemId()
+                || cornerLock.footprintIndex() != target.footprintIndex()) {
+            int startCorner = target.cornerIndex();
+            int movingY = WorkFootprint.isTopCorner(startCorner) ? target.footprint().maxY() : target.footprint().minY();
+            int fixedY = WorkFootprint.isTopCorner(startCorner) ? target.footprint().minY() : target.footprint().maxY();
+            cornerLock = new CornerLock(target.golemId(), target.footprintIndex(), startCorner, target.block(), movingY, fixedY);
         }
-        cornerLock = new CornerLock(target.golemId(), target.footprintIndex(), target.cornerIndex(), target.vertex(), target.block());
+
+        int cornerToSend = cornerLock.cornerIndex();
+        int nextMovingY = cornerLock.movingY() + delta;
+        int nextMinY = Math.min(nextMovingY, cornerLock.fixedY());
+        int nextMaxY = Math.max(nextMovingY, cornerLock.fixedY());
+        if (nextMinY >= WorkFootprint.MIN_Y && nextMaxY <= WorkFootprint.MAX_Y && (nextMaxY - nextMinY + 1) <= WorkFootprint.MAX_SIZE) {
+            int nextCornerIndex = nextMovingY > cornerLock.fixedY()
+                    ? (cornerToSend | 2)
+                    : (nextMovingY < cornerLock.fixedY() ? (cornerToSend & ~2) : cornerToSend);
+            cornerLock = new CornerLock(
+                    cornerLock.golemId(),
+                    cornerLock.footprintIndex(),
+                    nextCornerIndex,
+                    cornerLock.anchorBlock(),
+                    nextMovingY,
+                    cornerLock.fixedY()
+            );
+        }
+        return cornerToSend;
     }
 
     public static void clearCornerLock() {
@@ -133,8 +167,8 @@ public class WorkplaceTargeting {
     }
 
     /**
-     * The targeted box corner (0..7) of the selected golem under the crosshair, or the active sticky {@link CornerLock}
-     * as long as the player is still looking at the original corner block/vertex where they began moving it.
+     * The targeted virtual corner block (0..7) of the selected golem under the crosshair, or the active sticky
+     * {@link CornerLock} as long as the player is still looking at the original corner block where they began moving it.
      */
     @Nullable
     public static TargetedCorner targetedCorner(Minecraft minecraft) {
@@ -174,6 +208,7 @@ public class WorkplaceTargeting {
             if (cornerLock.golemId() == golem.getId()
                     && cornerLock.footprintIndex() >= 0
                     && cornerLock.footprintIndex() < footprints.size()
+                    && footprints.get(cornerLock.footprintIndex()).isInDimension(level.dimension())
                     && isRayHittingLock(from, to, cornerLock)) {
                 WorkFootprint footprint = footprints.get(cornerLock.footprintIndex());
                 return new TargetedCorner(
@@ -181,10 +216,8 @@ public class WorkplaceTargeting {
                         cornerLock.footprintIndex(),
                         cornerLock.cornerIndex(),
                         footprint,
-                        footprint.cornerVertex(cornerLock.cornerIndex()),
                         footprint.cornerBlock(cornerLock.cornerIndex()),
                         true,
-                        cornerLock.anchorVertex(),
                         cornerLock.anchorBlock()
                 );
             }
@@ -192,25 +225,58 @@ public class WorkplaceTargeting {
         }
 
         double blockDist = blockDistance(level, player, from, to);
-        Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, footprints, blockDist);
+        Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, footprints, blockDist, level.dimension());
         return hit.map(h -> new TargetedCorner(
                 golem.getId(),
                 h.footprintIndex(),
                 h.cornerIndex(),
                 h.footprint(),
-                h.vertex(),
                 h.block(),
                 false,
-                h.vertex(),
                 h.block()
         )).orElse(null);
     }
 
-    private static boolean isRayHittingLock(Vec3 from, Vec3 to, CornerLock lock) {
-        AABB vertexBox = AABB.ofSize(lock.anchorVertex(), LOCK_VERTEX_SIZE, LOCK_VERTEX_SIZE, LOCK_VERTEX_SIZE);
-        if (vertexBox.contains(from) || vertexBox.clip(from, to).isPresent()) {
-            return true;
+    /**
+     * The footprint box of the selected golem under the crosshair, with a stylus held and no pending corner.
+     */
+    @Nullable
+    public static TargetedZone targetedZone(Minecraft minecraft) {
+        Player player = minecraft.player;
+        ClientLevel level = minecraft.level;
+        if (player == null || level == null || minecraft.screen != null) {
+            return null;
         }
+
+        ItemStack stylus = heldStylus(player);
+        if (stylus == null || pendingGlyph(stylus, level) != null) {
+            return null;
+        }
+
+        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
+        GolemEntity golem = findGolem(level, selected);
+        if (golem == null) {
+            return null;
+        }
+
+        List<WorkFootprint> footprints = ClientGolemWorkplaceCache.latest(golem.getId())
+                .map(entry -> entry.workplace().footprints())
+                .orElse(List.of());
+        if (footprints.isEmpty()) {
+            return null;
+        }
+
+        float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        Vec3 from = player.getEyePosition(partialTick);
+        Vec3 to = from.add(player.getViewVector(partialTick).scale(GlyphTargeting.MAX_RANGE));
+        double blockDist = blockDistance(level, player, from, to);
+
+        return GlyphTargeting.pickZone(from, to, footprints, blockDist, level.dimension())
+                .map(hit -> new TargetedZone(golem.getId(), hit))
+                .orElse(null);
+    }
+
+    private static boolean isRayHittingLock(Vec3 from, Vec3 to, CornerLock lock) {
         AABB blockBox = new AABB(lock.anchorBlock()).inflate(LOCK_BLOCK_INFLATE);
         return blockBox.contains(from) || blockBox.clip(from, to).isPresent();
     }

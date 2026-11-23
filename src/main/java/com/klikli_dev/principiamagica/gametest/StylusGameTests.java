@@ -547,57 +547,42 @@ public class StylusGameTests {
     }
 
     public static void eightCornersRaycastAndOcclusion(GameTestHelper helper) {
-        WorkFootprint flat = WorkFootprint.ofBox(new BlockPos(2, 64, 2), new BlockPos(5, 64, 5));
-        WorkFootprint volume = WorkFootprint.ofBox(new BlockPos(10, 64, 10), new BlockPos(14, 68, 14));
+        WorkFootprint flat = WorkFootprint.ofBox(new BlockPos(2, 64, 2), new BlockPos(5, 64, 5), Level.OVERWORLD);
+        WorkFootprint volume = WorkFootprint.ofBox(new BlockPos(10, 64, 10), new BlockPos(14, 68, 14), Level.OVERWORLD);
+        WorkFootprint nether = WorkFootprint.ofBox(new BlockPos(2, 64, 2), new BlockPos(5, 64, 5), Level.NETHER);
 
         for (int i = 0; i < 8; i++) {
-            Vec3 vertex = flat.cornerVertex(i);
-            Vec3 from = vertex.add(0.0, 5.0, 5.0);
-            Vec3 to = vertex.subtract(0.0, 5.0, 5.0);
-            Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, List.of(flat), 20.0);
-            helper.assertTrue(hit.isPresent() && hit.get().cornerIndex() == i,
-                    "Ray through flat corner " + i + " should hit corner " + i + ", got " + hit);
+            BlockPos block = volume.cornerBlock(i);
+            Vec3 center = Vec3.atCenterOf(block);
+            Vec3 from = center.add(17.0, 23.0, 11.0);
+            Vec3 to = center.subtract(17.0, 23.0, 11.0);
+            Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, List.of(volume), 40.0, Level.OVERWORLD);
+            helper.assertTrue(hit.isPresent() && hit.get().cornerIndex() == i && hit.get().block().equals(block),
+                    "Ray through virtual corner block " + i + " from afar should hit corner " + i + ", got " + hit);
         }
 
-        for (int i = 0; i < 8; i++) {
-            Vec3 vertex = volume.cornerVertex(i);
-            Vec3 from = vertex.add(0.0, 3.0, 3.0);
-            Vec3 to = vertex.subtract(0.0, 3.0, 3.0);
-            Optional<CornerHit> hit = GlyphTargeting.pickCorner(from, to, List.of(volume), 20.0);
-            helper.assertTrue(hit.isPresent() && hit.get().cornerIndex() == i,
-                    "Ray through volume corner " + i + " should hit corner " + i + ", got " + hit);
-        }
+        // Virtual corner block slightly proud (1.0625) wins over a solid block at that same coordinate
+        BlockPos corner0Block = flat.cornerBlock(0);
+        Vec3 fromAbove = Vec3.atCenterOf(corner0Block).add(0.0, 10.0, 0.0);
+        Vec3 toBelow = Vec3.atCenterOf(corner0Block).subtract(0.0, 10.0, 0.0);
+        double surfaceDistance = 9.5; // top face of corner0Block is at y=65.0
+        Optional<CornerHit> onCornerBlock = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(flat), surfaceDistance, Level.OVERWORLD);
+        helper.assertTrue(onCornerBlock.isPresent() && onCornerBlock.get().block().equals(corner0Block),
+                "Virtual corner block should win over the block surface at the same coordinate");
 
-        // Bottom corner (index 0) at y=64 with a block hit 1.2 blocks closer (e.g. grass/soil surface at y=65) is still targetable
-        Vec3 bottomVertex = flat.cornerVertex(0);
-        Vec3 eyeAbove = bottomVertex.add(0.0, 4.0, 0.0);
-        Vec3 rayEnd = bottomVertex.add(0.0, -4.0, 0.0);
-        Optional<CornerHit> soilTolerant = GlyphTargeting.pickCorner(eyeAbove, rayEnd, List.of(flat), 2.8);
-        helper.assertTrue(soilTolerant.isPresent() && soilTolerant.get().cornerIndex() == 2,
-                "Top corner directly above should win when unoccluded");
-
-        Optional<CornerHit> bottomOnly = GlyphTargeting.pickCorner(
-                bottomVertex.add(3.0, 0.5, 0.0),
-                bottomVertex.add(-3.0, -0.5, 0.0),
-                List.of(flat),
-                2.0
-        );
-        helper.assertTrue(bottomOnly.isPresent() && bottomOnly.get().cornerIndex() == 0,
-                "Bottom corner slightly behind soil block should remain targetable");
-
-        Optional<CornerHit> wallOccluded = GlyphTargeting.pickCorner(
-                bottomVertex.add(10.0, 0.0, 0.0),
-                bottomVertex.add(-10.0, 0.0, 0.0),
-                List.of(flat),
-                2.0
-        );
+        // Corner behind a nearer solid wall is occluded
+        Optional<CornerHit> wallOccluded = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(flat), 4.0, Level.OVERWORLD);
         helper.assertTrue(wallOccluded.isEmpty(), "Corner behind a solid wall must be occluded");
+
+        // Dimension filtering ignores footprints from other dimensions
+        Optional<CornerHit> wrongDim = GlyphTargeting.pickCorner(fromAbove, toBelow, List.of(nether), 40.0, Level.OVERWORLD);
+        helper.assertTrue(wrongDim.isEmpty(), "Overworld raycast must ignore Nether footprints");
 
         helper.succeed();
     }
 
     public static void cornerResizeMovesCoplanarCornersAndPushesFlatBox(GameTestHelper helper) {
-        WorkFootprint flat = WorkFootprint.ofBox(new BlockPos(1, 64, 1), new BlockPos(4, 64, 4));
+        WorkFootprint flat = WorkFootprint.ofBox(new BlockPos(1, 64, 1), new BlockPos(4, 64, 4), Level.OVERWORLD);
         Workplace workplace = Workplace.EMPTY.withFootprints(List.of(flat));
 
         // Top corner (index 2 = minX, maxY, minZ) up by 3 -> maxY becomes 67, minY stays 64
@@ -610,21 +595,26 @@ public class StylusGameTests {
         helper.assertTrue(raised.cornerBlock(0).getY() == 64 && raised.cornerBlock(5).getY() == 64,
                 "Bottom 4 corners should remain at 64");
 
-        // Bottom corner (index 1 = maxX, minY, minZ) down by 2 -> minY becomes 62, maxY stays 67
-        Workplace loweredBottom = StylusActions.resizeCornerY(raisedTop, 0, 1, -2).workplace();
-        WorkFootprint lowered = loweredBottom.footprints().getFirst();
-        helper.assertTrue(lowered.minY() == 62 && lowered.maxY() == 67,
-                "Lowering bottom corner should lower minY to 62, got " + lowered.minY() + ".." + lowered.maxY());
+        // Moving top corner down past minY (67 -> 62, delta -5) swaps minY/maxY cleanly so 64 becomes maxY and corner flips to bottom
+        Workplace crossedDown = StylusActions.resizeCornerY(raisedTop, 0, 2, -5).workplace();
+        WorkFootprint crossedDownFp = crossedDown.footprints().getFirst();
+        helper.assertTrue(crossedDownFp.minY() == 62 && crossedDownFp.maxY() == 64,
+                "Moving top corner below bottom should result in [62..64], got " + crossedDownFp.minY() + ".." + crossedDownFp.maxY());
+        helper.assertTrue(raised.resizedCornerIndex(2, -5) == 0,
+                "Top corner 2 crossing below minY should become bottom corner 0");
 
-        // On a flat box, scrolling a top corner down pushes the whole flat layer down
-        Workplace pushedDown = StylusActions.resizeCornerY(workplace, 0, 2, -1).workplace();
-        helper.assertTrue(pushedDown.footprints().getFirst().minY() == 63 && pushedDown.footprints().getFirst().maxY() == 63,
-                "Scrolling top corner down on a flat box should push flat layer down");
+        // Moving that bottom corner back up past maxY (62 -> 69, delta +7) swaps back so 64 becomes minY and corner flips to top
+        Workplace crossedUp = StylusActions.resizeCornerY(crossedDown, 0, 0, 7).workplace();
+        WorkFootprint crossedUpFp = crossedUp.footprints().getFirst();
+        helper.assertTrue(crossedUpFp.minY() == 64 && crossedUpFp.maxY() == 69,
+                "Moving bottom corner above top should result in [64..69], got " + crossedUpFp.minY() + ".." + crossedUpFp.maxY());
+        helper.assertTrue(crossedDownFp.resizedCornerIndex(0, 7) == 2,
+                "Bottom corner 0 crossing above maxY should become top corner 2");
 
-        // On a flat box, scrolling a bottom corner up pushes the whole flat layer up
-        Workplace pushedUp = StylusActions.resizeCornerY(workplace, 0, 0, 1).workplace();
-        helper.assertTrue(pushedUp.footprints().getFirst().minY() == 65 && pushedUp.footprints().getFirst().maxY() == 65,
-                "Scrolling bottom corner up on a flat box should push flat layer up");
+        // On a flat box, scrolling a top corner down moves it down cleanly to [63..64]
+        Workplace flatDown = StylusActions.resizeCornerY(workplace, 0, 2, -1).workplace();
+        helper.assertTrue(flatDown.footprints().getFirst().minY() == 63 && flatDown.footprints().getFirst().maxY() == 64,
+                "Scrolling top corner down on a flat box should move it to [63..64]");
 
         EditResult tooLarge = StylusActions.resizeCornerY(workplace, 0, 2, WorkFootprint.MAX_SIZE);
         helper.assertTrue(!tooLarge.isSuccess() && tooLarge.failure() == EditFailure.TOO_LARGE,
@@ -669,9 +659,9 @@ public class StylusGameTests {
         helper.succeed();
     }
 
-    public static void sneakRightClickNonCornerBlockDoesNotEraseFootprint(GameTestHelper helper) {
+    public static void sneakRightClickInsideFootprintErasesFootprint(GameTestHelper helper) {
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player player = helper.makeMockServerPlayerInLevel();
         golem.setOwnerUUID(player.getUUID());
 
         BlockPos minCorner = helper.absolutePos(new BlockPos(1, 1, 1));
@@ -679,19 +669,50 @@ public class StylusGameTests {
         BlockPos inside = helper.absolutePos(new BlockPos(3, 1, 3));
         helper.setBlock(new BlockPos(3, 1, 3), Blocks.DIRT);
 
-        WorkFootprint footprint = WorkFootprint.ofBox(minCorner, maxCorner);
-        golem.updateWorkplace(current -> Workplace.EMPTY.withFootprints(List.of(footprint)).markInitialized());
+        WorkFootprint netherFootprint = WorkFootprint.ofBox(minCorner, maxCorner, Level.NETHER);
+        WorkFootprint overworldFootprint = WorkFootprint.ofBox(minCorner, maxCorner, helper.getLevel().dimension());
+        golem.updateWorkplace(current -> Workplace.EMPTY.withFootprints(List.of(netherFootprint, overworldFootprint)).markInitialized());
 
         ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
         stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
         player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+        player.setPos(Vec3.atCenterOf(inside));
         player.setShiftKeyDown(true);
 
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(inside), Direction.UP, inside, false);
         stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
 
-        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().footprints().size() == 1,
-                "Sneak-right-clicking a non-corner block inside a work area must NOT erase the footprint");
+        List<WorkFootprint> remaining = golem.getWorkplace(helper.getLevel()).orElseThrow().footprints();
+        helper.assertTrue(remaining.equals(List.of(netherFootprint)),
+                "Sneak-right-clicking inside the zone should erase the current dimension's footprint and keep other dimensions intact, got " + remaining);
+
+        helper.succeed();
+    }
+
+    public static void workAreaDimensionPreventsCrossDimensionWeirdness(GameTestHelper helper) {
+        WorkFootprint overworldBox = WorkFootprint.ofBox(new BlockPos(10, 64, 10), new BlockPos(14, 65, 14), Level.OVERWORLD);
+        Tag encoded = WorkFootprint.CODEC.encodeStart(NbtOps.INSTANCE, overworldBox).getOrThrow();
+        WorkFootprint decoded = WorkFootprint.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow();
+        helper.assertTrue(decoded.equals(overworldBox) && decoded.dimension().equals(Optional.of(Level.OVERWORLD)),
+                "WorkFootprint dimension should round-trip via codec");
+
+        Workplace source = Workplace.EMPTY
+                .withFootprints(List.of(overworldBox))
+                .withLinks(List.of(new ContainerLink(new BlockPos(9, 64, 10), Direction.UP, ContainerRole.BOTH)))
+                .markInitialized();
+        helper.assertTrue(source.footprintsIn(Level.OVERWORLD).size() == 1, "Overworld should see Overworld footprint");
+        helper.assertTrue(source.footprintsIn(Level.NETHER).isEmpty(), "Nether must ignore Overworld footprint");
+        helper.assertTrue(source.zones(Level.NETHER, 0, 3).isEmpty(), "Nether must get no work zones from Overworld footprint");
+
+        Workplace relative = StylusActions.toRelative(source, new BlockPos(10, 64, 10), Level.OVERWORLD);
+
+        Workplace releasedInOverworld = StylusActions.toAbsoluteForDimension(relative, new BlockPos(20, 70, 20), Level.OVERWORLD);
+        helper.assertTrue(releasedInOverworld.footprints().size() == 1 && releasedInOverworld.links().size() == 1,
+                "Releasing in same dimension should restore footprints and links");
+
+        Workplace releasedInNether = StylusActions.toAbsoluteForDimension(relative, new BlockPos(20, 70, 20), Level.NETHER);
+        helper.assertTrue(releasedInNether.footprints().isEmpty() && releasedInNether.links().isEmpty() && !releasedInNether.initialized(),
+                "Releasing in a different dimension must drop old dimension footprints and links");
 
         helper.succeed();
     }

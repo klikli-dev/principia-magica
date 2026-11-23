@@ -10,15 +10,18 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public final class ZoneRenderer {
 
     public static final int COLOR = 0x55FFFF;
     public static final int HIGHLIGHT_COLOR = 0xFFFFFF;
     public static final float GLYPH_SIZE = 0.8F;
+    public static final float HIGHLIGHT_GLYPH_SIZE = 1.0F;
     private static final float CARVED_MARK_SIZE = 0.4F;
-    private static final float CORNER_NODE_SIZE = 0.35F;
-    private static final float HIGHLIGHT_CORNER_SIZE = 0.55F;
     private static final float PLUMB_ALPHA = 0.6F;
     private static final float CARVED_MARK_ALPHA = 0.5F;
     private static final double PLUMB_OFFSET = 0.5 + 0.01;
@@ -27,40 +30,49 @@ public final class ZoneRenderer {
     }
 
     /**
-     * Draws a footprint as a single solid box with 8 interactive corner handles.
+     * Draws a footprint as a single solid box with glowing glyph decals on all 8 virtual corner blocks.
      */
-    public static void render(WorkplaceGeometry geometry, WorkFootprint footprint, int targetedCorner, float alpha, double time) {
+    public static void render(WorkplaceGeometry geometry, WorkFootprint footprint, @Nullable BlockPos highlightedCornerBlock, float alpha, double time) {
         AABB box = footprint.zone(0, 0).aabb().inflate(0.01);
         float pulse = WorkplaceGeometry.pulse(time, 0.12, 0.7F);
 
         geometry.boxFaces(box, WorkplaceGeometry.argb(COLOR, alpha * 0.06F * pulse));
         geometry.boxEdges(box, WorkplaceGeometry.argb(COLOR, alpha * pulse));
 
+        Set<BlockPos> renderedCorners = new HashSet<>(8);
         for (int i = 0; i < 8; i++) {
-            boolean highlighted = i == targetedCorner;
-            Vec3 vertex = WorkplaceGeometry.boxCorner(box, i);
-            float size = highlighted ? HIGHLIGHT_CORNER_SIZE : CORNER_NODE_SIZE;
+            BlockPos cornerPos = footprint.cornerBlock(i);
+            if (!renderedCorners.add(cornerPos)) {
+                continue;
+            }
+
+            boolean highlighted = cornerPos.equals(highlightedCornerBlock);
             int rgb = highlighted ? HIGHLIGHT_COLOR : COLOR;
-            float cornerAlpha = highlighted ? alpha : alpha * 0.9F;
-            float xrayAlpha = highlighted ? alpha * 0.55F : alpha * 0.35F;
-            geometry.cornerNode(vertex, size, WorkplaceGeometry.argb(rgb, cornerAlpha), WorkplaceGeometry.argb(rgb, xrayAlpha));
+            float size = highlighted ? HIGHLIGHT_GLYPH_SIZE : GLYPH_SIZE;
+            int decalArgb = WorkplaceGeometry.argb(rgb, alpha * (highlighted ? 1.0F : pulse));
+
+            geometry.decal(cornerPos, Direction.UP, size, decalArgb);
+            geometry.decal(cornerPos, Direction.DOWN, size, decalArgb);
+            geometry.decal(cornerPos, (i & 1) == 0 ? Direction.WEST : Direction.EAST, size, decalArgb);
+            geometry.decal(cornerPos, (i & 4) == 0 ? Direction.NORTH : Direction.SOUTH, size, decalArgb);
+
+            float frameAlpha = highlighted ? alpha * 0.95F : alpha * 0.35F * pulse;
+            geometry.boxEdges(new AABB(cornerPos).inflate(0.015), WorkplaceGeometry.argb(rgb, frameAlpha));
         }
     }
 
     /**
-     * Draws the tether connecting the sticky-locked anchor block/vertex to the moved corner of the box.
+     * Draws the tether connecting the sticky-locked anchor block to the moved corner block of the box.
      */
-    public static void renderCornerTether(WorkplaceGeometry geometry, Vec3 anchorVertex, BlockPos anchorBlock, Vec3 currentVertex, float alpha, double time) {
-        if (anchorVertex.distanceToSqr(currentVertex) <= 1.0E-4) {
+    public static void renderCornerTether(WorkplaceGeometry geometry, BlockPos anchorBlock, BlockPos currentBlock, float alpha, double time) {
+        if (anchorBlock.equals(currentBlock)) {
             return;
         }
 
         float pulse = WorkplaceGeometry.pulse(time, 0.25, 0.5F);
-        geometry.beam(anchorVertex, currentVertex, WorkplaceGeometry.argb(HIGHLIGHT_COLOR, alpha * 0.75F));
-        geometry.cornerNode(anchorVertex, CORNER_NODE_SIZE,
-                WorkplaceGeometry.argb(COLOR, alpha * 0.8F),
-                WorkplaceGeometry.argb(COLOR, alpha * 0.4F));
-        geometry.boxEdges(new AABB(anchorBlock).inflate(0.005), WorkplaceGeometry.argb(COLOR, alpha * 0.35F * pulse));
+        geometry.beam(Vec3.atCenterOf(anchorBlock), Vec3.atCenterOf(currentBlock), WorkplaceGeometry.argb(HIGHLIGHT_COLOR, alpha * 0.75F));
+        geometry.decal(anchorBlock, Direction.UP, CARVED_MARK_SIZE, WorkplaceGeometry.argb(COLOR, alpha * CARVED_MARK_ALPHA));
+        geometry.boxEdges(new AABB(anchorBlock).inflate(0.01), WorkplaceGeometry.argb(COLOR, alpha * 0.45F * pulse));
     }
 
     /**

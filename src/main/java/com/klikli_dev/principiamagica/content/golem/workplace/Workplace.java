@@ -14,7 +14,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
 import java.util.List;
@@ -81,14 +83,29 @@ public record Workplace(
     }
 
     /**
+     * @return the footprints belonging to {@code dimension} (including legacy footprints with no stored dimension)
+     */
+    public List<WorkFootprint> footprintsIn(ResourceKey<Level> dimension) {
+        return this.footprints.stream().filter(footprint -> footprint.isInDimension(dimension)).toList();
+    }
+
+    /**
      * @return the effective boxes of all footprints for a job that reaches the given distances from the working level
      */
     public List<WorkZone> zones(int below, int above) {
         return this.footprints.stream().map(footprint -> footprint.zone(below, above)).toList();
     }
 
+    public List<WorkZone> zones(ResourceKey<Level> dimension, int below, int above) {
+        return this.footprintsIn(dimension).stream().map(footprint -> footprint.zone(below, above)).toList();
+    }
+
     public boolean containsInZone(int below, int above, BlockPos pos) {
         return this.zones(below, above).stream().anyMatch(zone -> zone.contains(pos));
+    }
+
+    public boolean containsInZone(ResourceKey<Level> dimension, int below, int above, BlockPos pos) {
+        return this.zones(dimension, below, above).stream().anyMatch(zone -> zone.contains(pos));
     }
 
     /**

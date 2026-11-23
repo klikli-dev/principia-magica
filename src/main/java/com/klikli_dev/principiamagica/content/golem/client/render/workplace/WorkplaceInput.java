@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedZone;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageEraseZone;
@@ -23,13 +24,13 @@ import net.neoforged.neoforge.client.event.InputEvent;
  * <ul>
  *     <li>Shift+scroll over a corner: resizes that corner's face up/down and engages a sticky corner lock</li>
  *     <li>Right-click on a corner: picks up that corner so it can be moved and re-placed</li>
- *     <li>Shift+right-click on a corner: erases the work area (never triggers on golems or non-corner blocks)</li>
+ *     <li>Shift+right-click on a corner or zone box: erases the work area (never triggers on golems)</li>
  * </ul>
  */
 public class WorkplaceInput {
 
     /**
-     * Handles plain right-click (pick up corner) and sneak-right-click (erase work area) on targeted corners.
+     * Handles plain right-click (pick up corner) and sneak-right-click (erase work area on corner or zone box).
      * Golems are never intercepted so selection and Shift+right-click copy/paste always work.
      */
     public static void onInteractionKeyMapping(InputEvent.InteractionKeyMappingTriggered event) {
@@ -58,22 +59,36 @@ public class WorkplaceInput {
             return;
         }
 
+        boolean linkedContainer = WorkplaceTargeting.isHoveredLinkedContainer(minecraft, golem.getId());
         TargetedCorner corner = WorkplaceTargeting.targetedCorner(minecraft);
-        if (corner == null) {
-            return;
-        }
-
-        if (!corner.locked() && WorkplaceTargeting.isHoveredLinkedContainer(minecraft, golem.getId())) {
-            return;
-        }
-
-        event.setCanceled(true);
-        event.setSwingHand(true);
-        WorkplaceTargeting.clearCornerLock();
 
         if (player.isShiftKeyDown()) {
-            Networking.sendToServer(new MessageEraseZone(corner.golemId(), corner.footprintIndex()));
-        } else {
+            if (corner != null && (corner.locked() || !linkedContainer)) {
+                event.setCanceled(true);
+                event.setSwingHand(true);
+                WorkplaceTargeting.clearCornerLock();
+                Networking.sendToServer(new MessageEraseZone(corner.golemId(), corner.footprintIndex()));
+                return;
+            }
+
+            if (linkedContainer) {
+                return;
+            }
+
+            TargetedZone zoneTarget = WorkplaceTargeting.targetedZone(minecraft);
+            if (zoneTarget != null) {
+                event.setCanceled(true);
+                event.setSwingHand(true);
+                WorkplaceTargeting.clearCornerLock();
+                Networking.sendToServer(new MessageEraseZone(zoneTarget.golemId(), zoneTarget.hit().index()));
+            }
+            return;
+        }
+
+        if (corner != null && (corner.locked() || !linkedContainer)) {
+            event.setCanceled(true);
+            event.setSwingHand(true);
+            WorkplaceTargeting.clearCornerLock();
             Networking.sendToServer(new MessagePickUpCorner(corner.golemId(), corner.footprintIndex(), corner.cornerIndex()));
         }
     }
@@ -109,8 +124,8 @@ public class WorkplaceInput {
         TargetedCorner corner = WorkplaceTargeting.targetedCorner(minecraft);
         if (corner != null) {
             event.setCanceled(true);
-            WorkplaceTargeting.lockCorner(corner);
-            Networking.sendToServer(new MessageResizeCorner(corner.golemId(), corner.footprintIndex(), corner.cornerIndex(), delta));
+            int cornerToSend = WorkplaceTargeting.lockAndAdvanceCorner(corner, delta);
+            Networking.sendToServer(new MessageResizeCorner(corner.golemId(), corner.footprintIndex(), cornerToSend, delta));
         }
     }
 }

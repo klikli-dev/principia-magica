@@ -164,8 +164,11 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PICK_UP_MOVE_AND_CANCEL_CORNER =
             TEST_FUNCTIONS.register("pick_up_move_and_cancel_corner", () -> StylusGameTests::pickUpMoveAndCancelCorner);
 
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> SNEAK_RIGHT_CLICK_NON_CORNER_BLOCK_DOES_NOT_ERASE_FOOTPRINT =
-            TEST_FUNCTIONS.register("sneak_right_click_non_corner_block_does_not_erase_footprint", () -> StylusGameTests::sneakRightClickNonCornerBlockDoesNotEraseFootprint);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT =
+            TEST_FUNCTIONS.register("sneak_right_click_inside_footprint_erases_footprint", () -> StylusGameTests::sneakRightClickInsideFootprintErasesFootprint);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS =
+            TEST_FUNCTIONS.register("work_area_dimension_prevents_cross_dimension_weirdness", () -> StylusGameTests::workAreaDimensionPreventsCrossDimensionWeirdness);
 
     // --- Golem menu ---
 
@@ -541,7 +544,8 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, EIGHT_CORNERS_RAYCAST_AND_OCCLUSION, environment, structure, 40, 0);
         registerTest(event, CORNER_RESIZE_MOVES_COPLANAR_CORNERS_AND_PUSHES_FLAT_BOX, environment, structure, 40, 0);
         registerTest(event, PICK_UP_MOVE_AND_CANCEL_CORNER, environment, structure, 40, 0);
-        registerTest(event, SNEAK_RIGHT_CLICK_NON_CORNER_BLOCK_DOES_NOT_ERASE_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS, environment, structure, 40, 0);
     }
 
     private static void registerMenuTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {

@@ -126,7 +126,7 @@ public class StylusHud {
                         .map(ClientGolemWorkplaceCache.Entry::workplace)
                         .orElse(Workplace.EMPTY);
                 BlockPos snapped = WorkplaceTargeting.snapReplaceable(level, hovered.getBlockPos());
-                EditFailure failure = StylusActions.placeFootprint(workplace, pending.pos().pos(), snapped.offset(0, pending.ghostLift(), 0)).failure();
+                EditFailure failure = StylusActions.placeFootprint(workplace, level.dimension(), pending.pos().pos(), snapped.offset(0, pending.ghostLift(), 0)).failure();
                 if (failure != null) {
                     hints.add(HintLine.problem(failureMessage(failure)));
                 }
@@ -158,6 +158,11 @@ public class StylusHud {
         if (hoveringLinkedContainer) {
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cycle_link")));
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.unlink")));
+            return hints;
+        }
+
+        if (WorkplaceTargeting.targetedZone(minecraft) != null) {
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
         }
         return hints;
     }

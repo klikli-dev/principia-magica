@@ -207,7 +207,7 @@ public class StylusItem extends Item {
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
 
         ItemStack stack = golem.toItemStack();
-        stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), StylusActions.toRelative(workplace, anchorOf(golem)));
+        stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), StylusActions.toRelative(workplace, anchorOf(golem), level.dimension()));
 
         golem.discard();
         player.getInventory().placeItemBackInInventory(stack);

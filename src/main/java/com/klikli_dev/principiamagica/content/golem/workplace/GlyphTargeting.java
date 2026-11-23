@@ -6,8 +6,11 @@ package com.klikli_dev.principiamagica.content.golem.workplace;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,8 +35,7 @@ public final class GlyphTargeting {
     private static final double HIT_THICKNESS = 0.125;
     private static final double HIT_INFLATE = 0.0625;
     private static final double BLOCK_EPSILON = 1.0E-3;
-    private static final double CORNER_HIT_SIZE = 0.5;
-    private static final double CORNER_OCCLUSION_MARGIN = 2.0;
+    private static final double CORNER_BLOCK_INFLATE = 0.0625;
 
     private GlyphTargeting() {
     }
@@ -120,11 +122,18 @@ public final class GlyphTargeting {
      * Falls back to the smallest footprint containing {@code from} if no external box face was hit.
      */
     public static Optional<ZoneHit> pickZone(Vec3 from, Vec3 to, List<WorkFootprint> footprints, double blockDistance) {
+        return pickZone(from, to, footprints, blockDistance, null);
+    }
+
+    public static Optional<ZoneHit> pickZone(Vec3 from, Vec3 to, List<WorkFootprint> footprints, double blockDistance, @Nullable ResourceKey<Level> dimension) {
         ZoneHit nearest = null;
         int nearestVolume = Integer.MAX_VALUE;
 
         for (int i = 0; i < footprints.size(); i++) {
             WorkFootprint footprint = footprints.get(i);
+            if (dimension != null && !footprint.isInDimension(dimension)) {
+                continue;
+            }
             AABB box = footprint.zone(0, 0).aabb();
             if (box.contains(from)) {
                 continue;
@@ -156,6 +165,9 @@ public final class GlyphTargeting {
         int containingVolume = Integer.MAX_VALUE;
         for (int i = 0; i < footprints.size(); i++) {
             WorkFootprint footprint = footprints.get(i);
+            if (dimension != null && !footprint.isInDimension(dimension)) {
+                continue;
+            }
             if (!footprint.zone(0, 0).aabb().contains(from)) {
                 continue;
             }
@@ -171,21 +183,28 @@ public final class GlyphTargeting {
     }
 
     /**
-     * @return the virtual hit box around one of the 8 box corner vertices
+     * @return the virtual 1x1x1 block hit box around one of the 8 box corner blocks, slightly inflated so it wins
+     * over a solid block occupying that same coordinate
      */
     public static AABB cornerHitBox(WorkFootprint footprint, int cornerIndex) {
-        return AABB.ofSize(footprint.cornerVertex(cornerIndex), CORNER_HIT_SIZE, CORNER_HIT_SIZE, CORNER_HIT_SIZE);
+        return new AABB(footprint.cornerBlock(cornerIndex)).inflate(CORNER_BLOCK_INFLATE);
     }
 
     /**
-     * Picks the nearest of the 8 corner vertices of all footprints hit by the ray, allowing a small occlusion margin
-     * so bottom corners sitting at ground depth can still be targeted through a block of soil or grass.
+     * Picks the nearest of the 8 virtual corner blocks of all footprints hit by the ray before {@code blockDistance}.
      */
     public static Optional<CornerHit> pickCorner(Vec3 from, Vec3 to, List<WorkFootprint> footprints, double blockDistance) {
+        return pickCorner(from, to, footprints, blockDistance, null);
+    }
+
+    public static Optional<CornerHit> pickCorner(Vec3 from, Vec3 to, List<WorkFootprint> footprints, double blockDistance, @Nullable ResourceKey<Level> dimension) {
         CornerHit nearest = null;
         for (int footprintIndex = 0; footprintIndex < footprints.size(); footprintIndex++) {
             WorkFootprint footprint = footprints.get(footprintIndex);
-            for (int cornerIndex = 0; cornerIndex < 8; cornerIndex++) {
+            if (dimension != null && !footprint.isInDimension(dimension)) {
+                continue;
+            }
+            for (int cornerIndex = 7; cornerIndex >= 0; cornerIndex--) {
                 AABB box = cornerHitBox(footprint, cornerIndex);
                 double distance;
                 if (box.contains(from)) {
@@ -198,17 +217,18 @@ public final class GlyphTargeting {
                     distance = from.distanceTo(entry.get());
                 }
 
-                if (distance > blockDistance + CORNER_OCCLUSION_MARGIN) {
+                if (distance > blockDistance + BLOCK_EPSILON) {
                     continue;
                 }
 
                 if (nearest == null || distance < nearest.distance()) {
+                    BlockPos block = footprint.cornerBlock(cornerIndex);
                     nearest = new CornerHit(
                             footprintIndex,
                             footprint,
                             cornerIndex,
-                            footprint.cornerVertex(cornerIndex),
-                            footprint.cornerBlock(cornerIndex),
+                            Vec3.atCenterOf(block),
+                            block,
                             distance
                     );
                 }

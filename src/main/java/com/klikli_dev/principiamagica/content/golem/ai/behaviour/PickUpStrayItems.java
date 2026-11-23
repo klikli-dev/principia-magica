@@ -51,8 +51,8 @@ public class PickUpStrayItems extends MoveToAndInteract {
     @Override
     protected Optional<BlockPos> findTarget(ServerLevel level, GolemEntity golem) {
         return golem.getWorkplace(level)
-                .filter(workplace -> this.isEnabled(workplace))
-                .flatMap(workplace -> workplace.zones(this.job.below(), this.job.above()).stream()
+                .filter(workplace -> this.isEnabled(level, workplace))
+                .flatMap(workplace -> workplace.zones(level.dimension(), this.job.below(), this.job.above()).stream()
                         .flatMap(zone -> level.getEntitiesOfClass(ItemEntity.class, zone.aabb(), item -> canPickUp(golem, item.getItem())).stream())
                         .filter(item -> isAvailable(level, golem, item.blockPosition()))
                         .min(Comparator.comparingDouble(item -> item.distanceToSqr(golem)))
@@ -62,7 +62,7 @@ public class PickUpStrayItems extends MoveToAndInteract {
     @Override
     protected boolean isTargetValid(ServerLevel level, GolemEntity golem, BlockPos pos) {
         return golem.getWorkplace(level)
-                .filter(workplace -> this.isEnabled(workplace) && workplace.containsInZone(this.job.below(), this.job.above(), pos))
+                .filter(workplace -> this.isEnabled(level, workplace) && workplace.containsInZone(level.dimension(), this.job.below(), this.job.above(), pos))
                 .map(workplace -> !level.getEntitiesOfClass(ItemEntity.class, pickupArea(pos), item -> canPickUp(golem, item.getItem())).isEmpty())
                 .orElse(false);
     }
@@ -84,10 +84,10 @@ public class PickUpStrayItems extends MoveToAndInteract {
         }
     }
 
-    private boolean isEnabled(Workplace workplace) {
+    private boolean isEnabled(ServerLevel level, Workplace workplace) {
         return this.job.options().contains(CommonJobOptions.PICKUP_ITEMS)
                 && workplace.options().get(CommonJobOptions.PICKUP_ITEMS)
-                && !workplace.footprints().isEmpty();
+                && !workplace.footprintsIn(level.dimension()).isEmpty();
     }
 
     private static boolean canPickUp(GolemEntity golem, ItemStack stack) {

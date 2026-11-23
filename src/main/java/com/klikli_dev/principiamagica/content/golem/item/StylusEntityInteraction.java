@@ -50,16 +50,17 @@ final class StylusEntityInteraction {
      * Copies the workplace into the clipboard if it is empty, else pastes the clipboard at the golem's anchor.
      */
     private static void copyOrPaste(ItemStack stack, ServerPlayer player, GolemEntity golem) {
+        ServerLevel level = (ServerLevel) golem.level();
         Workplace clipboard = stack.get(DataComponentRegistry.STYLUS_CLIPBOARD.get());
         if (clipboard == null) {
-            Workplace workplace = golem.getWorkplace((ServerLevel) golem.level()).orElse(Workplace.EMPTY);
-            Workplace copied = StylusActions.toRelative(workplace, StylusItem.anchorOf(golem));
+            Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
+            Workplace copied = StylusActions.toRelative(workplace, StylusItem.anchorOf(golem), level.dimension());
             stack.set(DataComponentRegistry.STYLUS_CLIPBOARD.get(), copied);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.copied",
                     copied.footprints().size(), copied.links().size()));
         } else {
             BlockPos anchor = StylusItem.anchorOf(golem);
-            golem.updateWorkplace(current -> StylusActions.paste(current, clipboard, anchor));
+            golem.updateWorkplace(current -> StylusActions.paste(current, clipboard, anchor, level.dimension()));
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.pasted"));
             StylusItem.syncWorkplace(player, golem);
         }

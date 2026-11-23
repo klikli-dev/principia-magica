@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedZone;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
@@ -18,6 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
@@ -31,7 +33,7 @@ import java.util.SequencedMap;
 import java.util.UUID;
 
 /**
- * Draws the workplace of the golem selected on a held stylus: footprints with 8 interactive corners, container links,
+ * Draws the workplace of the golem selected on a held stylus: footprints with 8 interactive corner glyphs, container links,
  * anchor, work target, and the pending corner with a preview of the footprint under the cursor. Elements fade in and out
  * when the stylus is equipped, unequipped or the selection changes.
  */
@@ -48,6 +50,8 @@ public class WorkplaceOverlayRenderer {
     private MultiBufferSource.@Nullable BufferSource buffers;
     @Nullable
     private TargetedCorner targetedCorner;
+    @Nullable
+    private TargetedZone targetedZone;
 
     public void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -67,6 +71,7 @@ public class WorkplaceOverlayRenderer {
         this.cornerFade.tick(corner);
         this.pending.tick(level, corner, WorkplaceTargeting.hoveredHit(minecraft), workplace);
         this.targetedCorner = WorkplaceTargeting.targetedCorner(minecraft);
+        this.targetedZone = WorkplaceTargeting.targetedZone(minecraft);
 
         if (player != null && level != null) {
             this.spawnSparkles(level, player);
@@ -115,7 +120,6 @@ public class WorkplaceOverlayRenderer {
             fixed.put(WorkplaceRenderTypes.FILL, new ByteBufferBuilder(BUFFER_SIZE));
             fixed.put(WorkplaceRenderTypes.BEAM, new ByteBufferBuilder(BUFFER_SIZE));
             fixed.put(WorkplaceRenderTypes.RIBBON, new ByteBufferBuilder(BUFFER_SIZE));
-            fixed.put(WorkplaceRenderTypes.CORNER_XRAY, new ByteBufferBuilder(BUFFER_SIZE));
             fixed.put(WorkplaceRenderTypes.GLYPH, new ByteBufferBuilder(BUFFER_SIZE));
             this.buffers = MultiBufferSource.immediateWithBuffers(fixed, new ByteBufferBuilder(BUFFER_SIZE));
         }
@@ -135,7 +139,8 @@ public class WorkplaceOverlayRenderer {
 
         int below = golem.getJob().map(GolemJob::below).orElse(WorkFootprint.DEFAULT_BELOW);
         int above = golem.getJob().map(GolemJob::above).orElse(WorkFootprint.DEFAULT_ABOVE);
-        ClientGolemWorkplaceCache.latest(golem.getId()).ifPresent(entry -> WorkplaceSparkles.spawn(level, entry.workplace().zones(below, above)));
+        ClientGolemWorkplaceCache.latest(golem.getId())
+                .ifPresent(entry -> WorkplaceSparkles.spawn(level, entry.workplace().zones(level.dimension(), below, above)));
     }
 
     private void renderGolem(Minecraft minecraft, WorkplaceGeometry geometry, ClientLevel level, @Nullable UUID golemId, float alpha, float partialTick, double time) {
@@ -162,20 +167,28 @@ public class WorkplaceOverlayRenderer {
             TargetedCorner highlight = this.targetedCorner != null && this.targetedCorner.golemId() == golem.getId()
                     ? this.targetedCorner
                     : null;
+            @Nullable
+            TargetedZone zoneHighlight = highlight == null && this.targetedZone != null && this.targetedZone.golemId() == golem.getId()
+                    ? this.targetedZone
+                    : null;
 
             for (int i = 0; i < entry.workplace().footprints().size(); i++) {
                 WorkFootprint footprint = entry.workplace().footprints().get(i);
-                int highlightedCorner = highlight != null && highlight.footprintIndex() == i ? highlight.cornerIndex() : -1;
+                if (!footprint.isInDimension(level.dimension())) {
+                    continue;
+                }
+                BlockPos highlightedCornerBlock = highlight != null && highlight.footprintIndex() == i ? highlight.block() : null;
                 AABB box = footprint.zone(0, 0).aabb();
                 if (WorkplaceGeometry.isWithin(box.getCenter(), camera, rangeSqr)) {
-                    ZoneRenderer.render(geometry, footprint, highlightedCorner, alpha, time);
+                    ZoneRenderer.render(geometry, footprint, highlightedCornerBlock, alpha, time);
                 }
 
-                if (highlightedCorner >= 0) {
+                boolean highlightBox = highlightedCornerBlock != null || (zoneHighlight != null && zoneHighlight.hit().index() == i);
+                if (highlightBox) {
                     geometry.boxEdges(box.inflate(0.01), WorkplaceGeometry.argb(HIGHLIGHT_COLOR, alpha * WorkplaceGeometry.pulse(time, 0.25, 0.4F)));
-                    if (highlight.locked()) {
-                        ZoneRenderer.renderCornerTether(geometry, highlight.anchorVertex(), highlight.anchorBlock(), highlight.vertex(), alpha, time);
-                    }
+                }
+                if (highlight != null && highlight.footprintIndex() == i && highlight.locked()) {
+                    ZoneRenderer.renderCornerTether(geometry, highlight.anchorBlock(), highlight.block(), alpha, time);
                 }
             }
 

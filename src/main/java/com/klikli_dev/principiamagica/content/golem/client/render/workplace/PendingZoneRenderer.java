@@ -62,7 +62,7 @@ public class PendingZoneRenderer {
             BlockPos snapped = WorkplaceTargeting.snapReplaceable(level, hovered.getBlockPos());
             Direction face = snapped.equals(hovered.getBlockPos()) ? hovered.getDirection() : Direction.UP;
             this.ghost = new CarvedGlyph(snapped, face, pending.ghostLift());
-            this.invalidReason = StylusActions.placeFootprint(workplace, pending.pos().pos(), this.ghost.corner()).failure();
+            this.invalidReason = StylusActions.placeFootprint(workplace, level.dimension(), pending.pos().pos(), this.ghost.corner()).failure();
             target = WorkFootprint.ofBox(pending.pos().pos(), this.ghost.corner()).zone(0, 0).aabb();
         }
 
@@ -82,7 +82,7 @@ public class PendingZoneRenderer {
         ZoneRenderer.renderGlyph(geometry, pending.glyph(), COLOR, alpha, time);
 
         if (this.ghost != null) {
-            ZoneRenderer.renderPlumbLine(geometry, this.ghost.pos(), this.ghost.face(), this.ghost.lift(), boxColor, alpha * GHOST_ALPHA);
+            ZoneRenderer.renderGlyph(geometry, this.ghost, boxColor, alpha * GHOST_ALPHA, time);
         }
 
         if (this.previous == null || this.current == null) {
@@ -92,14 +92,6 @@ public class PendingZoneRenderer {
         AABB box = lerp(this.previous, this.current, partialTick).inflate(0.01);
         geometry.boxFaces(box, WorkplaceGeometry.argb(boxColor, alpha * 0.06F));
         geometry.boxEdges(box, WorkplaceGeometry.argb(boxColor, alpha * 0.9F * pulse));
-        for (int i = 0; i < 8; i++) {
-            geometry.cornerNode(
-                    WorkplaceGeometry.boxCorner(box, i),
-                    0.35F,
-                    WorkplaceGeometry.argb(boxColor, alpha * 0.9F),
-                    WorkplaceGeometry.argb(boxColor, alpha * 0.35F)
-            );
-        }
     }
 
     private static AABB lerp(AABB from, AABB to, double t) {

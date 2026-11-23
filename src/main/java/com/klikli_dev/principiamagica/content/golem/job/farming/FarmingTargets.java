@@ -145,7 +145,7 @@ public final class FarmingTargets {
 
     private static boolean scanZones(ServerLevel level, Workplace workplace, ItemStack template) {
         if (template.is(Items.BONE_MEAL)) {
-            return workplace.options().get(BONEMEAL) && anyInZone(workplace, pos -> {
+            return workplace.options().get(BONEMEAL) && anyInZone(level, workplace, pos -> {
                 BlockState state = level.getBlockState(pos);
                 return state.getBlock() instanceof BonemealableBlock block
                         && block.isValidBonemealTarget(level, pos, state)
@@ -159,7 +159,7 @@ public final class FarmingTargets {
 
         Item seed = template.getItem();
         // A farmland spot with an obstruction the job clears is a planting spot too, the golem clears it first.
-        return anyInZone(workplace, pos -> (isPlantableSoil(level, pos)
+        return anyInZone(level, workplace, pos -> (isPlantableSoil(level, pos)
                 || (workplace.options().get(CLEAR_OBSTRUCTIONS) && isFarmSoil(level, pos) && level.getBlockState(pos.above()).is(CLEARABLE)))
                 && seedFitsSpot(level, workplace, seed, pos));
     }
@@ -174,8 +174,8 @@ public final class FarmingTargets {
         return (remembered == null || remembered.value() == seed) && survives(level, plantPos, seed);
     }
 
-    private static boolean anyInZone(Workplace workplace, Predicate<BlockPos> test) {
-        for (WorkZone zone : workplace.zones(FarmingJob.BELOW, FarmingJob.ABOVE)) {
+    private static boolean anyInZone(ServerLevel level, Workplace workplace, Predicate<BlockPos> test) {
+        for (WorkZone zone : workplace.zones(level.dimension(), FarmingJob.BELOW, FarmingJob.ABOVE)) {
             for (int i = 0; i < zone.volume(); i++) {
                 if (test.test(zone.positionAt(i))) {
                     return true;
@@ -202,10 +202,10 @@ public final class FarmingTargets {
     public static void pruneItemMemory(ServerLevel level, GolemEntity golem) {
         golem.getWorkplace(level).ifPresent(workplace -> {
             boolean stale = workplace.itemMemory().keySet().stream()
-                    .anyMatch(pos -> !workplace.containsInZone(FarmingJob.BELOW, FarmingJob.ABOVE, pos) || !isFarmSoil(level, pos.below()));
+                    .anyMatch(pos -> !workplace.containsInZone(level.dimension(), FarmingJob.BELOW, FarmingJob.ABOVE, pos) || !isFarmSoil(level, pos.below()));
             if (stale) {
                 golem.updateWorkplace(current -> current.withItemMemory(current.itemMemory().entrySet().stream()
-                        .filter(entry -> current.containsInZone(FarmingJob.BELOW, FarmingJob.ABOVE, entry.getKey()) && isFarmSoil(level, entry.getKey().below()))
+                        .filter(entry -> current.containsInZone(level.dimension(), FarmingJob.BELOW, FarmingJob.ABOVE, entry.getKey()) && isFarmSoil(level, entry.getKey().below()))
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))));
             }
         });

@@ -35,7 +35,9 @@ public class Networking {
     }
 
     public static <T extends Message> void sendTo(ServerPlayer player, T message) {
-        PacketDistributor.sendToPlayer(player, message);
+        if (player.connection != null && player.connection.hasChannel(message)) {
+            PacketDistributor.sendToPlayer(player, message);
+        }
     }
 
     public static <T extends Message> void sendToServer(T message) {

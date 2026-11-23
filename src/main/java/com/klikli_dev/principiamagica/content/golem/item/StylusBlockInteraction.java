@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.item;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
@@ -31,6 +32,7 @@ import java.util.Optional;
  * <ul>
  *     <li>container, plain: cycles the container link (supply, deposit, both, removed)</li>
  *     <li>container, sneaking: removes the container link</li>
+ *     <li>other block, sneaking: erases the footprint at the block</li>
  *     <li>other block, plain: sets or finishes the pending work-area corner</li>
  * </ul>
  */
@@ -52,11 +54,26 @@ final class StylusBlockInteraction {
             removeLink(level, player, golem, workplace, pos);
         } else if (container) {
             cycleLink(level, player, golem, workplace, pos, face);
-        } else if (!sneaking) {
+        } else if (sneaking) {
+            eraseFootprint(level, player, golem, workplace, pos);
+        } else {
             placeCorner(level, player, stack, golem, workplace, pos, face);
         }
 
         StylusItem.syncWorkplace(player, golem);
+    }
+
+    private static void eraseFootprint(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos) {
+        int below = golem.getJob().map(GolemJob::below).orElse(WorkFootprint.DEFAULT_BELOW);
+        int above = golem.getJob().map(GolemJob::above).orElse(WorkFootprint.DEFAULT_ABOVE);
+        Optional<Workplace> updated = StylusActions.removeFootprintAt(workplace, level.dimension(), pos, below, above);
+        if (updated.isPresent()) {
+            StylusItem.applyWorkplaceEdit(player, golem, updated.get());
+            level.playSound(null, pos, SoundEvents.CALCITE_BREAK, SoundSource.BLOCKS, 1.0F, 0.8F);
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_erased"));
+        } else {
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
+        }
     }
 
     private static void removeLink(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos) {
@@ -112,7 +129,7 @@ final class StylusBlockInteraction {
         }
 
         BlockPos secondCorner = pos.offset(0, pending.get().ghostLift(), 0);
-        StylusActions.EditResult result = StylusActions.placeFootprint(workplace, pending.get().pos().pos(), secondCorner);
+        StylusActions.EditResult result = StylusActions.placeFootprint(workplace, level.dimension(), pending.get().pos().pos(), secondCorner);
         if (result.isSuccess()) {
             boolean wasMove = pending.get().original().isPresent();
             stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
