@@ -46,6 +46,7 @@ public final class LumberjackJob {
                 BELOW,
                 ABOVE,
                 Optional.of(ItemTags.AXES),
+                Optional.of(ItemTags.AXES),
                 List.of(LumberjackTargets.REPLANT, LumberjackTargets.CLEAR_LEAVES, LumberjackTargets.BONEMEAL, CommonJobOptions.PICKUP_ITEMS),
                 LumberjackTargets::keepsItem,
                 new WorkTargetFinder(LumberjackTargets::isWorkTarget, LumberjackTargets::blockedReason),

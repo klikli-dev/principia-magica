@@ -4,7 +4,6 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
-import com.klikli_dev.codedefinedgui.api.widget.GuiSpriteWidget;
 import com.klikli_dev.principiamagica.client.gui.ContentRect;
 import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
 import com.klikli_dev.principiamagica.client.gui.widget.SegmentedControl;
@@ -21,7 +20,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -37,7 +35,6 @@ final class GolemMainTab extends GolemTab {
     private static final int CONTENT_WIDTH = 160;
 
     private final GolemMenu menu;
-    private final List<GuiSpriteWidget> golemBackgrounds = new ArrayList<>();
     private ContentRect bounds;
     private StatusBadge status;
     private GolemSlotWidgets.Overlay toolOverlay;
@@ -69,10 +66,13 @@ final class GolemMainTab extends GolemTab {
         this.add(new LabelWidget(bounds.x() + axiom.x + GolemSlotWidgets.SLOT_SIZE + 4, bounds.y() + axiom.y + 4, AXIOM_LABEL_WIDTH,
                 () -> GolemGuiText.jobName(this.view())));
 
-        Slot tool = this.menu.toolSlot();
-        this.add(GolemSlotWidgets.background(bounds, tool));
-        this.toolOverlay = this.add(GolemSlotWidgets.overlay(bounds.x() + tool.x - 1, bounds.y() + tool.y - 1,
+        Slot hand = this.menu.handSlot();
+        this.add(GolemSlotWidgets.background(bounds, hand));
+        this.toolOverlay = this.add(GolemSlotWidgets.overlay(bounds.x() + hand.x - 1, bounds.y() + hand.y - 1,
                 Component.translatable("gui.principiamagica.golem.tool.disabled")));
+
+        Slot back = this.menu.backSlot();
+        this.add(GolemSlotWidgets.background(bounds, back));
 
         this.add(new SegmentedControl<GolemMode>(bounds.x() + GolemMenuLayout.MODE_X, bounds.y() + GolemMenuLayout.MODE_Y, MODE_WIDTH, 18,
                 List.of(GolemMode.values()), GolemGuiText::modeName,
@@ -82,11 +82,6 @@ final class GolemMainTab extends GolemTab {
                 .withTooltip(this::modeTooltip));
 
         this.add(new LabelWidget(x, bounds.y() + GolemMenuLayout.STATUS_Y, CONTENT_WIDTH, this::statusHint));
-
-        for (Slot slot : this.menu.golemSlots()) {
-            this.golemBackgrounds.add(this.add(GolemSlotWidgets.background(bounds, slot)));
-        }
-        this.updateGolemSlots(this.view().usableSlots());
 
         this.add(new LabelWidget(x, bounds.y() + GolemMenuLayout.INVENTORY_LABEL_Y, CONTENT_WIDTH, () -> Component.translatable("container.inventory")));
     }
@@ -99,16 +94,6 @@ final class GolemMainTab extends GolemTab {
         this.status.update(Component.empty(), statusColor(status), Component.translatable(status.translationKey()));
 
         this.toolOverlay.visible = view.job().isEmpty();
-        this.updateGolemSlots(view.usableSlots());
-    }
-
-    /**
-     * Only the usable golem slots get a background. The others are not drawn at all, and their {@link GolemMenu} slots are inactive.
-     */
-    private void updateGolemSlots(int usableSlots) {
-        for (int i = 0; i < this.golemBackgrounds.size(); i++) {
-            this.golemBackgrounds.get(i).visible = i < usableSlots;
-        }
     }
 
     private Component statusHint() {

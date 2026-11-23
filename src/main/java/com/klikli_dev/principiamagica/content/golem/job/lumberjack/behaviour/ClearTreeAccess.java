@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.lumberjack.behaviour;
 
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.MoveToAndInteract;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBreaking;
@@ -27,6 +29,11 @@ import java.util.Optional;
  * stands on the planned stand cell while it breaks the leaf. Player-placed leaves are never broken.
  */
 public class ClearTreeAccess extends JobTargetBehaviour {
+
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.CLEAR;
+    }
     private static final int MIN_CLEAR_TICKS = 10;
 
     private TreeAccess.@Nullable Plan plan;

@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBonemeal;
 import com.klikli_dev.principiamagica.content.golem.job.JobTargetBehaviour;
@@ -12,6 +14,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
 public class ApplyBonemeal extends JobTargetBehaviour {
+
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.BONEMEAL;
+    }
 
     @Override
     protected boolean canAct(ServerLevel level, GolemEntity golem, BlockPos pos) {

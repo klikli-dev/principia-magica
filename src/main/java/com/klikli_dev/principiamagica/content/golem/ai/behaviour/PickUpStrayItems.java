@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.CommonJobOptions;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
@@ -25,6 +27,11 @@ import java.util.Optional;
  * Gated by the shared {@link CommonJobOptions#PICKUP_ITEMS} option.
  */
 public class PickUpStrayItems extends MoveToAndInteract {
+
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.PICKUP;
+    }
     private static final int COOLDOWN_TICKS = 100;
 
     private final GolemJob job;
@@ -61,7 +68,7 @@ public class PickUpStrayItems extends MoveToAndInteract {
     @Override
     protected void interact(ServerLevel level, GolemEntity golem, BlockPos pos) {
         for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, pickupArea(pos), entity -> canPickUp(golem, entity.getItem()))) {
-            ItemStack remaining = golem.getInventory().insert(item.getItem());
+            ItemStack remaining = golem.insertCarried(item.getItem());
             if (remaining.isEmpty()) {
                 item.discard();
             } else {
@@ -77,7 +84,7 @@ public class PickUpStrayItems extends MoveToAndInteract {
     }
 
     private static boolean canPickUp(GolemEntity golem, ItemStack stack) {
-        return golem.getInventory().fitAmount(stack) > 0;
+        return golem.carryFitAmount(stack) > 0;
     }
 
     private static AABB pickupArea(BlockPos pos) {

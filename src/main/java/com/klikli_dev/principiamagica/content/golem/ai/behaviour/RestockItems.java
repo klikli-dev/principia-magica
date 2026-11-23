@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
@@ -27,6 +29,11 @@ import java.util.Optional;
  * Takes items the job needs (keepAmount above what the golem holds) from a SUPPLY-capable container.
  */
 public class RestockItems extends MoveToAndInteract {
+
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.RESTOCK;
+    }
     private static final int COOLDOWN_TICKS = 100;
 
     private final GolemJob job;
@@ -105,7 +112,7 @@ public class RestockItems extends MoveToAndInteract {
                 try (Transaction transaction = Transaction.openRoot()) {
                     int extracted = handler.extract(slot, resource, amount, transaction);
                     if (extracted > 0) {
-                        golem.getInventory().insert(resource.toStack(extracted));
+                        golem.insertCarried(resource.toStack(extracted));
                         transaction.commit();
                         moved += extracted;
                     }
@@ -125,7 +132,8 @@ public class RestockItems extends MoveToAndInteract {
             return 0;
         }
 
-        int missing = keep - golem.getInventory().countItem(template.getItem());
-        return Math.max(0, Math.min(missing, golem.getInventory().fitAmount(template)));
+
+        int missing = keep - golem.countCarried(template.getItem());
+        return Math.max(0, Math.min(missing, golem.carryFitAmount(template)));
     }
 }

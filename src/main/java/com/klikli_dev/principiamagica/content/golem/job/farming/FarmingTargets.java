@@ -167,15 +167,13 @@ public final class FarmingTargets {
         Holder<Item> remembered = workplace.itemMemory().get(plantPos);
         if (remembered != null) {
             Item item = remembered.value();
-            return golem.getInventory().countItem(item) > 0 && survives(level, plantPos, item) ? Optional.of(item) : Optional.empty();
+            return golem.countCarried(item) > 0 && survives(level, plantPos, item) ? Optional.of(item) : Optional.empty();
         }
 
         Map<Item, Integer> counts = new HashMap<>();
-        for (int slot = 0; slot < golem.getInventory().getUsableSlots(); slot++) {
-            ItemStack stack = golem.getInventory().getItem(slot);
-            if (isPlantSeed(stack) && survives(level, plantPos, stack.getItem())) {
-                counts.merge(stack.getItem(), stack.getCount(), Integer::sum);
-            }
+        ItemStack hand = golem.getHandItem();
+        if (!golem.isTool(hand) && isPlantSeed(hand) && survives(level, plantPos, hand.getItem())) {
+            counts.merge(hand.getItem(), hand.getCount(), Integer::sum);
         }
 
         return counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey);

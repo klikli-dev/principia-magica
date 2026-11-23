@@ -136,14 +136,14 @@ public class FarmingGameTests {
     public static void harvestAndReplant(GameTestHelper helper) {
         buildMatureWheat(helper);
         GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(), JobOptionValues.EMPTY);
-        golem.getInventory().insert(new ItemStack(Items.WHEAT_SEEDS, 9));
+        golem.insertCarried(new ItemStack(Items.WHEAT_SEEDS, 9));
 
         helper.succeedWhen(() -> {
             for (BlockPos spot : farmSpots()) {
                 BlockState state = helper.getBlockState(spot);
                 helper.assertTrue(state.is(Blocks.WHEAT) && state.getValue(CropBlock.AGE) < 7, "Crop at " + spot + " should be harvested and replanted, got " + state);
             }
-            helper.assertTrue(golem.getInventory().countItem(Items.WHEAT) >= 9, "Golem should carry the harvested wheat, has " + golem.getInventory().countItem(Items.WHEAT));
+            helper.assertTrue(golem.countCarried(Items.WHEAT) >= 9, "Golem should carry the harvested wheat, has " + golem.countCarried(Items.WHEAT));
         });
     }
 
@@ -152,9 +152,7 @@ public class FarmingGameTests {
         ContainerLink deposit = link(helper, CHEST_POS, ContainerRole.DEPOSIT);
         helper.setBlock(CHEST_POS, Blocks.CHEST);
         GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(deposit), JobOptionValues.EMPTY);
-        for (int slot = 0; slot < golem.getInventory().getUsableSlots(); slot++) {
-            golem.getInventory().setItem(slot, new ItemStack(Items.WHEAT, 64));
-        }
+        golem.setHandItem(new ItemStack(Items.WHEAT, 64));
 
         helper.succeedWhen(() -> helper.assertTrue(countInChest(helper, CHEST_POS, Items.WHEAT) >= 64,
                 "Full golem should deposit wheat into the deposit chest, chest has " + countInChest(helper, CHEST_POS, Items.WHEAT)));
@@ -175,9 +173,7 @@ public class FarmingGameTests {
         helper.setBlock(CHEST_POS, Blocks.CHEST);
         List<ContainerLink> links = List.of(link(helper, fullChest, ContainerRole.DEPOSIT), link(helper, CHEST_POS, ContainerRole.DEPOSIT));
         GolemEntity golem = spawnFarmer(helper, GOLEM_POS, links, JobOptionValues.EMPTY);
-        for (int slot = 0; slot < golem.getInventory().getUsableSlots(); slot++) {
-            golem.getInventory().setItem(slot, new ItemStack(Items.WHEAT, 64));
-        }
+        golem.setHandItem(new ItemStack(Items.WHEAT, 64));
 
         helper.succeedWhen(() -> helper.assertTrue(countInChest(helper, CHEST_POS, Items.WHEAT) >= 64,
                 "Full golem should deposit into the chest with room, the other chest holds " + countInChest(helper, CHEST_POS, Items.WHEAT)));
@@ -191,7 +187,7 @@ public class FarmingGameTests {
 
         helper.succeedWhen(() -> {
             long planted = farmSpots().stream().filter(spot -> helper.getBlockState(spot).is(Blocks.WHEAT)).count();
-            helper.assertTrue(planted >= 9, "All farmland spots should be planted from supplied seeds, planted " + planted + ", golem has " + golem.getInventory().countItem(Items.WHEAT_SEEDS));
+            helper.assertTrue(planted >= 9, "All farmland spots should be planted from supplied seeds, planted " + planted + ", golem has " + golem.countCarried(Items.WHEAT_SEEDS));
         });
     }
 
@@ -223,7 +219,7 @@ public class FarmingGameTests {
             helper.assertTrue(helper.getBlockState(new BlockPos(3, 2, 2)).isAir(), "Ripe pumpkin should be harvested");
             Block stem = helper.getBlockState(new BlockPos(2, 2, 2)).getBlock();
             helper.assertTrue(stem instanceof StemBlock || stem instanceof AttachedStemBlock, "Stem should stay, got " + stem);
-            helper.assertTrue(golem.getInventory().countItem(Items.PUMPKIN) >= 1, "Golem should carry the pumpkin");
+            helper.assertTrue(golem.countCarried(Items.PUMPKIN) >= 1, "Golem should carry the pumpkin");
         });
     }
 
@@ -236,7 +232,7 @@ public class FarmingGameTests {
         helper.succeedWhen(() -> {
             BlockState bush = helper.getBlockState(new BlockPos(2, 2, 2));
             helper.assertTrue(bush.is(Blocks.SWEET_BERRY_BUSH) && bush.getValue(BlockStateProperties.AGE_3) == 1, "Berry bush should reset to age 1, got " + bush);
-            helper.assertTrue(golem.getInventory().countItem(Items.SWEET_BERRIES) >= 1, "Golem should carry berries");
+            helper.assertTrue(golem.countCarried(Items.SWEET_BERRIES) >= 1, "Golem should carry berries");
         });
     }
 
@@ -277,21 +273,21 @@ public class FarmingGameTests {
         buildFarmland(helper);
         helper.setBlock(new BlockPos(3, 2, 3), Blocks.WHEAT);
         GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(), JobOptionValues.EMPTY.with(FarmingTargets.BONEMEAL, true));
-        golem.getInventory().insert(new ItemStack(Items.BONE_MEAL, 8));
+        golem.insertCarried(new ItemStack(Items.BONE_MEAL, 8));
 
         helper.succeedWhen(() -> {
             BlockState crop = helper.getBlockState(new BlockPos(3, 2, 3));
             helper.assertTrue(crop.is(Blocks.WHEAT) && crop.getValue(CropBlock.AGE) >= 2, "Bone meal should grow the wheat, got " + crop);
-            helper.assertTrue(golem.getInventory().countItem(Items.BONE_MEAL) < 8, "Bone meal should be used up");
+            helper.assertTrue(golem.countCarried(Items.BONE_MEAL) < 8, "Bone meal should be used up");
         });
     }
 
     public static void twoGolemsShareField(GameTestHelper helper) {
         buildMatureWheat(helper);
         GolemEntity first = spawnFarmer(helper, GOLEM_POS, List.of(), JobOptionValues.EMPTY);
-        first.getInventory().insert(new ItemStack(Items.WHEAT_SEEDS, 9));
+        first.insertCarried(new ItemStack(Items.WHEAT_SEEDS, 9));
         GolemEntity second = spawnFarmer(helper, new BlockPos(6, 2, 0), List.of(), JobOptionValues.EMPTY);
-        second.getInventory().insert(new ItemStack(Items.WHEAT_SEEDS, 9));
+        second.insertCarried(new ItemStack(Items.WHEAT_SEEDS, 9));
 
         helper.succeedWhen(() -> {
             for (BlockPos spot : farmSpots()) {
@@ -325,7 +321,7 @@ public class FarmingGameTests {
             helper.setBlock(spot, Blocks.SHORT_GRASS);
         }
         GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(), JobOptionValues.EMPTY);
-        golem.getInventory().insert(new ItemStack(Items.WHEAT_SEEDS, 9));
+        golem.insertCarried(new ItemStack(Items.WHEAT_SEEDS, 9));
 
         helper.succeedWhen(() -> {
             long planted = farmSpots().stream().filter(spot -> helper.getBlockState(spot).is(Blocks.WHEAT)).count();

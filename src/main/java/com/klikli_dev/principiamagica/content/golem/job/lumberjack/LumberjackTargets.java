@@ -159,16 +159,14 @@ public final class LumberjackTargets {
      */
     public static Optional<Item> chooseSapling(ServerLevel level, GolemEntity golem, Workplace workplace, BlockPos pos) {
         Holder<Item> remembered = workplace.itemMemory().get(pos);
-        if (remembered != null && golem.getInventory().countItem(remembered.value()) > 0 && survives(level, pos, remembered.value())) {
+        if (remembered != null && golem.countCarried(remembered.value()) > 0 && survives(level, pos, remembered.value())) {
             return Optional.of(remembered.value());
         }
 
         Map<Item, Integer> counts = new HashMap<>();
-        for (int slot = 0; slot < golem.getInventory().getUsableSlots(); slot++) {
-            ItemStack stack = golem.getInventory().getItem(slot);
-            if (Saplings.isSapling(stack.getItem()) && survives(level, pos, stack.getItem())) {
-                counts.merge(stack.getItem(), stack.getCount(), Integer::sum);
-            }
+        ItemStack hand = golem.getHandItem();
+        if (!golem.isTool(hand) && Saplings.isSapling(hand.getItem()) && survives(level, pos, hand.getItem())) {
+            counts.merge(hand.getItem(), hand.getCount(), Integer::sum);
         }
 
         return counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey);

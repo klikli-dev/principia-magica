@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableList;
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.DepositItems;
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.PickUpStrayItems;
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.RestockItems;
+import com.klikli_dev.principiamagica.content.golem.ai.behaviour.SwapTool;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.mojang.datafixers.util.Pair;
@@ -33,11 +34,12 @@ public final class JobBehaviours {
 
     public static ImmutableList<Pair<Integer, BehaviorControl<? super GolemEntity>>> compose(GolemJob job) {
         List<BehaviorControl<? super GolemEntity>> ordered = new ArrayList<>();
-        ordered.add(new DepositItems(job, DepositItems.Mode.WHEN_FULL));
+        ordered.add(new DepositItems(job, DepositItems.Mode.EXCESS));
         ordered.add(new RestockItems(job));
+        ordered.add(new SwapTool());
         ordered.addAll(job.createJobBehaviours());
+        ordered.add(new DepositItems(job, DepositItems.Mode.SWITCH));
         ordered.add(new PickUpStrayItems(job));
-        ordered.add(new DepositItems(job, DepositItems.Mode.LEFTOVER));
 
         return ImmutableList.of(Pair.of(0, gate(ordered)));
     }

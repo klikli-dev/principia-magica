@@ -396,7 +396,7 @@ public class GolemGameTests {
                     helper.assertTrue(!(state.is(Blocks.WHEAT) && state.getValue(CropBlock.AGE) == 7), "Mature wheat at " + x + "," + z + " should be harvested");
                 }
             }
-            helper.assertTrue(golem.getInventory().countItem(Items.WHEAT) >= 9, "The golem should carry the harvested wheat, has " + golem.getInventory().countItem(Items.WHEAT));
+            helper.assertTrue(golem.countCarried(Items.WHEAT) >= 9, "The golem should carry the harvested wheat, has " + golem.countCarried(Items.WHEAT));
         });
     }
 

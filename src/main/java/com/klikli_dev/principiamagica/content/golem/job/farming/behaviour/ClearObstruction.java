@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBreaking;
 import com.klikli_dev.principiamagica.content.golem.job.GolemDrops;
@@ -22,6 +24,11 @@ import java.util.List;
  * can be planted or tilled. Their drops, e.g. seeds from grass, go into the golem's inventory.
  */
 public class ClearObstruction extends JobTargetBehaviour {
+
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.CLEAR;
+    }
     private static final int MAX_CLEAR_TICKS = 60;
 
     @Override

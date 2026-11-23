@@ -5,11 +5,10 @@
 package com.klikli_dev.principiamagica.content.golem.menu;
 
 import com.klikli_dev.codedefinedgui.api.layout.LayoutSpec;
-import com.klikli_dev.principiamagica.content.golem.entity.GolemInventory;
 
 /**
  * Static geometry of the golem menu. The GUI is a vanilla large chest sized 176x222 frame. The golem tab uses the area above the
- * golem inventory for the preview, the axiom and tool slots, the mode and the status. The job tab uses the same frame.
+ * player inventory for the preview, the axiom, hand and back slots, the mode and the status. The job tab uses the same frame.
  */
 public final class GolemMenuLayout {
     public static final int WIDTH = 176;
@@ -23,15 +22,14 @@ public final class GolemMenuLayout {
 
     public static final int AXIOM_X = 64;
     public static final int AXIOM_Y = 18;
-    public static final int TOOL_X = 152;
-    public static final int TOOL_Y = 18;
+    public static final int HAND_X = 152;
+    public static final int HAND_Y = 18;
+    public static final int BACK_X = 152;
+    public static final int BACK_Y = 40;
 
     public static final int MODE_X = 64;
     public static final int MODE_Y = 62;
     public static final int STATUS_Y = 96;
-
-    public static final int GOLEM_INVENTORY_X = 8;
-    public static final int GOLEM_INVENTORY_Y = 108;
 
     public static final int INVENTORY_LABEL_Y = 129;
     public static final int PLAYER_INVENTORY_X = 8;
@@ -44,13 +42,8 @@ public final class GolemMenuLayout {
     public static final LayoutSpec LAYOUT = LayoutSpec.create(root -> {
         root.group("main", main -> {
             main.node("axiom").at(AXIOM_X, AXIOM_Y).size(SLOT_SIZE, SLOT_SIZE);
-            main.node("tool").at(TOOL_X, TOOL_Y).size(SLOT_SIZE, SLOT_SIZE);
-        });
-
-        root.group("golem", golem -> {
-            for (int i = 0; i < GolemInventory.MAX_SLOTS; i++) {
-                golem.node("slot_" + i).at(GOLEM_INVENTORY_X + i * SLOT_SIZE, GOLEM_INVENTORY_Y).size(SLOT_SIZE, SLOT_SIZE);
-            }
+            main.node("hand").at(HAND_X, HAND_Y).size(SLOT_SIZE, SLOT_SIZE);
+            main.node("back").at(BACK_X, BACK_Y).size(SLOT_SIZE, SLOT_SIZE);
         });
 
         root.group("player", player -> {

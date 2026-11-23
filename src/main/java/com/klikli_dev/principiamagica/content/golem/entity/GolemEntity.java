@@ -54,6 +54,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -74,11 +75,13 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     private static final EntityDataAccessor<GolemSpec> DATA_SPEC = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializerRegistry.GOLEM_SPEC.get());
     private static final EntityDataAccessor<Integer> DATA_STATUS = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_MODE = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<ItemStack> DATA_BACK = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializers.ITEM_STACK);
+    private static final EntityDataAccessor<GolemTask> DATA_TASK = SynchedEntityData.defineId(GolemEntity.class, EntityDataSerializerRegistry.GOLEM_TASK.get());
     private static final GolemSpec DEFAULT_SPEC = GolemSpec.of(GolemMaterialRegistry.WOOD);
+    private static final int WORKPLACE_SYNC_TICKS = 10;
 
     private final AnimatableInstanceCache animatableInstanceCache = GeckoLibUtil.createInstanceCache(this);
     private final GolemSpecModifiers specModifiers = new GolemSpecModifiers();
-    private final GolemInventory inventory = new GolemInventory(this);
     private final GolemBlockers blockers = new GolemBlockers();
     private WorkplaceSource workplaceSource = new WorkplaceSource.Inline(Workplace.EMPTY);
     private @Nullable BlockPos openedContainerPos;
@@ -100,8 +103,7 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 10.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.25)
-                .add(AttributeRegistry.GOLEM_WORK_SPEED)
-                .add(AttributeRegistry.GOLEM_INVENTORY_SLOTS);
+                .add(AttributeRegistry.GOLEM_WORK_SPEED);
     }
 
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
@@ -114,6 +116,8 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         entityData.define(DATA_SPEC, DEFAULT_SPEC);
         entityData.define(DATA_STATUS, GolemStatus.OK.ordinal());
         entityData.define(DATA_MODE, GolemMode.WORK.ordinal());
+        entityData.define(DATA_BACK, ItemStack.EMPTY);
+        entityData.define(DATA_TASK, GolemTask.IDLE);
     }
 
     @Override
@@ -154,12 +158,6 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     private void applySpec() {
         this.specModifiers.apply(this, this.getSpec());
         this.setHealth(Math.min(this.getHealth(), this.getMaxHealth()));
-
-        if (this.level() instanceof ServerLevel serverLevel) {
-            for (ItemStack rest : this.inventory.evictUnusableSlots()) {
-                this.spawnAtLocation(serverLevel, rest);
-            }
-        }
     }
 
     public @Nullable UUID getOwnerUUID() {
@@ -201,6 +199,17 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
 
     public void setStatus(GolemStatus status) {
         this.entityData.set(DATA_STATUS, status.ordinal());
+    }
+
+    /**
+     * @return what the golem is doing right now. Synced to the client, so the GUI can show it live.
+     */
+    public GolemTask getTask() {
+        return this.entityData.get(DATA_TASK);
+    }
+
+    public void setTask(GolemTask task) {
+        this.entityData.set(DATA_TASK, task);
     }
 
     /**
@@ -280,10 +289,173 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         if (this.getStatus().isProblem() && this.tickCount % 80 == 0) {
             level.sendParticles(ParticleTypes.ANGRY_VILLAGER, this.getX(), this.getY() + this.getBbHeight() + 0.3, this.getZ(), 1, 0.0, 0.0, 0.0, 0.0);
         }
+
+        // The golem GUI shows the workplace live, so players with it open get the workplace every few ticks.
+        if (this.tickCount % WORKPLACE_SYNC_TICKS == 0) {
+            for (ServerPlayer player : level.players()) {
+                if (player.containerMenu instanceof GolemMenu menu && menu.getGolemId() == this.getId()) {
+                    StylusItem.syncWorkplace(player, this);
+                }
+            }
+        }
     }
 
-    public GolemInventory getInventory() {
-        return this.inventory;
+    /**
+     * The golem has two item slots. The hand is the main hand equipment: the tool while working, or the carried item.
+     * The back is synced to the client and holds the tool while the golem carries something.
+     *
+     * @return the hand item, the tool or the carried item
+     */
+    public ItemStack getHandItem() {
+        return this.getMainHandItem();
+    }
+
+    public void setHandItem(ItemStack stack) {
+        this.setItemSlot(EquipmentSlot.MAINHAND, stack);
+    }
+
+    /**
+     * @return the back item, the tool while the golem carries something
+     */
+    public ItemStack getBackItem() {
+        return this.entityData.get(DATA_BACK);
+    }
+
+    public void setBackItem(ItemStack stack) {
+        this.entityData.set(DATA_BACK, stack.isEmpty() ? ItemStack.EMPTY : stack.copy());
+    }
+
+    /**
+     * @return true if the stack is a tool the golem's job accepts. Without a job, nothing is a tool.
+     */
+    public boolean isTool(ItemStack stack) {
+        return !stack.isEmpty() && this.getJob().map(job -> job.isTool(stack)).orElse(false);
+    }
+
+    /**
+     * @return true if the hand holds an item that is not the tool, i.e. the golem carries something
+     */
+    public boolean isCarrying() {
+        ItemStack hand = this.getHandItem();
+        return !hand.isEmpty() && !this.isTool(hand);
+    }
+
+    /**
+     * @return the number of items of the given type in the hand, 0 if the hand holds the tool or another item
+     */
+    public int countCarried(Item item) {
+        ItemStack hand = this.getHandItem();
+        return hand.is(item) && !this.isTool(hand) ? hand.getCount() : 0;
+    }
+
+    /**
+     * @return how many items matching the template fit into the golem's slots. Tools never fit, they go in via {@link #equipTool}.
+     */
+    public int carryFitAmount(ItemStack template) {
+        if (template.isEmpty() || this.isTool(template)) {
+            return 0;
+        }
+
+        ItemStack hand = this.getHandItem();
+        if (hand.isEmpty()) {
+            return template.getMaxStackSize();
+        }
+
+        if (this.isTool(hand)) {
+            return this.getBackItem().isEmpty() ? template.getMaxStackSize() : 0;
+        }
+
+        return ItemStack.isSameItemSameComponents(hand, template) ? hand.getMaxStackSize() - hand.getCount() : 0;
+    }
+
+    /**
+     * Puts as much of the stack into the hand as fits. A tool in the hand moves to the back first, so the golem carries
+     * the item in hand and keeps the tool on its back. Shrinks the given stack in place and returns it.
+     */
+    public ItemStack insertCarried(ItemStack stack) {
+        if (stack.isEmpty() || this.carryFitAmount(stack) == 0) {
+            return stack;
+        }
+
+        if (this.isTool(this.getHandItem())) {
+            this.setBackItem(this.getHandItem());
+            this.setHandItem(ItemStack.EMPTY);
+        }
+
+        ItemStack hand = this.getHandItem();
+        if (hand.isEmpty()) {
+            int amount = Math.min(stack.getCount(), stack.getMaxStackSize());
+            this.setHandItem(stack.copyWithCount(amount));
+            stack.shrink(amount);
+        } else {
+            int amount = Math.min(stack.getCount(), hand.getMaxStackSize() - hand.getCount());
+            hand.grow(amount);
+            stack.shrink(amount);
+            this.setHandItem(hand);
+        }
+
+        return stack;
+    }
+
+    /**
+     * Removes items of the given type from the hand, e.g. a seed that was planted.
+     */
+    public void consumeCarried(Item item, int count) {
+        ItemStack hand = this.getHandItem();
+        if (!hand.is(item) || this.isTool(hand)) {
+            return;
+        }
+
+        hand.shrink(count);
+        this.setHandItem(hand.isEmpty() ? ItemStack.EMPTY : hand);
+    }
+
+    /**
+     * Moves the tool from the back into the hand, if the hand is free. Used once the golem has nothing else to hold.
+     *
+     * @return true if the tool was moved
+     */
+    public boolean swapToolIntoHand() {
+        ItemStack back = this.getBackItem();
+        if (!this.getHandItem().isEmpty() || !this.isTool(back)) {
+            return false;
+        }
+
+        this.setHandItem(back);
+        this.setBackItem(ItemStack.EMPTY);
+        return true;
+    }
+
+    /**
+     * Puts a tool into the golem's slots, following the slot rules: the back slot's tool is replaced first, then the hand's tool, then the
+     * free hand, then the free back.
+     *
+     * @return the item displaced from the slot, which goes back to the player. The tool itself if no slot can take it.
+     */
+    public ItemStack equipTool(ItemStack tool) {
+        ItemStack back = this.getBackItem();
+        if (this.isTool(back)) {
+            this.setBackItem(tool);
+            return back;
+        }
+
+        ItemStack hand = this.getHandItem();
+        if (this.isTool(hand)) {
+            this.setHandItem(tool);
+            return hand;
+        }
+
+        if (hand.isEmpty()) {
+            this.setHandItem(tool);
+            return ItemStack.EMPTY;
+        }
+
+        if (back.isEmpty()) {
+            this.setBackItem(tool);
+            return ItemStack.EMPTY;
+        }
+
+        return tool;
     }
 
     public ItemStack toItemStack() {
@@ -319,10 +491,10 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
      */
     private void dropCarriedItems(ServerLevel level) {
         List<ItemStack> drops = new ArrayList<>();
-        for (int i = 0; i < this.inventory.getContainerSize(); i++) {
-            drops.add(this.inventory.removeItemNoUpdate(i));
-        }
+        drops.add(this.getBackItem());
+        this.setBackItem(ItemStack.EMPTY);
 
+        // The hand is the main hand equipment, so the loop over the equipment slots drops it together with the armour.
         for (EquipmentSlot slot : EquipmentSlot.VALUES) {
             drops.add(this.getItemBySlot(slot));
             this.setItemSlot(slot, ItemStack.EMPTY);
@@ -401,8 +573,29 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (hand != InteractionHand.MAIN_HAND || !player.getItemInHand(hand).isEmpty()) {
+        if (hand != InteractionHand.MAIN_HAND) {
             return super.mobInteract(player, hand);
+        }
+
+        ItemStack held = player.getItemInHand(hand);
+        if (!held.isEmpty()) {
+            if (!this.isTool(held) || !player.getUUID().equals(this.getOwnerUUID())) {
+                return super.mobInteract(player, hand);
+            }
+
+            if (!this.level().isClientSide()) {
+                // The tool goes into the golem's slots. A tool already in a slot comes back to the player.
+                ItemStack tool = held.split(1);
+                ItemStack displaced = this.equipTool(tool);
+                if (displaced == tool) {
+                    player.sendOverlayMessage(Component.translatable("message.principiamagica.golem.slots_full"));
+                }
+
+                if (!displaced.isEmpty()) {
+                    player.getInventory().placeItemBackInInventory(displaced);
+                }
+            }
+            return InteractionResult.SUCCESS;
         }
 
         if (!player.getUUID().equals(this.getOwnerUUID())) {
@@ -438,7 +631,9 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         if (this.getAnchor().isPresent()) {
             output.store("Anchor", GlobalPos.CODEC, this.getAnchor().get());
         }
-        this.inventory.save(output);
+        if (!this.getBackItem().isEmpty()) {
+            output.store("BackItem", ItemStack.CODEC, this.getBackItem());
+        }
     }
 
     @Override
@@ -449,6 +644,6 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         input.read("Anchor", GlobalPos.CODEC).ifPresent(this::setAnchor);
         this.entityData.set(DATA_MODE, GolemMode.valueOf(input.getStringOr("Mode", GolemMode.WORK.name())).ordinal());
         input.read("Workplace", WorkplaceSource.CODEC).ifPresent(source -> this.workplaceSource = source);
-        this.inventory.load(input);
+        input.read("BackItem", ItemStack.CODEC).ifPresent(this::setBackItem);
     }
 }

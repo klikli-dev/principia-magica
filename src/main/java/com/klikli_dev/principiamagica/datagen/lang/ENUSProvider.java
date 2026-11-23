@@ -85,7 +85,6 @@ public class ENUSProvider extends LanguageProvider {
         this.add("golem_material.principiamagica.wood", "Wooden");
 
         this.add("attribute.principiamagica.golem_work_speed", "Golem Work Speed");
-        this.add("attribute.principiamagica.golem_inventory_slots", "Golem Inventory Slots");
 
         this.add("entity.principiamagica.golem", "Golem");
         this.add("item.principiamagica.golem", "Golem");
@@ -97,6 +96,21 @@ public class ENUSProvider extends LanguageProvider {
         this.add("message.principiamagica.golem.mode", "Golem mode: %s");
         this.add("message.principiamagica.golem.job_already_set", "This golem already has a job");
 
+        this.add("golem_task.principiamagica.idle", "Idle");
+        this.add("golem_task.principiamagica.wait", "Waiting for a deposit container");
+        this.add("golem_task.principiamagica.harvest", "Harvesting %s");
+        this.add("golem_task.principiamagica.plant", "Planting %s");
+        this.add("golem_task.principiamagica.till", "Tilling %s");
+        this.add("golem_task.principiamagica.bonemeal", "Applying bone meal to %s");
+        this.add("golem_task.principiamagica.clear", "Clearing %s");
+        this.add("golem_task.principiamagica.fell", "Felling %s");
+        this.add("golem_task.principiamagica.pickup", "Picking up %s");
+        this.add("golem_task.principiamagica.deposit", "Depositing into %s");
+        this.add("golem_task.principiamagica.restock", "Restocking from %s");
+        this.add("golem_task.principiamagica.follow", "Following you");
+        this.add("golem_task.principiamagica.stay", "Staying");
+        this.add("golem_task.principiamagica.work_area", "the work area");
+        this.add("message.principiamagica.golem.slots_full", "Both of the golem's slots are full");
         this.add("golem_status.principiamagica.ok", "Working");
         this.add("golem_status.principiamagica.no_purpose", "Purposeless");
         this.add("golem_status.principiamagica.no_zone", "No work zone");
@@ -146,7 +160,6 @@ public class ENUSProvider extends LanguageProvider {
         this.add("gui.principiamagica.golem.mode.follow.tooltip", "The golem follows you");
         this.add("gui.principiamagica.golem.mode.stay.tooltip", "The golem stays where it is");
         this.add("gui.principiamagica.golem.tool.disabled", "A golem without an axiom cannot use a tool");
-        this.add("gui.principiamagica.golem.inventory.locked", "Locked: needs more inventory slots");
         this.add("hud.principiamagica.stylus.role.supply", "Supply");
         this.add("hud.principiamagica.stylus.role.deposit", "Deposit");
         this.add("hud.principiamagica.stylus.role.both", "Both");

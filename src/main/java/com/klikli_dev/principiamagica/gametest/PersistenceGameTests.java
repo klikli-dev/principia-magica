@@ -62,9 +62,8 @@ public class PersistenceGameTests {
                 .withOptions(JobOptionValues.EMPTY.with(FarmingTargets.TILL, true))
                 .markInitialized());
 
-        for (int slot = 0; slot < 3; slot++) {
-            golem.getInventory().setItem(slot, new ItemStack(Items.WHEAT, slot + 1));
-        }
+        golem.setHandItem(new ItemStack(Items.WHEAT, 5));
+        golem.setBackItem(new ItemStack(Items.IRON_AXE));
 
         TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
         golem.saveWithoutId(output);
@@ -75,11 +74,10 @@ public class PersistenceGameTests {
 
         helper.assertTrue(loaded.getSpec().equals(golem.getSpec()), "Spec should survive save and load, got " + loaded.getSpec());
         helper.assertTrue(loaded.getMode() == GolemMode.FOLLOW, "Mode should survive save and load, got " + loaded.getMode());
-        helper.assertTrue(loaded.getInventory().getUsableSlots() == 3, "Usable slots should apply after load, got " + loaded.getInventory().getUsableSlots());
-        for (int slot = 0; slot < 3; slot++) {
-            ItemStack stack = loaded.getInventory().getItem(slot);
-            helper.assertTrue(stack.is(Items.WHEAT) && stack.getCount() == slot + 1, "Slot " + slot + " should keep its items after load, got " + stack);
-        }
+        ItemStack hand = loaded.getHandItem();
+        helper.assertTrue(hand.is(Items.WHEAT) && hand.getCount() == 5, "The hand should keep its item after load, got " + hand);
+        ItemStack back = loaded.getBackItem();
+        helper.assertTrue(back.is(Items.IRON_AXE), "The back should keep its item after load, got " + back);
         helper.assertTrue(loaded.getOwnerUUID() != null && loaded.getOwnerUUID().equals(golem.getOwnerUUID()), "Owner should survive save and load");
         helper.assertTrue(loaded.getAnchor().equals(golem.getAnchor()), "Anchor should survive save and load, got " + loaded.getAnchor());
 

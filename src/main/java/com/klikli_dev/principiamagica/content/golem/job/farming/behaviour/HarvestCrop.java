@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBreaking;
 import com.klikli_dev.principiamagica.content.golem.job.GolemDrops;
@@ -21,6 +23,11 @@ import org.jspecify.annotations.Nullable;
 import java.util.Optional;
 
 public class HarvestCrop extends JobTargetBehaviour {
+
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.HARVEST;
+    }
     private static final int MAX_HARVEST_TICKS = 60;
 
     @Override

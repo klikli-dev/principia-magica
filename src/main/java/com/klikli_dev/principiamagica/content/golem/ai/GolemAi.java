@@ -5,8 +5,10 @@
 package com.klikli_dev.principiamagica.content.golem.ai;
 
 import com.google.common.collect.ImmutableList;
+import com.klikli_dev.principiamagica.content.golem.ai.behaviour.DepositItems;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.registry.ActivityRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
@@ -37,6 +39,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.schedule.Activity;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,9 +102,34 @@ public class GolemAi {
 
         Brain<GolemEntity> brain = golem.getBrain();
         switch (golem.getMode()) {
-            case WORK -> brain.setActiveActivityToFirstValid(List.of(Activity.WORK, Activity.IDLE));
-            case FOLLOW -> brain.setActiveActivityToFirstValid(List.of(ActivityRegistry.FOLLOW.value(), Activity.IDLE));
-            case STAY -> brain.setActiveActivityToFirstValid(List.of(ActivityRegistry.STAY.value(), Activity.IDLE));
+            case WORK -> {
+                // A golem that holds something it has to deposit, with no deposit container to go to, waits with the item instead of working.
+                boolean waiting = golem.level() instanceof ServerLevel level && isWaitingForDeposit(level, golem);
+                showTask(golem, waiting ? GolemTask.TaskType.WAIT : null);
+                brain.setActiveActivityToFirstValid(waiting ? List.of(Activity.IDLE) : List.of(Activity.WORK, Activity.IDLE));
+            }
+            case FOLLOW -> {
+                showTask(golem, GolemTask.TaskType.FOLLOW);
+                brain.setActiveActivityToFirstValid(List.of(ActivityRegistry.FOLLOW.value(), Activity.IDLE));
+            }
+            case STAY -> {
+                showTask(golem, GolemTask.TaskType.STAY);
+                brain.setActiveActivityToFirstValid(List.of(ActivityRegistry.STAY.value(), Activity.IDLE));
+            }
+        }
+    }
+
+    /**
+     * Shows a mode-level task. Behaviours set their own tasks while they run, so this only replaces the task of a golem that is not
+     * running a behaviour: the given type, or idle if the golem is not in a mode task.
+     */
+    private static void showTask(GolemEntity golem, GolemTask.TaskType type) {
+        GolemTask.TaskType current = golem.getTask().type();
+        boolean modeTask = current == GolemTask.TaskType.WAIT || current == GolemTask.TaskType.FOLLOW || current == GolemTask.TaskType.STAY;
+        if (type != null && current != type) {
+            golem.setTask(GolemTask.of(type, Optional.empty()));
+        } else if (type == null && modeTask) {
+            golem.setTask(GolemTask.IDLE);
         }
     }
 
@@ -112,11 +140,22 @@ public class GolemAi {
             setupProblem = GolemStatus.NO_PURPOSE;
         } else if (golem.getWorkplace(level).map(workplace -> workplace.footprints().isEmpty()).orElse(true)) {
             setupProblem = GolemStatus.NO_ZONE;
-        } else if (job.get().requiredTool().isPresent() && !golem.getMainHandItem().is(job.get().requiredTool().get())) {
+        } else if (job.get().requiredTool().isPresent() && !golem.isTool(golem.getHandItem()) && !golem.isTool(golem.getBackItem())) {
             setupProblem = GolemStatus.MISSING_TOOL;
+        } else if (isWaitingForDeposit(level, golem)) {
+            setupProblem = GolemStatus.NO_DEPOSIT;
         }
 
         golem.setStatus(setupProblem != GolemStatus.OK ? setupProblem : golem.activeBlocker());
+    }
+
+    /**
+     * @return true if the golem holds an item it has to deposit, but its workplace has no deposit container at all
+     */
+    static boolean isWaitingForDeposit(ServerLevel level, GolemEntity golem) {
+        return golem.getSpec().job().isPresent()
+                && DepositItems.carriesExcess(golem)
+                && golem.getWorkplace(level).map(workplace -> workplace.links().stream().noneMatch(link -> link.role().canDeposit())).orElse(true);
     }
 
     private static List<ActivityData<GolemEntity>> createActivities(GolemEntity body) {

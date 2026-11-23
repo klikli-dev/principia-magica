@@ -24,7 +24,6 @@ import java.util.Optional;
  * @param workplace the workplace, or {@link Workplace#EMPTY} if not known yet
  * @param mode the current mode
  * @param job the job's axiom, if an axiom is inserted
- * @param usableSlots the number of golem inventory slots that are usable
  * @param status the current status of the golem
  */
 public record GolemView(
@@ -34,7 +33,6 @@ public record GolemView(
         Workplace workplace,
         GolemMode mode,
         Optional<Holder<GolemJob>> job,
-        int usableSlots,
         GolemStatus status
 ) {
 }

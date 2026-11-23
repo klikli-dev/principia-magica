@@ -50,6 +50,20 @@ public interface GolemJob {
     }
 
     /**
+     * Tag of the items the golem accepts as its tool. Broader than {@link #requiredTool()} for jobs where a tool is useful but not needed.
+     */
+    default Optional<TagKey<Item>> toolTag() {
+        return this.requiredTool();
+    }
+
+    /**
+     * @return true if the stack is a tool this job can use, see {@link #toolTag()}
+     */
+    default boolean isTool(ItemStack stack) {
+        return this.toolTag().map(tag -> stack.is(tag)).orElse(false);
+    }
+
+    /**
      * How many of this item the golem keeps in its inventory. Items beyond this are deposited.
      * Items with a value above zero are also restocked from SUPPLY containers when lacking.
      */

@@ -18,6 +18,7 @@ import com.klikli_dev.principiamagica.content.golem.job.farming.behaviour.PlantS
 import com.klikli_dev.principiamagica.content.golem.job.farming.behaviour.TillSoil;
 import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.ai.behavior.BehaviorControl;
 
 import java.util.List;
@@ -45,6 +46,7 @@ public final class FarmingJob {
                 BELOW,
                 ABOVE,
                 Optional.empty(),
+                Optional.of(ItemTags.HOES),
                 List.of(FarmingTargets.REPLANT, FarmingTargets.CLEAR_OBSTRUCTIONS, FarmingTargets.TILL, FarmingTargets.BONEMEAL, CommonJobOptions.PICKUP_ITEMS),
                 FarmingTargets::keepsItem,
                 new WorkTargetFinder(FarmingTargets::isWorkTarget, FarmingTargets::blockedReason),

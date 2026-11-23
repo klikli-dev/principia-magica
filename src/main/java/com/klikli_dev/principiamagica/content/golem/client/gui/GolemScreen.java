@@ -163,7 +163,6 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
                 workplace,
                 golem != null ? golem.getMode() : GolemMode.WORK,
                 golem != null ? golem.getSpec().job() : Optional.empty(),
-                this.menu.getUsableGolemSlots(),
                 golem != null ? golem.getStatus() : GolemStatus.OK
         );
     }

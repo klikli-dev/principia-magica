@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkReservations;
 import com.klikli_dev.principiamagica.registry.AttributeRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
@@ -79,6 +80,20 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
      * Performs the actual work at the target once the golem is in range and the work delay has elapsed.
      */
     protected abstract void interact(ServerLevel level, GolemEntity golem, BlockPos pos);
+
+    /**
+     * @return the kind of work this behaviour does, shown in the golem GUI while it runs
+     */
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.IDLE;
+    }
+
+    /**
+     * @return the task the golem shows while it walks to or works on target. Behaviours can override it to name the work.
+     */
+    protected GolemTask currentTask(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return GolemTask.of(this.taskType(), Optional.of(target));
+    }
 
     protected void onNoTarget(ServerLevel level, GolemEntity golem) {
     }
@@ -175,6 +190,11 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
         this.approach = this.target == null ? null : this.approachPos(level, golem, this.target);
         if (this.target != null && this.reserveTarget() && WorkReservations.tryReserve(level, this.target, golem.getUUID(), RESERVATION_TICKS)) {
             this.reservedPos = this.target;
+        }
+
+        if (this.target != null) {
+            golem.setTask(this.currentTask(level, golem, this.target));
+            golem.getBrain().setMemory(MemoryModuleTypeRegistry.WORK_TARGET.value(), this.target);
         }
     }
 
@@ -329,6 +349,8 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
 
         golem.getNavigation().stop();
         golem.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
+        golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.WORK_TARGET.value());
+        golem.setTask(GolemTask.IDLE);
         this.target = null;
         this.approach = null;
         this.reservedPos = null;
