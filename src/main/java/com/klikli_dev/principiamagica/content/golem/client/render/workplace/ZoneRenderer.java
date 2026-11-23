@@ -21,6 +21,8 @@ public final class ZoneRenderer {
     public static final int HIGHLIGHT_COLOR = 0xFFFFFF;
     public static final float GLYPH_SIZE = 0.8F;
     public static final float HIGHLIGHT_GLYPH_SIZE = 1.0F;
+    private static final float CORNER_NODE_SIZE = 0.35F;
+    private static final float HIGHLIGHT_CORNER_SIZE = 0.55F;
     private static final float CARVED_MARK_SIZE = 0.4F;
     private static final float PLUMB_ALPHA = 0.6F;
     private static final float CARVED_MARK_ALPHA = 0.5F;
@@ -43,11 +45,19 @@ public final class ZoneRenderer {
         Set<BlockPos> renderedCorners = new HashSet<>(8);
         for (int i = 0; i < 8; i++) {
             BlockPos cornerPos = footprint.cornerBlock(i);
+            boolean highlighted = cornerPos.equals(highlightedCornerBlock);
+
+            Vec3 vertex = WorkplaceGeometry.boxCorner(box, i);
+            float markSize = highlighted ? HIGHLIGHT_CORNER_SIZE : CORNER_NODE_SIZE;
+            int markRgb = highlighted ? HIGHLIGHT_COLOR : COLOR;
+            float cornerAlpha = highlighted ? alpha : alpha * 0.9F;
+            float xrayAlpha = highlighted ? alpha * 0.55F : alpha * 0.35F;
+            geometry.cornerNode(vertex, markSize, WorkplaceGeometry.argb(markRgb, cornerAlpha), WorkplaceGeometry.argb(markRgb, xrayAlpha));
+
             if (!renderedCorners.add(cornerPos)) {
                 continue;
             }
 
-            boolean highlighted = cornerPos.equals(highlightedCornerBlock);
             int rgb = highlighted ? HIGHLIGHT_COLOR : COLOR;
             float size = highlighted ? HIGHLIGHT_GLYPH_SIZE : GLYPH_SIZE;
             int decalArgb = WorkplaceGeometry.argb(rgb, alpha * (highlighted ? 1.0F : pulse));
