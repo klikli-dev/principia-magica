@@ -27,7 +27,6 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -153,9 +152,8 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
             int right = PORTRAIT_X + PORTRAIT_WIDTH;
             int bottom = PORTRAIT_Y + PORTRAIT_HEIGHT;
             graphics.enableScissor(PORTRAIT_X, PORTRAIT_Y, right, bottom);
-            InventoryScreen.extractEntityInInventoryFollowsMouse(graphics,
-                    PORTRAIT_X, PORTRAIT_Y, right, bottom,
-                    PORTRAIT_SCALE, PORTRAIT_OFFSET_Y, mouseX, mouseY, this.view.golem());
+            GolemPortrait.extract(graphics, this.view.golem(), PORTRAIT_X, PORTRAIT_Y, right, bottom,
+                    PORTRAIT_SCALE, PORTRAIT_OFFSET_Y, mouseX - this.leftPos, mouseY - this.topPos);
             graphics.disableScissor();
         }
     }
