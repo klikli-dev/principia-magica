@@ -5,11 +5,15 @@
 package com.klikli_dev.principiamagica.datagen.model;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.client.principle.PrincipleTintSource;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlock;
 import com.klikli_dev.principiamagica.content.libation.slab.SpoutSide;
 import com.klikli_dev.principiamagica.content.libation.vessel.SteepingJarBlock;
+import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.registry.BlockRegistry;
+import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
+import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
@@ -57,6 +61,23 @@ public class PrincipiaMagicaModelProvider extends ModelProvider {
         itemModels.generateFlatItem(ItemRegistry.AXIOM_OF_FELLING_UNFIRED_STEEPED.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.AXIOM_OF_HARVEST.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.AXIOM_OF_FELLING.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ItemRegistry.NATRON_SPONGE.get(), ModelTemplates.FLAT_ITEM);
+
+        Identifier emptyPhialModel = ModelTemplates.FLAT_ITEM.create(
+                ModelLocationUtils.getModelLocation(ItemRegistry.CLAY_PHIAL.get()),
+                TextureMapping.layer0(ItemRegistry.CLAY_PHIAL.get()),
+                itemModels.modelOutput);
+        Identifier filledPhialModel = ModelTemplates.TWO_LAYERED_ITEM.create(
+                ModelLocationUtils.getModelLocation(ItemRegistry.CLAY_PHIAL.get(), "_filled"),
+                TextureMapping.layered(
+                        new Material(PrincipiaMagica.loc("item/clay_phial_filled")),
+                        new Material(PrincipiaMagica.loc("item/clay_phial_overlay"))),
+                itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(ItemRegistry.CLAY_PHIAL.get(),
+                ItemModelUtils.conditional(
+                        ItemModelUtils.hasComponent(DataComponentRegistry.STORED_PRINCIPLES.get()),
+                        ItemModelUtils.tintedModel(filledPhialModel, new Constant(-1), new PrincipleTintSource(PrincipleContents.DEFAULT_COLOR)),
+                        ItemModelUtils.plainModel(emptyPhialModel)));
 
         slabBlockState(blockModels, BlockRegistry.LIBATION_SLAB.get());
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(BlockRegistry.CATCH_TROUGH.get(), plainVariant("catch_trough")));

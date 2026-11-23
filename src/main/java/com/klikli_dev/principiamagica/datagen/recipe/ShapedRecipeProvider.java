@@ -106,6 +106,10 @@ public class ShapedRecipeProvider implements DataProvider {
         this.shaped(consumer, ItemRegistry.DRYING_SLAB.get(),
                 List.of("CCC", "SSS"),
                 Map.of('C', Items.SUGAR_CANE, 'S', Items.SANDSTONE_SLAB));
+
+        this.recipe(consumer, PrincipiaMagica.loc("clay_phial"), ItemRegistry.CLAY_PHIAL.get(), 8, DataComponentPatch.EMPTY,
+                List.of("CQC", " C "),
+                Map.of('C', Ingredient.of(Items.CLAY_BALL), 'Q', Ingredient.of(ItemRegistry.QUICKENED_CLAY.get())));
     }
 
     private void woodGolemRecipe(BiConsumer<Identifier, JsonObject> consumer) {

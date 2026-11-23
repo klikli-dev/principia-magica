@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "principiamagica:item/clay_phial_filled",
+    "layer1": "principiamagica:item/clay_phial_overlay"
+  }
+}

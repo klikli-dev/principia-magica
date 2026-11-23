@@ -77,5 +77,28 @@ public class PrincipiaMagicaSoundDefinitionsProvider extends SoundDefinitionsPro
                         sound("minecraft:step/sand1").volume(0.5F).pitch(1.2F),
                         sound("minecraft:step/sand2").volume(0.5F).pitch(1.3F),
                         sound("minecraft:step/grass1").volume(0.4F).pitch(1.4F)));
+
+        add(SoundRegistry.PHIAL_FILL, definition()
+                .subtitle("subtitles.principiamagica.phial.fill")
+                .with(
+                        sound("minecraft:item/bottle/fill1").volume(0.6F).pitch(0.95F),
+                        sound("minecraft:item/bottle/fill2").volume(0.6F).pitch(1.0F),
+                        sound("minecraft:item/bottle/fill3").volume(0.6F).pitch(1.05F),
+                        sound("minecraft:item/bottle/fill4").volume(0.6F).pitch(1.1F)));
+
+        add(SoundRegistry.PHIAL_EMPTY, definition()
+                .subtitle("subtitles.principiamagica.phial.empty")
+                .with(
+                        sound("minecraft:item/bucket/empty1").volume(0.4F).pitch(1.25F),
+                        sound("minecraft:item/bucket/empty2").volume(0.4F).pitch(1.35F),
+                        sound("minecraft:item/bucket/empty3").volume(0.4F).pitch(1.45F)));
+
+        add(SoundRegistry.NATRON_SPONGE_BLOT, definition()
+                .subtitle("subtitles.principiamagica.natron_sponge.blot")
+                .with(
+                        sound("minecraft:block/sponge/absorb1").volume(0.7F).pitch(1.1F),
+                        sound("minecraft:block/sponge/absorb2").volume(0.7F).pitch(1.2F),
+                        sound("minecraft:block/sponge/absorb3").volume(0.7F).pitch(1.0F),
+                        sound("minecraft:random/fizz").volume(0.15F).pitch(1.4F)));
     }
 }
