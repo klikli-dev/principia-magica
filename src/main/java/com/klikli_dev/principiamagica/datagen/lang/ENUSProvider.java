@@ -275,7 +275,6 @@ public class ENUSProvider extends LanguageProvider {
         this.add("tooltip.principiamagica.copper_stylus.none", "none");
         this.add("tooltip.principiamagica.copper_stylus.pending_corner", "Pending glyph: %s, %s, %s");
         this.add("tooltip.principiamagica.copper_stylus.hint_select", "Right-click golem: select / deselect");
-        this.add("tooltip.principiamagica.copper_stylus.hint_copy_paste", "Shift-right-click golem: copy workplace / paste clipboard");
         this.add("tooltip.principiamagica.copper_stylus.hint_pickup", "Shift-left-click own golem: pick up (keeps workplace)");
 
         this.add("tooltip.principiamagica.imprint_tablet.clipboard_empty", "Clipboard: empty");
