@@ -238,7 +238,8 @@ public class LibationGameTests {
         helper.runAfterDelay(time / 2, () -> {
             be.useWithoutItem(player);
             helper.assertTrue(be.getItem().isEmpty(), "Taking the item out should empty the trough, holds " + be.getItem());
-            be.useItemOn(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get()), player, InteractionHand.MAIN_HAND);
+            player.getInventory().clearContent();
+            holdAndUse(player, new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get()), be);
 
             // Without the reset the first steeping would have completed at the full recipe time.
             helper.runAfterDelay(time / 2 + 10, () -> {
@@ -464,8 +465,16 @@ public class LibationGameTests {
         helper.setBlock(pos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
         CatchTroughBlockEntity trough = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(pos));
         trough.insert(PrincipleContents.of(principle), false);
-        trough.useItemOn(item, helper.makeMockServerPlayerInLevel(), InteractionHand.MAIN_HAND);
+        holdAndUse(helper.makeMockServerPlayerInLevel(), item, trough);
         return trough;
+    }
+
+    /**
+     * Puts the stack into the main hand of the player and uses the trough with it, the way a click does.
+     */
+    private static void holdAndUse(Player player, ItemStack stack, CatchTroughBlockEntity trough) {
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack.copy());
+        trough.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
     }
 
     /**
