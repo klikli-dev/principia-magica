@@ -179,13 +179,13 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.stylus.pending_corner", "Corner pending");
         this.add("hud.principiamagica.stylus.moving_corner", "Moving corner");
         this.add("hud.principiamagica.stylus.corner_locked", "Corner locked (look away to release)");
-        this.add("hud.principiamagica.stylus.hint.lift_next", "Shift-scroll: adjust corner height");
+        this.add("hud.principiamagica.stylus.hint.lift_next", "Crouch + Scroll: adjust corner height");
         this.add("hud.principiamagica.stylus.hint.carve_opposite", "Right-click a block: carve the opposite corner");
         this.add("hud.principiamagica.stylus.hint.place_moved_corner", "Right-click a block: place corner");
         this.add("hud.principiamagica.stylus.hint.cancel", "Right-click air: cancel");
-        this.add("hud.principiamagica.stylus.hint.lift_corner", "Shift-scroll: move corner up / down");
+        this.add("hud.principiamagica.stylus.hint.lift_corner", "Crouch + Scroll: move corner up / down");
         this.add("hud.principiamagica.stylus.hint.move_corner", "Right-click: pick up and move corner");
-        this.add("hud.principiamagica.stylus.hint.erase", "Shift-right-click: erase work area");
+        this.add("hud.principiamagica.stylus.hint.erase", "Crouch + Right Click: erase work area");
         this.add("hud.principiamagica.stylus.hint.corner_options", "Aim at a corner glyph for more options");
 
         this.add("hud.principiamagica.imprint_tablet.clipboard_empty", "Clipboard: empty");
@@ -194,7 +194,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.imprint_tablet.hint.paste", "Crouch + Right Click: paste clipboard");
         this.add("hud.principiamagica.imprint_tablet.hint.clear", "Crouch + Right Click: clear clipboard");
         this.add("hud.principiamagica.stylus.hint.cycle_link", "Right-click: cycle link");
-        this.add("hud.principiamagica.stylus.hint.unlink", "Shift-right-click: unlink");
+        this.add("hud.principiamagica.stylus.hint.unlink", "Crouch + Right Click: unlink");
         this.add("hud.principiamagica.stylus.hint.select_golem", "Right-click a golem: select");
         this.add("hud.principiamagica.stylus.hint.select", "Right-click: select");
         this.add("hud.principiamagica.stylus.hint.deselect", "Right-click: deselect");
@@ -275,7 +275,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("tooltip.principiamagica.copper_stylus.none", "none");
         this.add("tooltip.principiamagica.copper_stylus.pending_corner", "Pending glyph: %s, %s, %s");
         this.add("tooltip.principiamagica.copper_stylus.hint_select", "Right-click golem: select / deselect");
-        this.add("tooltip.principiamagica.copper_stylus.hint_pickup", "Shift-left-click own golem: pick up (keeps workplace)");
+        this.add("tooltip.principiamagica.copper_stylus.hint_pickup", "Crouch + Left Click own golem: pick up (keeps workplace)");
 
         this.add("tooltip.principiamagica.imprint_tablet.clipboard_empty", "Clipboard: empty");
         this.add("tooltip.principiamagica.imprint_tablet.clipboard", "Clipboard: %s footprints, %s container links");
