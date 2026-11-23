@@ -12,7 +12,6 @@ import com.klikli_dev.principiamagica.content.golem.menu.GolemCommands;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Message;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -29,13 +28,12 @@ import org.jetbrains.annotations.NotNull;
  * Erases the footprint that carries a glyph, sent when the player sneak-right-clicks a glyph they are targeting with the stylus.
  * The glyph may be far away, so the server only checks reach, not the block the player is looking at.
  */
-public record MessageEraseGlyph(int entityId, BlockPos pos, Direction face) implements Message {
+public record MessageEraseGlyph(int entityId, BlockPos cornerPos) implements Message {
 
     public static final Type<MessageEraseGlyph> TYPE = new Type<>(PrincipiaMagica.loc("erase_glyph"));
     public static final StreamCodec<RegistryFriendlyByteBuf, MessageEraseGlyph> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, MessageEraseGlyph::entityId,
-            BlockPos.STREAM_CODEC, MessageEraseGlyph::pos,
-            Direction.STREAM_CODEC, MessageEraseGlyph::face,
+            BlockPos.STREAM_CODEC, MessageEraseGlyph::cornerPos,
             MessageEraseGlyph::new
     );
 
@@ -45,15 +43,16 @@ public record MessageEraseGlyph(int entityId, BlockPos pos, Direction face) impl
                 || !(level.getEntity(this.entityId) instanceof GolemEntity golem)
                 || !golem.isAlive()
                 || !player.getUUID().equals(golem.getOwnerUUID())
+                || !StylusItem.isWithinRange(player, golem)
                 || !StylusItem.holdsSelection(player, golem)) {
             return;
         }
 
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
-        GolemCommands.findReachableGlyph(player, workplace, this.pos, this.face).ifPresent(glyph ->
-                StylusActions.removeFootprintWithGlyph(workplace, glyph).ifPresent(updated -> {
+        GolemCommands.findReachableGlyph(player, workplace, this.cornerPos).ifPresent(glyph ->
+                StylusActions.removeFootprintByCorner(workplace, glyph.corner()).ifPresent(updated -> {
                     golem.updateWorkplace(current -> updated);
-                    level.playSound(null, this.pos, SoundEvents.CALCITE_BREAK, SoundSource.BLOCKS, 1.0F, 0.8F);
+                    level.playSound(null, this.cornerPos, SoundEvents.CALCITE_BREAK, SoundSource.BLOCKS, 1.0F, 0.8F);
                     player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_erased"));
                     StylusItem.syncWorkplace(player, golem);
                 }));

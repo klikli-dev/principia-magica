@@ -82,6 +82,7 @@ public class PrincipiaMagica {
         modEventBus.addListener(GolemEntity::onEntityAttributeCreation);
         modEventBus.addListener(Networking::register);
         NeoForge.EVENT_BUS.addListener(PrincipiaMagica::onPlayerTick);
+        NeoForge.EVENT_BUS.addListener(StylusItem::onRightClickBlock);
         NeoForge.EVENT_BUS.addListener(RecipeTypeRegistry::onDatapackSync);
         modEventBus.addListener(GameTestRegistry::onRegisterGameTests);
         modEventBus.addListener(LibationSlabBlockEntity::onRegisterCapabilities);

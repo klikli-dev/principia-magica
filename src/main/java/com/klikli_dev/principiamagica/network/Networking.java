@@ -6,9 +6,9 @@ package com.klikli_dev.principiamagica.network;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.network.messages.MessageEraseGlyph;
+import com.klikli_dev.principiamagica.network.messages.MessageEraseZone;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftCorner;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftPending;
-import com.klikli_dev.principiamagica.network.messages.MessagePickUpGlyph;
 import com.klikli_dev.principiamagica.network.messages.MessageSetGolemMode;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
 import com.klikli_dev.principiamagica.network.messages.MessageShiftZone;
@@ -31,8 +31,8 @@ public class Networking {
         registrar.playToServer(MessageSetJobOption.TYPE, MessageSetJobOption.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageShiftZone.TYPE, MessageShiftZone.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageEraseGlyph.TYPE, MessageEraseGlyph.STREAM_CODEC, MessageHandler::handle);
+        registrar.playToServer(MessageEraseZone.TYPE, MessageEraseZone.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageLiftCorner.TYPE, MessageLiftCorner.STREAM_CODEC, MessageHandler::handle);
-        registrar.playToServer(MessagePickUpGlyph.TYPE, MessagePickUpGlyph.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageLiftPending.TYPE, MessageLiftPending.STREAM_CODEC, MessageHandler::handle);
     }
 

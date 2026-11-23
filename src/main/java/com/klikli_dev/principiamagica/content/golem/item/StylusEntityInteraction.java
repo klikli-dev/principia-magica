@@ -32,9 +32,7 @@ final class StylusEntityInteraction {
         }
 
         UUID selected = stack.get(DataComponentRegistry.STYLUS_SELECTION.get());
-        if (!StylusItem.cancelPending(player, stack)) {
-            return InteractionResult.FAIL;
-        }
+        StylusItem.cancelPending(stack);
 
         if (golem.getUUID().equals(selected)) {
             stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());

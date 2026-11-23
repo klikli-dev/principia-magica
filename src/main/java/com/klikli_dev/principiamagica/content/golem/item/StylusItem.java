@@ -17,6 +17,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.TriState;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -28,6 +29,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -84,6 +86,7 @@ public class StylusItem extends Item {
         Optional<GolemEntity> selected = findSelectedGolem(player, stack);
         if (selected.isEmpty()) {
             stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
+            stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.golem_not_found"));
             return InteractionResult.FAIL;
         }
@@ -105,44 +108,48 @@ public class StylusItem extends Item {
         }
 
         ItemStack stack = player.getItemInHand(hand);
-        if (!(player instanceof ServerPlayer serverPlayer) || !cancelPending(serverPlayer, stack)) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return InteractionResult.SUCCESS;
+        }
+
+        if (cancelPending(stack)) {
+            serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_cancelled"));
             return InteractionResult.SUCCESS;
         }
 
         if (player.isShiftKeyDown()) {
-            stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
-            stack.remove(DataComponentRegistry.STYLUS_CLIPBOARD.get());
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
+            boolean hadSelection = stack.remove(DataComponentRegistry.STYLUS_SELECTION.get()) != null;
+            boolean hadClipboard = stack.remove(DataComponentRegistry.STYLUS_CLIPBOARD.get()) != null;
+            if (hadSelection || hadClipboard) {
+                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
+            }
         }
 
         return InteractionResult.SUCCESS;
     }
 
     /**
-     * Cancels the pending corner on the stack. A pending corner from a pick-up puts its footprint back on the selected golem,
-     * which needs the golem within reach. If it is out of reach, the cancel is refused and the pending corner stays.
-     *
-     * @return whether the stack has no pending corner afterwards
+     * Suppresses block interaction (e.g. opening chests) when right-clicking a block with a stylus that has a golem selected,
+     * so container linking works with a plain right-click.
      */
-    public static boolean cancelPending(ServerPlayer player, ItemStack stack) {
-        PendingGlyph pending = stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
-        if (pending == null) {
-            return true;
+    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        ItemStack stack = event.getItemStack();
+        if (stack.getItem() instanceof StylusItem && stack.has(DataComponentRegistry.STYLUS_SELECTION.get())) {
+            event.setUseBlock(TriState.FALSE);
         }
+    }
 
-        if (!pending.restore().isEmpty()) {
-            Optional<GolemEntity> golem = findSelectedGolem(player, stack);
-            if (golem.isEmpty()) {
-                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.golem_not_found"));
-                return false;
-            }
+    /**
+     * Cancels the pending corner on the stack.
+     *
+     * @return whether a pending corner was present and removed
+     */
+    public static boolean cancelPending(ItemStack stack) {
+        return stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()) != null;
+    }
 
-            golem.get().updateWorkplace(current -> StylusActions.restorePickUp(current, pending));
-            syncWorkplace(player, golem.get());
-        }
-
-        stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
-        return true;
+    public static boolean isWithinRange(ServerPlayer player, GolemEntity golem) {
+        return golem.distanceToSqr(player) <= MAX_DISTANCE_SQR;
     }
 
     @Override
@@ -277,7 +284,6 @@ public class StylusItem extends Item {
         adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_link").withStyle(ChatFormatting.DARK_GRAY));
         adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_zone").withStyle(ChatFormatting.DARK_GRAY));
         adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_raise").withStyle(ChatFormatting.DARK_GRAY));
-        adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_pickup_glyph").withStyle(ChatFormatting.DARK_GRAY));
         adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_remove").withStyle(ChatFormatting.DARK_GRAY));
         adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_pickup").withStyle(ChatFormatting.DARK_GRAY));
         adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_clear").withStyle(ChatFormatting.DARK_GRAY));

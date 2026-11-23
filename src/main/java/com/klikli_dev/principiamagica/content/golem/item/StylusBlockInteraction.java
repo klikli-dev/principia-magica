@@ -44,9 +44,13 @@ final class StylusBlockInteraction {
     static void interact(ServerLevel level, ServerPlayer player, ItemStack stack, GolemEntity golem, BlockPos pos, Direction face) {
         boolean container = level.getCapability(Capabilities.Item.BLOCK, pos, face) != null;
         boolean sneaking = player.isShiftKeyDown();
+        PendingGlyph pending = stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+        boolean hasPending = pending != null && pending.pos().dimension().equals(level.dimension());
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
 
-        if (container && sneaking) {
+        if (hasPending && !sneaking) {
+            placeCorner(level, player, stack, golem, workplace, pos, face);
+        } else if (container && sneaking) {
             removeLink(level, player, golem, workplace, pos);
         } else if (container) {
             cycleLink(level, player, golem, workplace, pos, face);
@@ -103,22 +107,35 @@ final class StylusBlockInteraction {
      * The first corner is set on the stylus, the second corner carves the footprint between them.
      */
     private static void placeCorner(ServerLevel level, ServerPlayer player, ItemStack stack, GolemEntity golem, Workplace workplace, BlockPos pos, Direction face) {
-        level.playSound(null, pos, SoundEvents.BRUSH_GRAVEL, SoundSource.BLOCKS, 1.0F, 1.0F);
         Optional<PendingGlyph> pending = Optional.ofNullable(stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()))
                 .filter(glyph -> glyph.pos().dimension().equals(level.dimension()));
         if (pending.isEmpty()) {
+            if (workplace.hasCornerAt(pos)) {
+                level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.5F);
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_occupied"));
+                return;
+            }
+
+            level.playSound(null, pos, SoundEvents.BRUSH_GRAVEL, SoundSource.BLOCKS, 1.0F, 1.0F);
             stack.set(DataComponentRegistry.STYLUS_PENDING_GLYPH.get(), PendingGlyph.of(GlobalPos.of(level.dimension(), pos), face));
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_set"));
             return;
         }
 
-        Optional<Workplace> updated = StylusActions.carve(workplace, pending.get().glyph(), new CarvedGlyph(pos, face, pending.get().ghostLift()));
-        if (updated.isPresent()) {
+        StylusActions.EditResult result = StylusActions.carveResult(workplace, pending.get().glyph(), new CarvedGlyph(pos, face, pending.get().ghostLift()));
+        if (result.isSuccess()) {
             stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
-            golem.updateWorkplace(current -> updated.get());
+            golem.updateWorkplace(current -> result.workplace());
+            level.playSound(null, pos, SoundEvents.BRUSH_GRAVEL, SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_carved"));
-        } else {
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_too_large",
+            return;
+        }
+
+        level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.5F);
+        switch (result.failure()) {
+            case CORNER_OCCUPIED -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_occupied"));
+            case OUT_OF_BOUNDS -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.out_of_bounds"));
+            case TOO_LARGE, NOT_FOUND, null -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_too_large",
                     WorkFootprint.MAX_SIZE, WorkFootprint.MAX_SIZE));
         }
     }
