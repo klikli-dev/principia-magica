@@ -79,8 +79,9 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
                     if (golem.isHeldTool(hand)) {
                         yield hand;
                     }
-                    // During a stow the tool is still drawn in the hand, the synced state already has it on the back.
-                    yield hand.isEmpty() && !back.isEmpty() ? back : ItemStack.EMPTY;
+                    // Not drawn on the back here means the stow is still running: the synced state already has the tool on the back, but it
+                    // is drawn in the hand until the switch point. Cargo may already fill the hand by then, so the hand is not checked.
+                    yield back;
                 }
                 case CARRIED -> hand.isEmpty() || golem.isHeldTool(hand) ? ItemStack.EMPTY : hand;
                 case TOOL_ON_BACK -> {
