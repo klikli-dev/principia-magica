@@ -97,16 +97,16 @@ public class ENUSProvider extends LanguageProvider {
         this.add("message.principiamagica.golem.job_already_set", "This golem already has a job");
 
         this.add("golem_task.principiamagica.idle", "Idle");
-        this.add("golem_task.principiamagica.wait", "Waiting for a deposit container");
-        this.add("golem_task.principiamagica.harvest", "Harvesting %s");
+        this.add("golem_task.principiamagica.wait", "Waiting for deposit");
+        this.add("golem_task.principiamagica.harvest", "Harvest %s");
         this.add("golem_task.principiamagica.plant", "Planting %s");
         this.add("golem_task.principiamagica.till", "Tilling %s");
-        this.add("golem_task.principiamagica.bonemeal", "Applying bone meal to %s");
+        this.add("golem_task.principiamagica.bonemeal", "Bonemeal %s");
         this.add("golem_task.principiamagica.clear", "Clearing %s");
         this.add("golem_task.principiamagica.fell", "Felling %s");
-        this.add("golem_task.principiamagica.pickup", "Picking up %s");
-        this.add("golem_task.principiamagica.deposit", "Depositing into %s");
-        this.add("golem_task.principiamagica.restock", "Restocking from %s");
+        this.add("golem_task.principiamagica.pickup", "Pick up %s");
+        this.add("golem_task.principiamagica.deposit", "Deposit %s");
+        this.add("golem_task.principiamagica.restock", "Restock %s");
         this.add("golem_task.principiamagica.follow", "Following you");
         this.add("golem_task.principiamagica.stay", "Staying");
         this.add("golem_task.principiamagica.work_area", "the work area");
@@ -120,8 +120,8 @@ public class ENUSProvider extends LanguageProvider {
         this.add("golem_status.principiamagica.needs_supplies", "Needs supplies");
         this.add("golem_status.principiamagica.ok.description", "The golem is working on its job.");
         this.add("golem_status.principiamagica.no_purpose.description", "Without an axiom it can only stay or follow you.");
-        this.add("golem_status.principiamagica.no_zone.description", "The golem needs an area to work in.");
-        this.add("golem_status.principiamagica.missing_tool.description", "The job needs its tool in the golem's hand or back.");
+        this.add("golem_status.principiamagica.no_zone.description", "Without a work area the golem has nothing to work on.");
+        this.add("golem_status.principiamagica.missing_tool.description", "Without the right tool it cannot harvest, plant or chop.");
         this.add("golem_status.principiamagica.no_deposit.description", "Harvested items go into a container it can reach.");
         this.add("golem_status.principiamagica.deposit_full.description", "The containers it deposits into have no room left.");
         this.add("golem_status.principiamagica.needs_supplies.description", "A needed item is missing and no supply container holds it.");
@@ -215,12 +215,12 @@ public class ENUSProvider extends LanguageProvider {
         this.add("jei.principiamagica.curing.light_min", "Needs light ≥ %s");
         this.add("jei.principiamagica.time_at_full_light", "%s s at full light");
         this.add("jei.principiamagica.time", "%s s");
-        this.add("gui.principiamagica.golem.status_hint.no_purpose", "Right-click it with an axiom to give it a job");
+        this.add("gui.principiamagica.golem.status_hint.no_purpose", "Give it an axiom");
         this.add("gui.principiamagica.golem.status_hint.no_zone", "Carve a work area with the Stylus");
         this.add("gui.principiamagica.golem.status_hint.missing_tool", "Put a matching tool in its hand");
         this.add("gui.principiamagica.golem.status_hint.no_deposit", "Link a chest with the Stylus");
-        this.add("gui.principiamagica.golem.status_hint.deposit_full", "Empty the deposit or link another one");
-        this.add("gui.principiamagica.golem.status_hint.needs_supplies", "Stock a chest with the items it needs");
+        this.add("gui.principiamagica.golem.status_hint.deposit_full", "Empty it or link another one");
+        this.add("gui.principiamagica.golem.status_hint.needs_supplies", "Stock a chest with supplies");
 
         this.add("tooltip.principiamagica.golem.material", "Material: %s");
         this.add("message.principiamagica.golem.destroyed", "Your %s was destroyed at %s, %s, %s.");
