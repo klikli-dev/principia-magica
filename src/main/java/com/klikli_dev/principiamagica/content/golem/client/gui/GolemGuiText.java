@@ -92,7 +92,7 @@ final class GolemGuiText {
     }
 
     /**
-     * The tooltip of the whole status tablet: the full status and what to do about it, and the current task, so nothing is lost to ellipsis.
+     * The tooltip of the whole status tablet: the full text of the status and its explanation, so nothing is lost to the ellipsis.
      */
     static Component tooltip(GolemStatus status, GolemTask task) {
         if (status == GolemStatus.OK) {
@@ -104,8 +104,7 @@ final class GolemGuiText {
 
         return Component.empty()
                 .append(Component.translatable(status.translationKey()).withStyle(Style.EMPTY.withColor(headlineColor(status))))
-                .append("\n").append(status.description())
-                .append("\n").append(Component.translatable("gui.principiamagica.golem.status.currently", task.describe()));
+                .append("\n").append(status.description());
     }
 
     private static int headlineColor(GolemStatus status) {
