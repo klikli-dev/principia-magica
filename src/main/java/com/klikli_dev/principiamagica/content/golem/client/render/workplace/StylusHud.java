@@ -163,6 +163,7 @@ public class StylusHud {
 
         if (WorkplaceTargeting.targetedZone(minecraft) != null) {
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.erase")));
+            hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.corner_options")));
         }
         return hints;
     }

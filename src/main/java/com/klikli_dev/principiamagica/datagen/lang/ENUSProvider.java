@@ -186,6 +186,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.stylus.hint.lift_corner", "Shift-scroll: move corner up / down");
         this.add("hud.principiamagica.stylus.hint.move_corner", "Right-click: pick up and move corner");
         this.add("hud.principiamagica.stylus.hint.erase", "Shift-right-click: erase work area");
+        this.add("hud.principiamagica.stylus.hint.corner_options", "Aim at a corner glyph for more options");
         this.add("hud.principiamagica.stylus.hint.cycle_link", "Right-click: cycle link");
         this.add("hud.principiamagica.stylus.hint.unlink", "Shift-right-click: unlink");
         this.add("hud.principiamagica.stylus.hint.select_golem", "Right-click a golem: select");

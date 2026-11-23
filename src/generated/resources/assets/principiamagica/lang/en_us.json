@@ -191,6 +191,7 @@
   "hud.principiamagica.stylus.corner_locked": "Corner locked (look away to release)",
   "hud.principiamagica.stylus.hint.cancel": "Right-click air: cancel",
   "hud.principiamagica.stylus.hint.carve_opposite": "Right-click a block: carve the opposite corner",
+  "hud.principiamagica.stylus.hint.corner_options": "Aim at a corner glyph for more options",
   "hud.principiamagica.stylus.hint.cycle_link": "Right-click: cycle link",
   "hud.principiamagica.stylus.hint.deselect": "Right-click: deselect",
   "hud.principiamagica.stylus.hint.erase": "Shift-right-click: erase work area",
