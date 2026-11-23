@@ -27,11 +27,12 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
-
-import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 import static com.klikli_dev.principiamagica.content.libation.drying.DryingSlabItemHandler.INPUT;
 import static com.klikli_dev.principiamagica.content.libation.drying.DryingSlabItemHandler.OUTPUT;
@@ -55,6 +56,11 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
      * The drying of the first input item. Its rate is the light divided by {@link LibationFlow#FULL_LIGHT}.
      */
     private final ProgressTracker drying = new ProgressTracker(this.sync);
+    /**
+     * The drying recipe of the input item, valid while {@link #dryingRecipeStale} is false.
+     */
+    private @Nullable RecipeHolder<DryingRecipe> dryingRecipe;
+    private boolean dryingRecipeStale = true;
 
     public DryingSlabBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.DRYING_SLAB.get(), pos, state);
@@ -108,29 +114,19 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
             return InteractionResult.SUCCESS;
         }
 
-        if (LibationUtils.drying(this.level, held).isEmpty()) {
-            return InteractionResult.PASS;
-        }
-
-        boolean wasEmpty = this.getInput().isEmpty();
-        if (wasEmpty) {
-            // Restart before the insert, its item sync carries the restarted progress.
-            this.drying.restart();
-        }
-        int inserted;
+        // The same handler that pipes and hoppers insert into decides whether the item dries. Its restart of the drying
+        // happens when the input changes, see ItemHandler.
+        int moved;
         try (Transaction transaction = Transaction.open(null)) {
-            inserted = this.items.insert(INPUT, ItemResource.of(held), held.getCount(), transaction);
+            ResourceHandler<ItemResource> handHandler = PlayerInventoryWrapper.of(player).getHandSlot(hand);
+            moved = ResourceHandlerUtil.move(handHandler, this.itemCapability, resource -> true, held.getCount(), transaction);
             transaction.commit();
         }
-        if (inserted == 0) {
-            return InteractionResult.PASS;
-        }
-        held.shrink(inserted);
-        return InteractionResult.SUCCESS;
+        return moved > 0 ? InteractionResult.SUCCESS : InteractionResult.PASS;
     }
 
     /**
-     * Takes the dried items first, then the input. Taking the input restarts its drying.
+     * Takes the dried items first, then the input. Taking the input restarts its drying, see ItemHandler.
      */
     @Override
     public InteractionResult useWithoutItem(Player player) {
@@ -145,29 +141,24 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
         if (this.items.getResource(slot).isEmpty()) {
             return InteractionResult.PASS;
         }
-        if (slot == INPUT) {
-            this.drying.restart();
-        }
-        ItemStack stack;
         try (Transaction transaction = Transaction.open(null)) {
             ItemResource resource = this.items.getResource(slot);
             int extracted = this.items.extract(slot, resource, this.items.getAmountAsInt(slot), transaction);
-            stack = resource.toStack(extracted);
+            PlayerInventoryWrapper.of(player).placeItemBackInInventory(resource, extracted, transaction);
             transaction.commit();
         }
-        player.getInventory().placeItemBackInInventory(stack);
         return InteractionResult.SUCCESS;
     }
 
     private void tickDrying(Level level, BlockPos pos) {
-        ItemStack input = this.getInput();
-        Optional<RecipeHolder<DryingRecipe>> recipe = input.isEmpty() ? Optional.empty() : LibationUtils.drying(level, input);
-        if (recipe.isEmpty()) {
+        RecipeHolder<DryingRecipe> recipe = this.dryingRecipe(level);
+        if (recipe == null) {
             this.drying.stop();
             return;
         }
 
-        DryingRecipe dry = recipe.get().value();
+        ItemStack input = this.getInput();
+        DryingRecipe dry = recipe.value();
         ItemStack result = dry.assemble(new SingleRecipeInput(input.copyWithCount(1)));
         int light = level.getMaxLocalRawBrightness(pos.above());
         if (light <= 0 || !this.canMergeOutput(result)) {
@@ -184,6 +175,18 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
             }
             level.playSound(null, pos, SoundRegistry.DRYING_SLAB_DRIED.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         });
+    }
+
+    /**
+     * @return the drying recipe of the input item, or null. Looked up only when the input item changed since the last lookup.
+     */
+    private @Nullable RecipeHolder<DryingRecipe> dryingRecipe(Level level) {
+        if (this.dryingRecipeStale) {
+            ItemStack input = this.getInput();
+            this.dryingRecipe = input.isEmpty() ? null : LibationUtils.drying(level, input).orElse(null);
+            this.dryingRecipeStale = false;
+        }
+        return this.dryingRecipe;
     }
 
     /**
@@ -207,6 +210,7 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.items.deserialize(input.childOrEmpty("items"));
+        this.dryingRecipeStale = true;
         this.drying.load(input);
     }
 
@@ -232,8 +236,18 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
                     && LibationUtils.drying(DryingSlabBlockEntity.this.level, resource.toStack()).isPresent());
         }
 
+        /**
+         * Changing the input item restarts its drying, whether a pipe, a hand or the drying itself changed it. Merging more of
+         * the same item into the input does not restart it.
+         */
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
+            if (index == INPUT) {
+                DryingSlabBlockEntity.this.dryingRecipeStale = true;
+                if (!ItemStack.isSameItemSameComponents(previousContents, DryingSlabBlockEntity.this.getInput())) {
+                    DryingSlabBlockEntity.this.drying.restart();
+                }
+            }
             DryingSlabBlockEntity.this.sync.syncNow();
         }
     }
