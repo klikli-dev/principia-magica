@@ -5,18 +5,17 @@
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 
 import java.util.Locale;
 
 /**
- * Text and color helpers shared by the golem GUI tabs and pages.
+ * Text and state helpers shared by the golem GUI tabs and pages.
  */
 final class GolemGuiText {
-
-    static final int OK_COLOR = 0xFF1B5E20;
-    static final int NEUTRAL_COLOR = 0xFF707070;
-    static final int PROBLEM_COLOR = 0xFFA01818;
 
     private GolemGuiText() {
     }
@@ -47,4 +46,32 @@ final class GolemGuiText {
         return Component.translatable("golem_mode.principiamagica." + mode.name().toLowerCase(Locale.ROOT));
     }
 
+    /**
+     * @return the key of the status icon: ok, idle (no purpose), warning (the golem can be fixed in its setup) or problem (it is blocked)
+     */
+    static String statusIcon(GolemStatus status) {
+        return switch (status) {
+            case OK -> "status_ok";
+            case NO_PURPOSE -> "status_idle";
+            case MISSING_TOOL, NEEDS_SUPPLIES -> "status_warning";
+            case NO_ZONE, NO_DEPOSIT, DEPOSIT_FULL -> "status_problem";
+        };
+    }
+
+    /**
+     * @return the second line of the status tablet: the status if it is a problem, otherwise the position of the work target
+     */
+    static Component detailLine(GolemStatus status, GolemTask task) {
+        if (status != GolemStatus.OK) {
+            return status.description();
+        }
+
+        return task.target()
+                .map(pos -> Component.translatable("gui.principiamagica.golem.task_at", formatPos(pos)))
+                .orElse(Component.empty());
+    }
+
+    static String formatPos(BlockPos pos) {
+        return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
+    }
 }

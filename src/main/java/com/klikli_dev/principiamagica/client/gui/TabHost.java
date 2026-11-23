@@ -7,6 +7,7 @@ package com.klikli_dev.principiamagica.client.gui;
 import com.klikli_dev.codedefinedgui.api.screen.GuiHost;
 import com.klikli_dev.principiamagica.client.gui.widget.TabBar;
 import com.klikli_dev.principiamagica.client.gui.widget.TabButton;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,17 +51,23 @@ public final class TabHost {
         }
 
         this.buttons = List.copyOf(buttons);
-        this.tabBar = new TabBar(chrome, area.x() - TabButton.SIZE + TabBar.OVERLAP, area.y() + TabBar.TOP_MARGIN, TabBar.SPACING, buttons);
+        this.tabBar = new TabBar(chrome, area.x() - TabButton.WIDTH + TabBar.OVERLAP, area.y() + TabBar.TOP_MARGIN, TabBar.SPACING, buttons);
     }
 
     /**
-     * Shows or hides the tab button. A hidden button is not drawn and cannot be clicked. The host does not switch away from a hidden tab on its own,
-     * the owner selects another tab when it hides the selected one.
+     * Enables or disables a tab button. A disabled button stays visible, dimmed, and shows its unavailable tooltip, so the player can see
+     * that the tab exists. The host does not switch away from a disabled tab on its own, the owner selects another tab when it disables the
+     * selected one.
      */
     public void setAvailable(int index, boolean available) {
-        TabButton button = this.buttons.get(index);
-        button.visible = available;
-        button.active = available;
+        this.buttons.get(index).setAvailable(available);
+    }
+
+    /**
+     * @param tooltip shown on the tab button while it is disabled
+     */
+    public void setUnavailableTooltip(int index, Component tooltip) {
+        this.buttons.get(index).withUnavailableTooltip(tooltip);
     }
 
     /**

@@ -150,16 +150,22 @@ public class ENUSProvider extends LanguageProvider {
 
         this.add("gui.principiamagica.golem.title", "%s Golem");
         this.add("gui.principiamagica.golem.no_axiom", "No axiom");
-        this.add("gui.principiamagica.golem.options", "Job options");
-        this.add("gui.principiamagica.golem.no_job_hint", "Give the golem an axiom to give it a purpose. Right-click the golem with an axiom.");
         this.add("gui.principiamagica.golem.tab.golem", "Golem");
         this.add("gui.principiamagica.golem.tab.job", "Job");
-        this.add("gui.principiamagica.golem.back", "Back");
+        this.add("gui.principiamagica.golem.tab.job.disabled", "Give the golem an axiom to unlock its job");
+        this.add("gui.principiamagica.golem.axiom.tooltip", "Place an axiom to give the golem a job");
+        this.add("gui.principiamagica.golem.hand.tooltip", "Hand: the golem's tool while it works, or an item it carries");
+        this.add("gui.principiamagica.golem.back.tooltip", "Back: the golem's tool, stowed while it carries an item");
+        this.add("gui.principiamagica.golem.health", "Health: %s / %s");
+        this.add("gui.principiamagica.golem.task_at", "at %s");
+        this.add("gui.principiamagica.golem.zones", "%s zones");
+        this.add("gui.principiamagica.golem.no_deposit", "No deposit");
+        this.add("gui.principiamagica.golem.no_supply", "No supply");
+        this.add("gui.principiamagica.golem.workplace.tooltip", "Edit with the Stylus");
         this.add("gui.principiamagica.golem.mode.work.tooltip", "The golem works its job");
         this.add("gui.principiamagica.golem.mode.work.disabled", "Work needs an axiom");
         this.add("gui.principiamagica.golem.mode.follow.tooltip", "The golem follows you");
         this.add("gui.principiamagica.golem.mode.stay.tooltip", "The golem stays where it is");
-        this.add("gui.principiamagica.golem.tool.disabled", "A golem without an axiom cannot use a tool");
         this.add("hud.principiamagica.stylus.role.supply", "Supply");
         this.add("hud.principiamagica.stylus.role.deposit", "Deposit");
         this.add("hud.principiamagica.stylus.role.both", "Both");

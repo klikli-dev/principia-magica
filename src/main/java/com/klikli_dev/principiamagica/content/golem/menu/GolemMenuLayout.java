@@ -7,34 +7,54 @@ package com.klikli_dev.principiamagica.content.golem.menu;
 import com.klikli_dev.codedefinedgui.api.layout.LayoutSpec;
 
 /**
- * Static geometry of the golem menu. The GUI is a vanilla large chest sized 176x222 frame. The golem tab uses the area above the
- * player inventory for the preview, the axiom, hand and back slots, the mode and the status. The job tab uses the same frame.
+ * Static geometry of the golem menu. The screen is a composition of a vertical tab rail, the golem panel and the player inventory panel
+ * below it. All coordinates here are relative to the screen's left and top edge, which is what vanilla slots use.
+ * <p>
+ * Frame-relative coordinates (relative to the golem panel's top left corner) are converted with {@link #panelX(int)} and
+ * {@link #panelY(int)}. Slot coordinates are the position of the item, the slot sprites are drawn around it.
  */
 public final class GolemMenuLayout {
-    public static final int WIDTH = 176;
-    public static final int HEIGHT = 222;
+
+    /**
+     * Width of the tab rail, which sits to the left of the golem panel and overlaps it by {@link #TAB_OVERLAP}.
+     */
+    public static final int RAIL_WIDTH = 28;
+    public static final int TAB_OVERLAP = 4;
+
+    public static final int PANEL_X = RAIL_WIDTH;
+    public static final int PANEL_Y = 0;
+    public static final int PANEL_WIDTH = 204;
+    public static final int PANEL_HEIGHT = 126;
+
+    public static final int INVENTORY_PANEL_X = PANEL_X + 14;
+    public static final int INVENTORY_PANEL_Y = 130;
+    public static final int INVENTORY_PANEL_WIDTH = 176;
+    public static final int INVENTORY_PANEL_HEIGHT = 98;
+
+    /**
+     * The whole screen: the rail plus the golem panel wide, and the golem panel plus the inventory panel tall.
+     */
+    public static final int WIDTH = RAIL_WIDTH + PANEL_WIDTH;
+    public static final int HEIGHT = INVENTORY_PANEL_Y + INVENTORY_PANEL_HEIGHT;
+
     public static final int SLOT_SIZE = 18;
 
-    public static final int PREVIEW_X = 8;
-    public static final int PREVIEW_Y = 18;
-    public static final int PREVIEW_WIDTH = 52;
-    public static final int PREVIEW_HEIGHT = 72;
+    /**
+     * Item positions of the golem slots. The axiom slot sprite is 26x26 and is drawn 5 pixels around its item, the others 18x18 and 1 pixel.
+     */
+    public static final int AXIOM_X = panelX(79);
+    public static final int AXIOM_Y = panelY(31);
+    public static final int HAND_X = panelX(75);
+    public static final int HAND_Y = panelY(59);
+    public static final int BACK_X = panelX(97);
+    public static final int BACK_Y = panelY(59);
 
-    public static final int AXIOM_X = 64;
-    public static final int AXIOM_Y = 18;
-    public static final int HAND_X = 152;
-    public static final int HAND_Y = 18;
-    public static final int BACK_X = 152;
-    public static final int BACK_Y = 40;
-
-    public static final int MODE_X = 64;
-    public static final int MODE_Y = 62;
-    public static final int STATUS_Y = 96;
-
-    public static final int INVENTORY_LABEL_Y = 129;
-    public static final int PLAYER_INVENTORY_X = 8;
-    public static final int PLAYER_MAIN_Y = 140;
-    public static final int PLAYER_HOTBAR_Y = 198;
+    /**
+     * The player's main inventory and hotbar. The inventory panel has its label above the slots, so the main rows start 18 pixels down.
+     */
+    public static final int PLAYER_INVENTORY_X = INVENTORY_PANEL_X + 8;
+    public static final int PLAYER_MAIN_Y = INVENTORY_PANEL_Y + 18;
+    public static final int PLAYER_HOTBAR_Y = INVENTORY_PANEL_Y + 76;
 
     public static final int PLAYER_MAIN_ROWS = 3;
     public static final int PLAYER_COLUMNS = 9;
@@ -59,5 +79,19 @@ public final class GolemMenuLayout {
     });
 
     private GolemMenuLayout() {
+    }
+
+    /**
+     * @return the screen x of a golem panel x coordinate
+     */
+    public static int panelX(int x) {
+        return PANEL_X + x;
+    }
+
+    /**
+     * @return the screen y of a golem panel y coordinate
+     */
+    public static int panelY(int y) {
+        return PANEL_Y + y;
     }
 }

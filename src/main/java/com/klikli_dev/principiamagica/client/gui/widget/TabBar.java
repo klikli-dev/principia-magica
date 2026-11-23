@@ -18,7 +18,7 @@ public final class TabBar {
      * How far the tab bar overlaps the frame it is attached to, in pixels.
      */
     public static final int OVERLAP = 4;
-    public static final int TOP_MARGIN = 4;
+    public static final int TOP_MARGIN = 8;
     public static final int SPACING = 2;
 
     private final List<TabButton> buttons;
@@ -35,7 +35,7 @@ public final class TabBar {
         for (int i = 0; i < this.buttons.size(); i++) {
             TabButton button = this.buttons.get(i);
             button.setX(x);
-            button.setY(y + i * (TabButton.SIZE + spacing));
+            button.setY(y + i * (TabButton.HEIGHT + spacing));
             group.add(button);
         }
     }
