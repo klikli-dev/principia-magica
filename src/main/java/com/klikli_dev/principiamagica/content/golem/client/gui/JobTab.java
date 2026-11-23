@@ -85,7 +85,7 @@ final class JobTab extends GolemTab {
 
     @Override
     protected void build(ContentRect bounds) {
-        this.add(new ItemIcon(bounds.x() + 8, bounds.y() + 26, this::axiomStack));
+        this.add(new ItemIcon(bounds.x() + 8, bounds.y() + 26, ItemIcon.SIZE, this::axiomStack));
         this.add(new LabelWidget(bounds.x() + 28, bounds.y() + 30, 160, () -> GolemGuiText.jobName(this.view()))
                 .withStyle(this.style).withMaxLines(1));
 
