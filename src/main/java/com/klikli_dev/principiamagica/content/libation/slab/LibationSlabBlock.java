@@ -105,8 +105,10 @@ public class LibationSlabBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.is(ItemRegistry.LIBATION_SPOUT.get())) {
-            // Let the spout be placed on the side of the slab instead of being treated as a washable item.
+        if (stack.is(ItemRegistry.LIBATION_SPOUT.get())
+                || stack.is(ItemRegistry.CLAY_PHIAL.get())
+                || stack.is(ItemRegistry.NATRON_SPONGE.get())) {
+            // Let the spout be placed and phial/sponge handle their own principle interactions instead of treating them as washable items.
             return InteractionResult.PASS;
         }
         return LibationUtils.useItemOn(level, pos, stack, player, hand);

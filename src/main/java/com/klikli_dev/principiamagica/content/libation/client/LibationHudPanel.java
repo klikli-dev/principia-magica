@@ -30,6 +30,8 @@ final class LibationHudPanel {
     static final int BACKGROUND_COLOR = 0xA0000000;
     static final int BAR_TRACK_COLOR = 0xFF303030;
     static final int TEXT_COLOR = 0xFFFFFFFF;
+    static final int SELECTED_ROW_COLOR = 0x45FFD36B;
+    static final int SELECTED_ACCENT_COLOR = 0xFFFFD36B;
 
     private LibationHudPanel() {
     }
@@ -52,6 +54,18 @@ final class LibationHudPanel {
      * Draws a principle icon at x with its row text next to it, vertically centred on the icon.
      */
     static void renderPrincipleRow(GuiGraphicsExtractor graphics, Font font, PrincipleStack stack, int x, int rowY) {
+        renderPrincipleRow(graphics, font, stack, x, rowY, false, 0);
+    }
+
+    /**
+     * Draws a principle icon at x with its row text next to it, optionally highlighted as the active selection.
+     */
+    static void renderPrincipleRow(GuiGraphicsExtractor graphics, Font font, PrincipleStack stack, int x, int rowY,
+                                   boolean selected, int highlightWidth) {
+        if (selected && highlightWidth > 0) {
+            graphics.fill(x - 1, rowY, x + highlightWidth + 1, rowY + PrincipleRenderer.ICON_SIZE, SELECTED_ROW_COLOR);
+            graphics.fill(x - 2, rowY, x - 1, rowY + PrincipleRenderer.ICON_SIZE, SELECTED_ACCENT_COLOR);
+        }
         PrincipleRenderer.renderIcon(graphics, stack.principle(), x, rowY);
         graphics.text(font, principleRow(stack), x + PrincipleRenderer.ICON_SIZE + TEXT_GAP,
                 rowY + (PrincipleRenderer.ICON_SIZE - LINE_HEIGHT) / 2, TEXT_COLOR, true);

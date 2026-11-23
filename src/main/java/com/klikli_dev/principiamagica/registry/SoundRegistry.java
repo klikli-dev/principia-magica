@@ -21,6 +21,9 @@ public class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> VESSEL_TAP_CLOSE = register("vessel.tap_close");
     public static final DeferredHolder<SoundEvent, SoundEvent> VESSEL_CURE = register("vessel.cure");
     public static final DeferredHolder<SoundEvent, SoundEvent> DRYING_SLAB_DRIED = register("drying_slab.dried");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PHIAL_FILL = register("phial.fill");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PHIAL_EMPTY = register("phial.empty");
+    public static final DeferredHolder<SoundEvent, SoundEvent> NATRON_SPONGE_BLOT = register("natron_sponge.blot");
 
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {
         return SOUND_EVENTS.register(name, SoundEvent::createVariableRangeEvent);

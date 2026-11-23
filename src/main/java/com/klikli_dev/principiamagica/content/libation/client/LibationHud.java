@@ -6,13 +6,13 @@ package com.klikli_dev.principiamagica.content.libation.client;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.client.principle.PrincipleRenderer;
+import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.libation.client.LibationHudStatus.Status;
 import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.spout.SpoutBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.trough.CatchTroughBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
-import com.klikli_dev.principiamagica.content.libation.vessel.VesselProperties;
+import com.klikli_dev.principiamagica.content.principle.Principle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.DryingRecipe;
@@ -23,6 +23,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
@@ -85,22 +86,27 @@ public class LibationHud {
         int y = minecraft.getWindow().getGuiScaledHeight() / 2 + OFFSET_Y;
         float partialTick = deltaTracker.getGameTimeDeltaPartialTick(false);
 
+        boolean selecting = LibationInput.isSelectingTool(minecraft.player);
         if (level.getBlockEntity(pos) instanceof DryingSlabBlockEntity drying) {
             renderDrying(graphics, minecraft.font, level, drying, partialTick, x, y);
         } else if (level.getBlockEntity(pos) instanceof LibationSlabBlockEntity slab) {
-            renderSlab(graphics, minecraft.font, level, pos, slab, partialTick, x, y);
+            renderSlab(graphics, minecraft.font, level, pos, slab, partialTick, selecting, x, y);
         } else if (level.getBlockEntity(pos) instanceof SpoutBlockEntity) {
             renderSpout(graphics, minecraft.font, level, pos, x, y);
         } else if (level.getBlockEntity(pos) instanceof CatchTroughBlockEntity trough) {
-            renderTrough(graphics, minecraft.font, level, trough, partialTick, x, y);
+            renderTrough(graphics, minecraft.font, level, pos, trough, partialTick, selecting, x, y);
         } else if (level.getBlockEntity(pos) instanceof PrincipleContainer container) {
-            renderContainer(graphics, minecraft.font, level, pos, container, x, y);
+            renderContainer(graphics, minecraft.font, level, pos, container, selecting, x, y);
         }
     }
 
-    private static void renderContainer(GuiGraphicsExtractor graphics, Font font, ClientLevel level, BlockPos pos, PrincipleContainer container, int x, int y) {
+    private static void renderContainer(GuiGraphicsExtractor graphics, Font font, ClientLevel level, BlockPos pos, PrincipleContainer container, boolean selecting, int x, int y) {
         List<PrincipleStack> stacks = container.getPrinciples().stacks();
-        List<Status> statuses = LibationHudStatus.container(level, pos, container);
+        Holder<Principle> selected = selecting ? LibationInput.selectedFor(pos, stacks) : null;
+        List<Status> statuses = new ArrayList<>(LibationHudStatus.container(level, pos, container));
+        if (selecting && stacks.size() > 1) {
+            statuses.add(selectHintStatus());
+        }
         Optional<Float> progress = LibationHudStatus.curingProgress(level, pos, container);
 
         int rowsHeight = stacks.isEmpty() ? LINE_HEIGHT : stacks.size() * ROW_HEIGHT;
@@ -117,6 +123,7 @@ public class LibationHud {
             width = Math.max(width, BAR_WIDTH);
             height += BAR_GAP + BAR_HEIGHT;
         }
+        int innerWidth = width;
         width += PADDING * 2;
 
         graphics.fill(x, y, x + width, y + height, BACKGROUND_COLOR);
@@ -125,7 +132,9 @@ public class LibationHud {
             graphics.text(font, Component.translatable("hud.principiamagica.libation.empty"), x + PADDING, y + PADDING, LibationHudStatus.NEUTRAL_COLOR, true);
         }
         for (int i = 0; i < stacks.size(); i++) {
-            renderPrincipleRow(graphics, font, stacks.get(i), x + PADDING, y + PADDING + i * ROW_HEIGHT);
+            PrincipleStack stack = stacks.get(i);
+            boolean isSelected = selected != null && stack.principle().value().equals(selected.value());
+            renderPrincipleRow(graphics, font, stack, x + PADDING, y + PADDING + i * ROW_HEIGHT, isSelected, innerWidth);
         }
 
         int statusY = y + PADDING + rowsHeight + STATUS_GAP;
@@ -140,10 +149,13 @@ public class LibationHud {
      * Lists the water of the libation slab, the state of its spout, the principles stored in it by type and amount and, while an
      * item dissolves, its progress.
      */
-    private static void renderSlab(GuiGraphicsExtractor graphics, Font font, ClientLevel level, BlockPos pos, LibationSlabBlockEntity slab, float partialTick, int x, int y) {
+    private static void renderSlab(GuiGraphicsExtractor graphics, Font font, ClientLevel level, BlockPos pos, LibationSlabBlockEntity slab, float partialTick, boolean selecting, int x, int y) {
         Component water = Component.translatable("hud.principiamagica.libation.water", slab.getWater(), LibationSlabBlockEntity.WATER_CAPACITY);
         Status spout = LibationHudStatus.hostSpout(level, pos);
         List<PrincipleStack> stacks = slab.getStored().stacks();
+        Holder<Principle> selected = selecting ? LibationInput.selectedFor(pos, stacks) : null;
+        boolean showSelectHint = selecting && stacks.size() > 1;
+        Status selectHint = showSelectHint ? selectHintStatus() : null;
         boolean dissolving = slab.isDissolving();
         Component status = Component.translatable("hud.principiamagica.libation.status.dissolving");
         float progress = Mth.clamp(slab.getDissolveProgress(level.getGameTime(), partialTick) / (float) LibationSlabBlockEntity.DISSOLVE_TIME, 0.0F, 1.0F);
@@ -156,12 +168,19 @@ public class LibationHud {
         for (PrincipleStack stack : stacks) {
             width = Math.max(width, principleRowWidth(font, stack));
         }
+        if (selectHint != null) {
+            width = Math.max(width, font.width(selectHint.text()));
+        }
         int rowsY = y + PADDING + LINE_HEIGHT + STATUS_GAP + LINE_HEIGHT + STATUS_GAP;
         int bottom = rowsY + rowsHeight;
         if (dissolving) {
             width = Math.max(width, Math.max(font.width(status), BAR_WIDTH));
             bottom += STATUS_GAP + LINE_HEIGHT + BAR_GAP + BAR_HEIGHT;
         }
+        if (selectHint != null) {
+            bottom += STATUS_GAP + LINE_HEIGHT;
+        }
+        int innerWidth = width;
         width += PADDING * 2;
         int height = bottom + PADDING - y;
 
@@ -172,13 +191,19 @@ public class LibationHud {
             graphics.text(font, Component.translatable("hud.principiamagica.libation.empty"), x + PADDING, rowsY, LibationHudStatus.NEUTRAL_COLOR, true);
         }
         for (int i = 0; i < stacks.size(); i++) {
-            renderPrincipleRow(graphics, font, stacks.get(i), x + PADDING, rowsY + i * ROW_HEIGHT);
+            PrincipleStack stack = stacks.get(i);
+            boolean isSelected = selected != null && stack.principle().value().equals(selected.value());
+            renderPrincipleRow(graphics, font, stack, x + PADDING, rowsY + i * ROW_HEIGHT, isSelected, innerWidth);
         }
         if (dissolving) {
-            int lineY = bottom - LINE_HEIGHT - BAR_GAP - BAR_HEIGHT;
+            int lineY = rowsY + rowsHeight + STATUS_GAP;
             graphics.text(font, status, x + PADDING, lineY, LibationHudStatus.CURING_COLOR, true);
             int barY = lineY + LINE_HEIGHT + BAR_GAP;
             renderBar(graphics, x + PADDING, barY, progress);
+        }
+        if (selectHint != null) {
+            int hintY = bottom - LINE_HEIGHT;
+            graphics.text(font, selectHint.text(), x + PADDING, hintY, selectHint.color(), true);
         }
     }
 
@@ -248,10 +273,14 @@ public class LibationHud {
      * Lists the principles of the catch trough, then the item it holds with the steeping status and progress. The principles
      * are listed as in the other containers.
      */
-    private static void renderTrough(GuiGraphicsExtractor graphics, Font font, ClientLevel level, CatchTroughBlockEntity trough, float partialTick, int x, int y) {
+    private static void renderTrough(GuiGraphicsExtractor graphics, Font font, ClientLevel level, BlockPos pos, CatchTroughBlockEntity trough, float partialTick, boolean selecting, int x, int y) {
         List<PrincipleStack> stacks = trough.getPrinciples().stacks();
+        Holder<Principle> selected = selecting ? LibationInput.selectedFor(pos, stacks) : null;
         ItemStack item = trough.getItem();
-        List<Status> statuses = LibationHudStatus.trough(trough);
+        List<Status> statuses = new ArrayList<>(LibationHudStatus.trough(trough));
+        if (selecting && stacks.size() > 1) {
+            statuses.add(selectHintStatus());
+        }
         Optional<SteepingRecipe> recipe = item.isEmpty() ? Optional.empty() : LibationRecipes.steeping(item, trough.getPrinciples());
         boolean hasBar = recipe.isPresent();
         float progress = recipe.isPresent() ? trough.getDisplayProgress(level.getGameTime(), partialTick) / recipe.get().time() : 0.0F;
@@ -270,6 +299,7 @@ public class LibationHud {
         if (hasBar) {
             width = Math.max(width, BAR_WIDTH);
         }
+        int innerWidth = width;
         width += PADDING * 2;
         int height = rowsHeight + statusHeight(statuses) + barHeight(hasBar) + PADDING * 2;
         graphics.fill(x, y, x + width, y + height, BACKGROUND_COLOR);
@@ -278,7 +308,9 @@ public class LibationHud {
             graphics.text(font, Component.translatable("hud.principiamagica.libation.empty"), x + PADDING, y + PADDING, LibationHudStatus.NEUTRAL_COLOR, true);
         }
         for (int i = 0; i < stacks.size(); i++) {
-            renderPrincipleRow(graphics, font, stacks.get(i), x + PADDING, y + PADDING + i * ROW_HEIGHT);
+            PrincipleStack stack = stacks.get(i);
+            boolean isSelected = selected != null && stack.principle().value().equals(selected.value());
+            renderPrincipleRow(graphics, font, stack, x + PADDING, y + PADDING + i * ROW_HEIGHT, isSelected, innerWidth);
         }
         if (!item.isEmpty()) {
             renderItemRow(graphics, font, item, item.getHoverName(), x + PADDING, y + PADDING + principlesHeight);
@@ -287,6 +319,10 @@ public class LibationHud {
         if (hasBar) {
             renderBar(graphics, x + PADDING, y + PADDING + rowsHeight + statusHeight(statuses) + BAR_GAP, Mth.clamp(progress, 0.0F, 1.0F));
         }
+    }
+
+    private static Status selectHintStatus() {
+        return new Status(Component.translatable("hud.principiamagica.libation.hint.select_principle", KeyCombo.CROUCH_SCROLL.component()), LibationHudStatus.NEUTRAL_COLOR);
     }
 
     private static Component outputLabel(ItemStack stack) {
