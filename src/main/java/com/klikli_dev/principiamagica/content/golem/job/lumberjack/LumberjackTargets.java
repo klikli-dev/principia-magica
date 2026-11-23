@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBonemeal;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
+import com.klikli_dev.principiamagica.content.golem.job.SupplyWantCache;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
@@ -198,17 +199,18 @@ public final class LumberjackTargets {
 
     /**
      * Saplings have a target while a remembered replant spot in the zone is free for them. Bone meal has one while a sapling in the zone
-     * can take it. The checks match what the replant and bone meal behaviours need, so no supply is fetched for nothing.
+     * can take it. The checks match what the replant and bone meal behaviours need, so no supply is fetched for nothing. The bone meal
+     * check scans the zone, so its answer is cached on the golem, see {@link SupplyWantCache}.
      */
     public static boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
         if (template.is(Items.BONE_MEAL)) {
-            return workplace.options().get(BONEMEAL) && anyInZone(workplace, pos -> {
+            return golem.supplyWants().get(level, workplace, template.getItem(), () -> workplace.options().get(BONEMEAL) && anyInZone(workplace, pos -> {
                 BlockState state = level.getBlockState(pos);
                 return !isBonemealStalled(golem, pos)
                         && state.is(BlockTags.SAPLINGS)
                         && state.getBlock() instanceof BonemealableBlock block
                         && block.isValidBonemealTarget(level, pos, state);
-            });
+            }));
         }
 
         return workplace.options().get(REPLANT)

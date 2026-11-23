@@ -14,6 +14,7 @@ import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
+import com.klikli_dev.principiamagica.content.golem.job.SupplyWantCache;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemMenu;
 import com.klikli_dev.principiamagica.content.golem.progression.GolemProgression;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
@@ -84,6 +85,7 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     private final AnimatableInstanceCache animatableInstanceCache = GeckoLibUtil.createInstanceCache(this);
     private final GolemSpecModifiers specModifiers = new GolemSpecModifiers();
     private final GolemBlockers blockers = new GolemBlockers();
+    private final SupplyWantCache supplyWants = new SupplyWantCache();
     private WorkplaceSource workplaceSource = new WorkplaceSource.Inline(Workplace.EMPTY);
     private @Nullable BlockPos openedContainerPos;
 
@@ -207,9 +209,20 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         this.entityData.set(DATA_SPEC, spec);
         this.applySpec();
 
+        if (jobChanged) {
+            this.supplyWants.clear();
+        }
+
         if (jobChanged && this.level() instanceof ServerLevel serverLevel) {
             this.refreshBrain(serverLevel);
         }
+    }
+
+    /**
+     * @return the golem's answers to whether its job wants a supply item, see {@link SupplyWantCache}
+     */
+    public SupplyWantCache supplyWants() {
+        return this.supplyWants;
     }
 
     private void applySpec() {

@@ -136,10 +136,14 @@ public final class FarmingTargets {
     }
 
     /**
-     * Seeds have a target while the zone has a free farmland spot the seed can grow on, bone meal while it has a crop it can grow. The check
-     * scans the zone, so the golem only fetches supplies the job can use.
+     * Seeds have a target while the zone has a free farmland spot the seed can grow on, bone meal while it has a crop it can grow. The zone
+     * scan is cached on the golem, so the golem only fetches supplies the job can use.
      */
     public static boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
+        return golem.supplyWants().get(level, workplace, template.getItem(), () -> scanZones(level, workplace, template));
+    }
+
+    private static boolean scanZones(ServerLevel level, Workplace workplace, ItemStack template) {
         if (template.is(Items.BONE_MEAL)) {
             return workplace.options().get(BONEMEAL) && anyInZone(workplace, pos -> {
                 BlockState state = level.getBlockState(pos);
