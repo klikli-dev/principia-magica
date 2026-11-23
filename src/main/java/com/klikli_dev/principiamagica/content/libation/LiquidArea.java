@@ -30,9 +30,10 @@ public record LiquidArea(float minX, float maxX, float minZ, float maxZ, float b
     private static final float MIN_FILM = 0.5F;
 
     /**
+     * @param total the amount of liquid in mB, may be eased on the client, see {@link AmountSmoother}.
      * @return the surface height in blocks for the given total amount of principles.
      */
-    public float surfaceY(int total) {
+    public float surfaceY(float total) {
         float fraction = Mth.clamp(total / (float) this.capacity, 0.0F, 1.0F);
         float level = this.bottom + fraction * (this.top - this.bottom);
         if (total > 0) {

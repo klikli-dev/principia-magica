@@ -34,7 +34,9 @@ public class CuringVesselRenderer implements BlockEntityRenderer<CuringVesselBlo
     @Override
     public void extractRenderState(CuringVesselBlockEntity blockEntity, LiquidRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
-        LiquidRenderer.extract(state, blockEntity.properties().liquid(), blockEntity.getPrinciples());
+        long gameTime = blockEntity.getLevel() != null ? blockEntity.getLevel().getGameTime() : 0L;
+        LiquidRenderer.extract(state, blockEntity.properties().liquid(),
+                blockEntity.getDisplayedPrinciples(gameTime, partialTicks), blockEntity.getPrinciples().blendedColor());
     }
 
     @Override

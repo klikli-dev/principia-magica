@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.libation.vessel;
 
+import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
 import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
@@ -38,6 +39,10 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     private final VesselProperties vessel;
     private final PrincipleStorage principles;
     private final PrincipleDrain drain;
+    /**
+     * Client-only: the principles shown, eased towards the synced principles, see {@link #getDisplayedPrinciples}.
+     */
+    private final AmountSmoother displayedPrinciples = new AmountSmoother();
     private int progress;
     private boolean curing;
     private CuringRecipe activeRecipe;
@@ -55,6 +60,15 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
 
     public PrincipleContents getPrinciples() {
         return this.principles.contents();
+    }
+
+    /**
+     * Client-only. Eases the amount of principles shown towards the synced amount, so that throttled syncs look smooth.
+     *
+     * @return the amount in mB to draw, see {@link AmountSmoother}.
+     */
+    public float getDisplayedPrinciples(long gameTime, float partialTick) {
+        return this.displayedPrinciples.update(this.getPrinciples().total(), gameTime, partialTick);
     }
 
     @Override

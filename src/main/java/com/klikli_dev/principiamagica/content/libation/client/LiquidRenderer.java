@@ -4,8 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.libation.client;
 
+import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
 import com.klikli_dev.principiamagica.content.libation.LiquidArea;
-import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -29,21 +29,17 @@ public final class LiquidRenderer {
     private LiquidRenderer() {
     }
 
-    public static void extract(LiquidRenderState state, LiquidArea liquid, PrincipleContents principles) {
-        state.liquid = liquid;
-        state.visible = !principles.isEmpty();
-        state.surfaceY = liquid.surfaceY(principles.total());
-        state.color = SURFACE_ALPHA << 24 | principles.blendedColor();
-    }
-
     /**
-     * Extracts plain water, tinted vanilla water blue, with its surface height scaled by the amount of water.
+     * Extracts a liquid, with its surface height scaled by the amount. Draws nothing for an amount of zero.
+     *
+     * @param amount the amount in mB to draw, which the clients ease, see {@link AmountSmoother}.
+     * @param tint   the RGB colour of the liquid, such as {@link #WATER_COLOR} or the blended colour of principles.
      */
-    public static void extractWater(LiquidRenderState state, LiquidArea liquid, int water) {
+    public static void extract(LiquidRenderState state, LiquidArea liquid, float amount, int tint) {
         state.liquid = liquid;
-        state.visible = water > 0;
-        state.surfaceY = liquid.surfaceY(water);
-        state.color = SURFACE_ALPHA << 24 | WATER_COLOR;
+        state.visible = amount > 0.0F;
+        state.surfaceY = liquid.surfaceY(amount);
+        state.color = SURFACE_ALPHA << 24 | tint;
     }
 
     public static void submit(LiquidRenderState state, PoseStack poseStack, SubmitNodeCollector collector, SpriteGetter sprites) {

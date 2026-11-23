@@ -49,7 +49,7 @@ public class LibationSlabRenderer implements BlockEntityRenderer<LibationSlabBlo
         state.dissolveScale = blockEntity.isDissolving()
                 ? Mth.clamp(1.0F - blockEntity.getDissolveProgress(gameTime, partialTicks) / LibationSlabBlockEntity.DISSOLVE_TIME, MIN_DISSOLVE_SCALE, 1.0F)
                 : 1.0F;
-        LiquidRenderer.extractWater(state.water, LibationGeometry.SLAB_WATER, blockEntity.getWater());
+        LiquidRenderer.extract(state.water, LibationGeometry.SLAB_WATER, blockEntity.getDisplayedWater(gameTime, partialTicks), LiquidRenderer.WATER_COLOR);
     }
 
     @Override

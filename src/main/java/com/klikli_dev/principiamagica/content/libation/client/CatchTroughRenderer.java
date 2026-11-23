@@ -42,9 +42,10 @@ public class CatchTroughRenderer implements BlockEntityRenderer<CatchTroughBlock
     @Override
     public void extractRenderState(CatchTroughBlockEntity blockEntity, LiquidRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
-        LiquidRenderer.extract(state, LibationGeometry.TROUGH, blockEntity.getPrinciples());
+        long gameTime = blockEntity.getLevel() != null ? blockEntity.getLevel().getGameTime() : 0L;
+        LiquidRenderer.extract(state, LibationGeometry.TROUGH, blockEntity.getDisplayedPrinciples(gameTime, partialTicks), blockEntity.getPrinciples().blendedColor());
         this.itemModelResolver.updateForTopItem(state.item, blockEntity.getItem(), ItemDisplayContext.FIXED, blockEntity.getLevel(), null, (int) blockEntity.getBlockPos().asLong());
-        state.time = (blockEntity.getLevel() != null ? blockEntity.getLevel().getGameTime() : 0L) + partialTicks;
+        state.time = gameTime + partialTicks;
     }
 
     @Override

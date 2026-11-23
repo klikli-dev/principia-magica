@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.libation.trough;
 
+import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
 import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
@@ -50,6 +51,10 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
      * The steeping of the held item. Its progress is reset whenever the item or the principles no longer match a recipe.
      */
     private final ProgressTracker steeping = new ProgressTracker(this.sync);
+    /**
+     * Client-only: the principles shown, eased towards the synced principles, see {@link #getDisplayedPrinciples}.
+     */
+    private final AmountSmoother displayedPrinciples = new AmountSmoother();
     private ItemStack item = ItemStack.EMPTY;
 
     public CatchTroughBlockEntity(BlockPos pos, BlockState state) {
@@ -58,6 +63,15 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
 
     public ItemStack getItem() {
         return this.item;
+    }
+
+    /**
+     * Client-only. Eases the amount of principles shown towards the synced amount, so that throttled syncs look smooth.
+     *
+     * @return the amount in mB to draw, see {@link AmountSmoother}.
+     */
+    public float getDisplayedPrinciples(long gameTime, float partialTick) {
+        return this.displayedPrinciples.update(this.principles.contents().total(), gameTime, partialTick);
     }
 
     /**

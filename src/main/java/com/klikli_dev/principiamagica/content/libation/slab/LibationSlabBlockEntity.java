@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.libation.slab;
 
 import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
+import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
 import com.klikli_dev.principiamagica.content.libation.LibationFlow;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
@@ -63,6 +64,10 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     private int dissolveColor = PrincipleContents.DEFAULT_COLOR;
     private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY, this.sync);
     private final PrincipleDrain drain = new PrincipleDrain(this.stored, this.sync);
+    /**
+     * Client-only: the water level shown, eased towards the synced water, see {@link #getDisplayedWater}.
+     */
+    private final AmountSmoother displayedWater = new AmountSmoother();
 
     public LibationSlabBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.LIBATION_SLAB.get(), pos, state);
@@ -105,6 +110,15 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
      */
     public float getDissolveProgress(long gameTime, float partialTick) {
         return this.dissolve.display(gameTime, partialTick);
+    }
+
+    /**
+     * Client-only. Eases the water level shown towards the synced water, so that throttled syncs look smooth.
+     *
+     * @return the water in mB to draw, see {@link AmountSmoother}.
+     */
+    public float getDisplayedWater(long gameTime, float partialTick) {
+        return this.displayedWater.update(this.getWater(), gameTime, partialTick);
     }
 
     /**
