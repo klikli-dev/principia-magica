@@ -59,11 +59,12 @@ final class GolemGuiText {
     }
 
     /**
-     * @return the second line of the status tablet: the status if it is a problem, otherwise the position of the work target
+     * @return the second line of the status tablet: the short hint of the status if it is not OK, otherwise the position of the work target.
+     * The hints are short enough for two lines of the tablet, the status descriptions are not.
      */
     static Component detailLine(GolemStatus status, GolemTask task) {
         if (status != GolemStatus.OK) {
-            return status.description();
+            return Component.translatable("gui.principiamagica.golem.status_hint." + status.name().toLowerCase(Locale.ROOT));
         }
 
         return task.target()
