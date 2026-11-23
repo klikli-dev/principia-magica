@@ -22,8 +22,10 @@ import net.minecraft.network.chat.Component;
  */
 public class IconToggleButton extends AbstractWidget {
 
+    /**
+     * The icon is drawn at half the size of its 32x32 sprite, centred in the button.
+     */
     private static final int ICON_SIZE = 16;
-    private static final int ICON_OFFSET = 2;
 
     private final GuiSprite icon;
     private final Runnable onPress;
@@ -78,7 +80,8 @@ public class IconToggleButton extends AbstractWidget {
         }
 
         sprite.extractRenderState(graphics, this.getX(), this.getY(), this.getWidth(), this.getHeight());
-        this.icon.extractRenderState(graphics, this.getX() + ICON_OFFSET, this.getY() + ICON_OFFSET, ICON_SIZE, ICON_SIZE);
+        int iconOffset = (this.getWidth() - ICON_SIZE) / 2;
+        this.icon.extractRenderState(graphics, this.getX() + iconOffset, this.getY() + iconOffset, ICON_SIZE, ICON_SIZE);
     }
 
     @Override

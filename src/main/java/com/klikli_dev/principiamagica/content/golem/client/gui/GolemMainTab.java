@@ -55,10 +55,10 @@ final class GolemMainTab extends GolemTab {
     static final int STATUS_Y = 82;
     static final int STATUS_WIDTH = 122;
     static final int STATUS_HEIGHT = 35;
-    static final int MODE_Y = 57;
-    static final int MODE_SIZE = 20;
-    static final int MODE_SPACING = 22;
-    static final int MODE_X = 132;
+    static final int MODE_Y = 56;
+    static final int MODE_SIZE = 24;
+    static final int MODE_SPACING = 26;
+    static final int MODE_X = 120;
 
     private final GolemMenu menu;
     private final ContentRect screen;
@@ -69,7 +69,6 @@ final class GolemMainTab extends GolemTab {
     private TooltipArea axiomHint;
     private SpriteWidget handGhost;
     private TooltipArea handHint;
-    private SpriteWidget backGhost;
     private TooltipArea backHint;
     private LabelWidget taskLabel;
     private LabelWidget taskLabelWithItem;
@@ -121,7 +120,6 @@ final class GolemMainTab extends GolemTab {
 
         Slot back = this.menu.backSlot();
         this.add(GolemSlotWidgets.background(this.screen, back, this.slotSprite(), -1, -1));
-        this.backGhost = this.add(GolemSlotWidgets.itemSprite(this.screen, back, this.sprite("ghost_back")));
         this.backHint = this.add(GolemSlotWidgets.hint(this.screen, back, Component.translatable("gui.principiamagica.golem.back.tooltip")));
     }
 
@@ -175,9 +173,7 @@ final class GolemMainTab extends GolemTab {
         this.handGhost.visible = handEmpty;
         this.handHint.visible = handEmpty;
 
-        boolean backEmpty = golem == null || golem.getBackItem().isEmpty();
-        this.backGhost.visible = backEmpty;
-        this.backHint.visible = backEmpty;
+        this.backHint.visible = golem == null || golem.getBackItem().isEmpty();
 
         for (Map.Entry<GolemMode, IconToggleButton> entry : this.modes.entrySet()) {
             IconToggleButton button = entry.getValue();
