@@ -246,9 +246,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("message.principiamagica.stylus.golem_not_found", "The selected golem is not nearby");
         this.add("message.principiamagica.stylus.selected", "Golem selected");
         this.add("message.principiamagica.stylus.deselected", "Golem deselected");
-        this.add("message.principiamagica.stylus.copied", "Copied workplace: %s footprints, %s container links");
-        this.add("message.principiamagica.stylus.pasted", "Pasted workplace");
-        this.add("message.principiamagica.stylus.cleared", "Cleared selection and clipboard");
+        this.add("message.principiamagica.stylus.cleared", "Cleared selection");
         this.add("message.principiamagica.stylus.corner_set", "First glyph carved, carve the opposite corner");
         this.add("message.principiamagica.stylus.corner_cancelled", "Pending corner cancelled");
         this.add("message.principiamagica.stylus.corner_picked_up", "Corner picked up, right-click a block to place it");
@@ -270,8 +268,6 @@ public class ENUSProvider extends LanguageProvider {
         this.add("tooltip.principiamagica.copper_stylus.yes", "yes");
         this.add("tooltip.principiamagica.copper_stylus.none", "none");
         this.add("tooltip.principiamagica.copper_stylus.pending_corner", "Pending glyph: %s, %s, %s");
-        this.add("tooltip.principiamagica.copper_stylus.clipboard_empty", "Clipboard: empty");
-        this.add("tooltip.principiamagica.copper_stylus.clipboard", "Clipboard: %s footprints, %s container links");
         this.add("tooltip.principiamagica.copper_stylus.hint_select", "Right-click golem: select / deselect");
         this.add("tooltip.principiamagica.copper_stylus.hint_copy_paste", "Shift-right-click golem: copy workplace / paste clipboard");
         this.add("tooltip.principiamagica.copper_stylus.hint_pickup", "Shift-left-click own golem: pick up (keeps workplace)");

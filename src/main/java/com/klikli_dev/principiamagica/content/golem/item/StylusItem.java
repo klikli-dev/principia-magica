@@ -122,12 +122,8 @@ public class StylusItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        if (player.isShiftKeyDown()) {
-            boolean hadSelection = stack.remove(DataComponentRegistry.STYLUS_SELECTION.get()) != null;
-            boolean hadClipboard = stack.remove(DataComponentRegistry.STYLUS_CLIPBOARD.get()) != null;
-            if (hadSelection || hadClipboard) {
-                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
-            }
+        if (player.isShiftKeyDown() && stack.remove(DataComponentRegistry.STYLUS_SELECTION.get()) != null) {
+            serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
         }
 
         return InteractionResult.SUCCESS;
@@ -306,11 +302,6 @@ public class StylusItem extends Item {
             adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.pending_corner",
                     pos.getX(), pos.getY(), pos.getZ()).withStyle(ChatFormatting.GRAY));
         }
-
-        Workplace clipboard = stack.get(DataComponentRegistry.STYLUS_CLIPBOARD.get());
-        adder.accept(clipboard == null
-                ? Component.translatable("tooltip.principiamagica.copper_stylus.clipboard_empty").withStyle(ChatFormatting.GRAY)
-                : Component.translatable("tooltip.principiamagica.copper_stylus.clipboard", clipboard.footprints().size(), clipboard.links().size()).withStyle(ChatFormatting.GRAY));
 
         adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_select").withStyle(ChatFormatting.DARK_GRAY));
         adder.accept(Component.translatable("tooltip.principiamagica.copper_stylus.hint_copy_paste").withStyle(ChatFormatting.DARK_GRAY));
