@@ -341,6 +341,15 @@
           ]
         },
         {
+          "name": "LeftHandItem",
+          "parent": "arm_left",
+          "pivot": [
+            5.25,
+            4.5,
+            0
+          ]
+        },
+        {
           "name": "legs",
           "parent": "torso",
           "pivot": [
@@ -435,6 +444,20 @@
               ],
               "inflate": 0.25
             }
+          ]
+        },
+        {
+          "name": "BackItem",
+          "parent": "torso",
+          "pivot": [
+            0,
+            12,
+            2.25
+          ],
+          "rotation": [
+            0,
+            0,
+            45
           ]
         }
       ]
