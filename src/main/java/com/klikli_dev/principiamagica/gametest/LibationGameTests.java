@@ -452,6 +452,118 @@ public class LibationGameTests {
     }
 
     /**
+     * A hopper fills the catch trough through its block capabilities, with principles and a steepable item and no player. The
+     * trough steeps the item, and a hopper then takes the finished item out of it.
+     */
+    public static void catchTroughHopperSteepsAndReleasesItemWithoutPlayer(GameTestHelper helper) {
+        int time = steepingTime(helper, "steeping/axiom_of_harvest_unfired");
+        BlockPos trough = new BlockPos(3, 1, 3);
+        helper.setBlock(trough, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity be = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(trough));
+        ResourceHandler<ItemResource> items = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(trough), Direction.UP);
+        ResourceHandler<FluidResource> fluids = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(trough), Direction.UP);
+        helper.assertTrue(items != null && fluids != null, "The trough should expose item and fluid capabilities");
+
+        try (Transaction tx = Transaction.open(null)) {
+            int inserted = fluids.insert(FluidRegistry.resourceFor(PrincipleRegistry.LOAM), STEEPING_PRINCIPLES, tx);
+            helper.assertTrue(inserted == STEEPING_PRINCIPLES, "The trough should accept the principles from a pipe, accepted " + inserted);
+            tx.commit();
+        }
+        try (Transaction tx = Transaction.open(null)) {
+            int inserted = items.insert(ItemResource.of(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get())), 1, tx);
+            helper.assertTrue(inserted == 1, "The trough should accept a steepable item from a hopper, accepted " + inserted);
+            tx.commit();
+        }
+
+        helper.runAfterDelay(time + 5, () -> {
+            helper.assertTrue(be.getItem().is(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()),
+                    "The trough should steep the item without a player, got " + be.getItem());
+            helper.assertTrue(be.getPrinciples().total() == 0, "The recipe principles should be consumed, holds " + be.getPrinciples().total());
+
+            int extracted;
+            try (Transaction tx = Transaction.open(null)) {
+                extracted = items.extract(ItemResource.of(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get())), 1, tx);
+                tx.commit();
+            }
+            helper.assertTrue(extracted == 1, "A hopper should take the steeped item out, extracted " + extracted);
+            helper.assertTrue(be.getItem().isEmpty(), "The trough should be empty after the extraction, holds " + be.getItem());
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A player and a hopper follow the same rules for the catch trough: an unsteepable item is refused by both, and a steepable
+     * item fits only once, while the trough holds one.
+     */
+    public static void catchTroughRefusesUnsteepableAndHoldsOneForPlayerAndHopper(GameTestHelper helper) {
+        BlockPos trough = new BlockPos(3, 1, 3);
+        helper.setBlock(trough, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity be = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(trough));
+        ResourceHandler<ItemResource> items = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(trough), Direction.UP);
+        helper.assertTrue(items != null, "The trough should expose an item capability");
+        Player player = helper.makeMockServerPlayerInLevel();
+
+        int refused;
+        try (Transaction tx = Transaction.open(null)) {
+            refused = items.insert(ItemResource.of(new ItemStack(Items.DIAMOND)), 1, tx);
+        }
+        helper.assertTrue(refused == 0, "A hopper should be refused an unsteepable item, accepted " + refused);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND));
+        InteractionResult refusedByHand = be.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(refusedByHand == InteractionResult.PASS && player.getMainHandItem().is(Items.DIAMOND),
+                "A player should be refused an unsteepable item and keep it, got " + refusedByHand);
+        helper.assertTrue(be.getItem().isEmpty(), "The trough should stay empty, holds " + be.getItem());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get(), 2));
+        InteractionResult accepted = be.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(accepted.consumesAction() && be.getItem().is(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get()) && be.getItem().getCount() == 1,
+                "A player should put one steepable item into the trough, holds " + be.getItem());
+        helper.assertTrue(player.getMainHandItem().getCount() == 1, "The rest of the stack should stay in hand, holds " + player.getMainHandItem());
+
+        InteractionResult full = be.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(full == InteractionResult.PASS, "The trough should refuse a second item while it holds one, got " + full);
+        helper.succeed();
+    }
+
+    /**
+     * The libation slab takes washable items from pipes but never gives them back to them. Players take the stack back, and
+     * the slab refuses items that are not washable.
+     */
+    public static void libationSlabHopperInsertsWashableItemOnly(GameTestHelper helper) {
+        BlockPos slab = new BlockPos(3, 2, 3);
+        helper.setBlock(slab, BlockRegistry.LIBATION_SLAB.get().defaultBlockState());
+        LibationSlabBlockEntity be = (LibationSlabBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(slab));
+        ResourceHandler<ItemResource> items = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(slab), Direction.UP);
+        helper.assertTrue(items != null, "The slab should expose an item capability");
+
+        int refused;
+        try (Transaction tx = Transaction.open(null)) {
+            refused = items.insert(ItemResource.of(new ItemStack(Items.DIAMOND)), 1, tx);
+        }
+        helper.assertTrue(refused == 0, "The slab should refuse an item that is not washable, accepted " + refused);
+
+        int accepted;
+        try (Transaction tx = Transaction.open(null)) {
+            accepted = items.insert(ItemResource.of(new ItemStack(Items.BONE)), 1, tx);
+            tx.commit();
+        }
+        helper.assertTrue(accepted == 1, "A hopper should insert a washable item into the slab, accepted " + accepted);
+
+        int extracted;
+        try (Transaction tx = Transaction.open(null)) {
+            extracted = items.extract(ItemResource.of(new ItemStack(Items.BONE)), 1, tx);
+        }
+        helper.assertTrue(extracted == 0, "A hopper should not take the washable item back out, extracted " + extracted);
+
+        Player player = helper.makeMockServerPlayerInLevel();
+        InteractionResult taken = be.useWithoutItem(player);
+        helper.assertTrue(taken.consumesAction() && be.getStack().isEmpty(), "A player should take the stack back out of the slab");
+        helper.assertTrue(player.getInventory().countItem(Items.BONE) == 1, "The taken stack should land in the player's inventory");
+        helper.succeed();
+    }
+
+    /**
      * Places a catch trough with the given amount of loam and an unfired axiom of harvest, which steeps with the loam.
      */
     private static CatchTroughBlockEntity troughWithUnfiredAxiom(GameTestHelper helper, BlockPos pos, int loam) {
