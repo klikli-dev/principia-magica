@@ -656,6 +656,41 @@ public class StylusGameTests {
         helper.succeed();
     }
 
+    public static void cancelMoveKeptUntilGolemIsReachable(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+
+        WorkFootprint original = WorkFootprint.ofBox(new BlockPos(1, 1, 1), new BlockPos(5, 1, 5), helper.getLevel().dimension());
+        Workplace workplace = Workplace.EMPTY.withFootprints(List.of(original)).markInitialized();
+        PickUpResult picked = StylusActions.pickUpCorner(workplace, helper.getLevel().dimension(), 0, 7).orElseThrow();
+        golem.updateWorkplace(current -> picked.workplace());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        stylus.set(DataComponentRegistry.STYLUS_PENDING_GLYPH.get(), picked.pending());
+
+        // Out of reach: the move must stay on the stylus instead of being dropped with the footprint
+        player.setPos(golem.getX() + 100.0, golem.getY(), golem.getZ());
+        helper.assertTrue(StylusItem.cancelPending(stylus, player) == StylusItem.CancelOutcome.MOVE_KEPT,
+                "Cancelling a move with the golem out of reach should keep the move");
+        helper.assertTrue(stylus.has(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()),
+                "Pending move should stay on the stylus while the golem is out of reach");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().footprints().isEmpty(),
+                "Footprint should not be restored while the golem is out of reach");
+
+        // Back in reach: the cancel restores the footprint and clears the pending move
+        player.setPos(golem.getX(), golem.getY(), golem.getZ());
+        helper.assertTrue(StylusItem.cancelPending(stylus, player) == StylusItem.CancelOutcome.MOVE_CANCELLED,
+                "Cancelling a move with the golem in reach should restore the footprint");
+        helper.assertTrue(!stylus.has(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()),
+                "Pending move should be cleared once restored");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().footprints().equals(List.of(original)),
+                "Cancelling in reach should restore the original footprint");
+
+        helper.succeed();
+    }
+
     public static void sneakRightClickInsideFootprintErasesFootprint(GameTestHelper helper) {
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
         Player player = helper.makeMockServerPlayerInLevel();

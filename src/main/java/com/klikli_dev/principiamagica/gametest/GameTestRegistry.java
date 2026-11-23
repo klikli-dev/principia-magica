@@ -164,6 +164,9 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PICK_UP_MOVE_AND_CANCEL_CORNER =
             TEST_FUNCTIONS.register("pick_up_move_and_cancel_corner", () -> StylusGameTests::pickUpMoveAndCancelCorner);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CANCEL_MOVE_KEPT_UNTIL_GOLEM_IS_REACHABLE =
+            TEST_FUNCTIONS.register("cancel_move_kept_until_golem_is_reachable", () -> StylusGameTests::cancelMoveKeptUntilGolemIsReachable);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT =
             TEST_FUNCTIONS.register("sneak_right_click_inside_footprint_erases_footprint", () -> StylusGameTests::sneakRightClickInsideFootprintErasesFootprint);
 

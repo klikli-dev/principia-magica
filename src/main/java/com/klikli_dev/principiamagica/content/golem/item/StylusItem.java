@@ -7,7 +7,6 @@ package com.klikli_dev.principiamagica.content.golem.item;
 import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
-import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSyncGolemWorkplace;
@@ -88,8 +87,11 @@ public class StylusItem extends Item {
 
         Optional<GolemEntity> selected = findSelectedGolem(player, stack);
         if (selected.isEmpty()) {
-            stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
-            stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+            // A pending corner move still owes its footprint to the golem, so the selection is kept until it can be restored
+            if (!hasPendingMove(stack)) {
+                stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
+                stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+            }
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.golem_not_found"));
             return InteractionResult.FAIL;
         }
@@ -115,20 +117,64 @@ public class StylusItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        Optional<PendingGlyph> cancelled = cancelPending(stack, serverPlayer);
-        if (cancelled.isPresent()) {
-            String key = cancelled.get().original().isPresent()
-                    ? "message.principiamagica.stylus.corner_move_cancelled"
-                    : "message.principiamagica.stylus.corner_cancelled";
-            serverPlayer.sendOverlayMessage(Component.translatable(key));
-            return InteractionResult.SUCCESS;
-        }
-
-        if (player.isShiftKeyDown() && stack.remove(DataComponentRegistry.STYLUS_SELECTION.get()) != null) {
-            serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
+        switch (cancelPending(stack, serverPlayer)) {
+            case CORNER_CANCELLED -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_cancelled"));
+            case MOVE_CANCELLED -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_cancelled"));
+            case MOVE_KEPT -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_golem_not_found"));
+            case NONE -> {
+                if (player.isShiftKeyDown() && stack.remove(DataComponentRegistry.STYLUS_SELECTION.get()) != null) {
+                    serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
+                }
+            }
         }
 
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * What {@link #cancelPending(ItemStack, ServerPlayer)} did with the pending corner.
+     */
+    public enum CancelOutcome {
+        /** There was no pending corner. */
+        NONE,
+        /** A pending corner that did not move a footprint was removed. */
+        CORNER_CANCELLED,
+        /** A pending corner move was cancelled and its original footprint restored to the selected golem. */
+        MOVE_CANCELLED,
+        /** A pending corner move could not be restored because the selected golem is not reachable, so it stays on the stack. */
+        MOVE_KEPT
+    }
+
+    private static boolean hasPendingMove(ItemStack stack) {
+        PendingGlyph pending = stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+        return pending != null && pending.original().isPresent();
+    }
+
+    /**
+     * Cancels the pending corner on the stack. A pending corner move is only removed once its original footprint has been
+     * restored to the selected golem. If the golem is not reachable, the move stays on the stack, so the footprint is not lost.
+     */
+    public static CancelOutcome cancelPending(ItemStack stack, ServerPlayer player) {
+        PendingGlyph pending = stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+        if (pending == null) {
+            return CancelOutcome.NONE;
+        }
+
+        if (pending.original().isEmpty()) {
+            stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+            return CancelOutcome.CORNER_CANCELLED;
+        }
+
+        Optional<GolemEntity> golem = findSelectedGolem(player, stack);
+        if (golem.isEmpty()) {
+            return CancelOutcome.MOVE_KEPT;
+        }
+
+        ServerLevel level = (ServerLevel) golem.get().level();
+        Workplace current = golem.get().getWorkplace(level).orElse(Workplace.EMPTY);
+        applyWorkplaceEdit(player, golem.get(), StylusActions.restoreFootprint(current, pending.original().get()));
+        stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+        return CancelOutcome.MOVE_CANCELLED;
     }
 
     /**
@@ -150,33 +196,6 @@ public class StylusItem extends Item {
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
         syncWorkplace(player, golem);
-    }
-
-    /**
-     * Cancels the pending corner on the stack, restoring the original footprint if the player was moving an existing corner.
-     *
-     * @return the removed pending glyph, if one was present
-     */
-    public static Optional<PendingGlyph> cancelPending(ItemStack stack, ServerPlayer player) {
-        PendingGlyph removed = stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
-        if (removed != null && removed.original().isPresent() && player != null) {
-            WorkFootprint original = removed.original().get();
-            findSelectedGolem(player, stack).ifPresent(golem -> {
-                ServerLevel level = (ServerLevel) golem.level();
-                Workplace current = golem.getWorkplace(level).orElse(Workplace.EMPTY);
-                applyWorkplaceEdit(player, golem, StylusActions.restoreFootprint(current, original));
-            });
-        }
-        return Optional.ofNullable(removed);
-    }
-
-    /**
-     * Cancels the pending corner on the stack.
-     *
-     * @return whether a pending corner was present and removed
-     */
-    public static boolean cancelPending(ItemStack stack) {
-        return cancelPending(stack, null).isPresent();
     }
 
     public static boolean isWithinRange(ServerPlayer player, GolemEntity golem) {

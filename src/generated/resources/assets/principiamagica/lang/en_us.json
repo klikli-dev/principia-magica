@@ -275,6 +275,7 @@
   "message.principiamagica.stylus.corner_cancelled": "Pending corner cancelled",
   "message.principiamagica.stylus.corner_lifted": "Corner lifted %s",
   "message.principiamagica.stylus.corner_move_cancelled": "Corner move cancelled",
+  "message.principiamagica.stylus.corner_move_golem_not_found": "Move closer to the golem to cancel the corner move",
   "message.principiamagica.stylus.corner_moved": "Work area corner moved",
   "message.principiamagica.stylus.corner_occupied": "Another corner is already at that block",
   "message.principiamagica.stylus.corner_picked_up": "Corner picked up, right-click a block to place it",

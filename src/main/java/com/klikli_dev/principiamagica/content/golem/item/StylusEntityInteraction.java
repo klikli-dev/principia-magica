@@ -23,7 +23,11 @@ final class StylusEntityInteraction {
 
     static InteractionResult interact(ItemStack stack, ServerPlayer player, GolemEntity golem) {
         UUID selected = stack.get(DataComponentRegistry.STYLUS_SELECTION.get());
-        StylusItem.cancelPending(stack, player);
+        if (StylusItem.cancelPending(stack, player) == StylusItem.CancelOutcome.MOVE_KEPT) {
+            // The pending move belongs to the currently selected golem, so the selection must not change until it is restored
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_golem_not_found"));
+            return InteractionResult.FAIL;
+        }
 
         if (golem.getUUID().equals(selected)) {
             stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());

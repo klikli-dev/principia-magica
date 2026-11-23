@@ -263,6 +263,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("message.principiamagica.stylus.corner_picked_up", "Corner picked up, right-click a block to place it");
         this.add("message.principiamagica.stylus.corner_moved", "Work area corner moved");
         this.add("message.principiamagica.stylus.corner_move_cancelled", "Corner move cancelled");
+        this.add("message.principiamagica.stylus.corner_move_golem_not_found", "Move closer to the golem to cancel the corner move");
         this.add("message.principiamagica.stylus.corner_occupied", "Another corner is already at that block");
         this.add("message.principiamagica.stylus.out_of_bounds", "Reached the world height limit");
         this.add("message.principiamagica.stylus.footprint_carved", "Footprint carved");
