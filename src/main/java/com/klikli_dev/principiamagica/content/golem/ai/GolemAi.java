@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.ai;
 
 import com.google.common.collect.ImmutableList;
+import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.DepositItems;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
@@ -150,12 +151,14 @@ public class GolemAi {
     }
 
     /**
-     * @return true if the golem holds an item it has to deposit, but its workplace has no deposit container at all
+     * @return true if the golem holds an item it has to deposit, but its workplace has no deposit container that is available.
+     * A deposit link whose container is gone does not count, like having no deposit link at all.
      */
-    static boolean isWaitingForDeposit(ServerLevel level, GolemEntity golem) {
+    public static boolean isWaitingForDeposit(ServerLevel level, GolemEntity golem) {
         return golem.getSpec().job().isPresent()
                 && DepositItems.carriesExcess(golem)
-                && golem.getWorkplace(level).map(workplace -> workplace.links().stream().noneMatch(link -> link.role().canDeposit())).orElse(true);
+                && golem.getWorkplace(level).map(workplace -> workplace.links().stream()
+                .noneMatch(link -> link.role().canDeposit() && ContainerAccess.itemHandler(level, link) != null)).orElse(true);
     }
 
     private static List<ActivityData<GolemEntity>> createActivities(GolemEntity body) {
