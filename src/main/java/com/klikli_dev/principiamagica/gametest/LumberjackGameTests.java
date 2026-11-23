@@ -570,6 +570,39 @@ public class LumberjackGameTests {
         });
     }
 
+    /**
+     * Carrying something moves the axe to the back. After the golem deposits the load, the axe comes back to the hand.
+     */
+    public static void backSlotHoldsToolWhileCarrying(GameTestHelper helper) {
+        buildGround(helper);
+        helper.setBlock(CHEST_POS, Blocks.CHEST);
+        ContainerLink deposit = link(helper, CHEST_POS, ContainerRole.DEPOSIT);
+        GolemEntity golem = spawnLumberjack(helper, List.of(deposit), true);
+        golem.insertCarried(new ItemStack(Items.OAK_LOG, 3));
+        boolean[] carried = {false};
+
+        helper.succeedWhen(() -> {
+            if (golem.getHandItem().is(Items.OAK_LOG) && golem.getBackItem().is(Items.IRON_AXE)) {
+                carried[0] = true;
+            }
+
+            var chest = ContainerAccess.containerAt(helper.getLevel(), helper.absolutePos(CHEST_POS));
+            int logs = 0;
+            if (chest != null) {
+                for (int i = 0; i < chest.getContainerSize(); i++) {
+                    if (chest.getItem(i).is(Items.OAK_LOG)) {
+                        logs += chest.getItem(i).getCount();
+                    }
+                }
+            }
+
+            helper.assertTrue(carried[0], "Carrying logs should move the axe to the back, hand " + golem.getHandItem() + ", back " + golem.getBackItem());
+            helper.assertTrue(logs >= 3, "The golem should deposit the logs into the chest, chest has " + logs);
+            helper.assertTrue(golem.getHandItem().is(Items.IRON_AXE) && golem.getBackItem().isEmpty(),
+                    "After the deposit the axe should be back in the hand, hand " + golem.getHandItem() + ", back " + golem.getBackItem());
+        });
+    }
+
     public static void restocksSaplingsFromSupply(GameTestHelper helper) {
         buildGround(helper);
         buildTree(helper, List.of(TREE), 5, Blocks.OAK_LOG, naturalLeaves(Blocks.OAK_LEAVES));
@@ -612,7 +645,8 @@ public class LumberjackGameTests {
         helper.setBlock(TREE, Blocks.OAK_SAPLING);
         ContainerLink supply = link(helper, CHEST_POS, ContainerRole.SUPPLY);
         fillChest(helper, CHEST_POS, new ItemStack(Items.BONE_MEAL, 16));
-        spawnLumberjack(helper, List.of(supply), true, bonemealOn());
+        // No axe: bone meal only goes into a free hand, and an axe in the hand would keep the golem from fetching it.
+        spawnLumberjack(helper, List.of(supply), false, bonemealOn());
 
         helper.succeedWhen(() -> {
             helper.assertTrue(helper.getBlockState(TREE).getValue(SaplingBlock.STAGE) > 0, "A sapling should be advanced with bone meal restocked from the supply chest, got " + helper.getBlockState(TREE));

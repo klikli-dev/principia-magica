@@ -41,9 +41,18 @@ public record WorkJob(
         Optional<TagKey<Item>> toolTag,
         List<JobOption> options,
         BiPredicate<Workplace, ItemStack> keeps,
+        SupplyCheck supplies,
         WorkTargetFinder targetFinder,
         Supplier<List<BehaviorControl<? super GolemEntity>>> behaviours
 ) implements GolemJob {
+
+    /**
+     * Decides whether the job has a target for a supply item right now, see {@link GolemJob#wantsSupply}.
+     */
+    @FunctionalInterface
+    public interface SupplyCheck {
+        boolean wants(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template);
+    }
 
     /**
      * How many items of a kept stack the golem holds on to, the rest is deposited.
@@ -65,6 +74,11 @@ public record WorkJob(
                 .filter(workplace -> this.keeps.test(workplace, stack))
                 .map(workplace -> KEEP_AMOUNT)
                 .orElse(0);
+    }
+
+    @Override
+    public boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
+        return this.supplies.wants(level, golem, workplace, template);
     }
 
     @Override

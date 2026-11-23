@@ -7,6 +7,8 @@ package com.klikli_dev.principiamagica.content.golem.job;
 import com.google.common.collect.ImmutableList;
 import com.klikli_dev.principiamagica.content.golem.ai.JobBehaviours;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import net.minecraft.server.level.ServerLevel;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
@@ -69,6 +71,14 @@ public interface GolemJob {
      */
     default int keepAmount(GolemEntity golem, ItemStack stack) {
         return 0;
+    }
+
+    /**
+     * Whether the job has a target that a supply item would serve right now, e.g. a free spot to plant a seed on or a sapling to apply bone
+     * meal to. The golem only restocks an item the job can use, so it does not fetch supplies it cannot place.
+     */
+    default boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
+        return true;
     }
 
     WorkTargetFinder targetFinder();

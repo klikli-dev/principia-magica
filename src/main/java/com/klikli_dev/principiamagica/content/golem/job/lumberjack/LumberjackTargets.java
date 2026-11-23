@@ -10,6 +10,7 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBonemeal;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
@@ -30,6 +31,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -186,6 +188,38 @@ public final class LumberjackTargets {
             for (int slot = 0; slot < handler.size(); slot++) {
                 ItemResource resource = handler.getResource(slot);
                 if (!resource.isEmpty() && Saplings.isSapling(resource.toStack().getItem())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Saplings have a target while a remembered replant spot in the zone is free for them. Bone meal has one while a sapling in the zone
+     * can take it. The checks match what the replant and bone meal behaviours need, so no supply is fetched for nothing.
+     */
+    public static boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
+        if (template.is(Items.BONE_MEAL)) {
+            return workplace.options().get(BONEMEAL) && anyInZone(workplace, pos -> {
+                BlockState state = level.getBlockState(pos);
+                return !isBonemealStalled(golem, pos)
+                        && state.is(BlockTags.SAPLINGS)
+                        && state.getBlock() instanceof BonemealableBlock block
+                        && block.isValidBonemealTarget(level, pos, state);
+            });
+        }
+
+        return workplace.options().get(REPLANT)
+                && Saplings.isSapling(template.getItem())
+                && workplace.itemMemory().keySet().stream().anyMatch(pos -> isPlantSpot(level, workplace, pos) && survives(level, pos, template.getItem()));
+    }
+
+    private static boolean anyInZone(Workplace workplace, Predicate<BlockPos> test) {
+        for (WorkZone zone : workplace.zones(LumberjackJob.BELOW, LumberjackJob.ABOVE)) {
+            for (int i = 0; i < zone.volume(); i++) {
+                if (test.test(zone.positionAt(i))) {
                     return true;
                 }
             }

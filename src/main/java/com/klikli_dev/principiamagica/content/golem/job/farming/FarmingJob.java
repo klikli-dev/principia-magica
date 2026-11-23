@@ -49,6 +49,7 @@ public final class FarmingJob {
                 Optional.of(ItemTags.HOES),
                 List.of(FarmingTargets.REPLANT, FarmingTargets.CLEAR_OBSTRUCTIONS, FarmingTargets.TILL, FarmingTargets.BONEMEAL, CommonJobOptions.PICKUP_ITEMS),
                 FarmingTargets::keepsItem,
+                FarmingTargets::wantsSupply,
                 new WorkTargetFinder(FarmingTargets::isWorkTarget, FarmingTargets::blockedReason),
                 FarmingJob::behaviours
         );

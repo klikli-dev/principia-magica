@@ -13,6 +13,7 @@ import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.job.farming.crop.CropHandlers;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -38,6 +39,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -133,7 +135,38 @@ public final class FarmingTargets {
         return isPlantableSoil(level, soilPos) && seedToPlant(level, golem, workplace.get(), soilPos).isPresent();
     }
 
-    private static boolean isPlantableSoil(ServerLevel level, BlockPos soilPos) {
+    /**
+     * Seeds have a target while the zone has a free farmland spot, bone meal while it has a crop it can grow. The check scans the zone, so
+     * the golem only fetches supplies the job can use.
+     */
+    public static boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
+        if (template.is(Items.BONE_MEAL)) {
+            return workplace.options().get(BONEMEAL) && anyInZone(workplace, pos -> {
+                BlockState state = level.getBlockState(pos);
+                return state.getBlock() instanceof BonemealableBlock block
+                        && block.isValidBonemealTarget(level, pos, state)
+                        && CropHandlers.find(state).isPresent();
+            });
+        }
+
+        // A farmland spot with an obstruction the job clears is a planting spot too, the golem clears it first.
+        return workplace.options().get(REPLANT) && isPlantSeed(template) && anyInZone(workplace, pos -> isPlantableSoil(level, pos)
+                || (workplace.options().get(CLEAR_OBSTRUCTIONS) && isFarmSoil(level, pos) && level.getBlockState(pos.above()).is(CLEARABLE)));
+    }
+
+    private static boolean anyInZone(Workplace workplace, Predicate<BlockPos> test) {
+        for (WorkZone zone : workplace.zones(FarmingJob.BELOW, FarmingJob.ABOVE)) {
+            for (int i = 0; i < zone.volume(); i++) {
+                if (test.test(zone.positionAt(i))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean isPlantableSoil(ServerLevel level, BlockPos soilPos) {
         return isFarmSoil(level, soilPos) && level.getBlockState(soilPos.above()).isAir();
     }
 

@@ -4,6 +4,10 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 
+import net.minecraft.world.entity.item.ItemEntity;
+
+import net.minecraft.world.item.Items;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -17,6 +21,7 @@ import com.klikli_dev.principiamagica.content.golem.job.farming.crop.HarvestResu
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
@@ -28,11 +33,20 @@ public class HarvestCrop extends JobTargetBehaviour {
     protected GolemTask.TaskType taskType() {
         return GolemTask.TaskType.HARVEST;
     }
+
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        BlockState state = level.getBlockState(target);
+        ItemStack item = blockItem(level, target);
+        return item.isEmpty() ? CropHandlers.find(state).flatMap(handler -> handler.seedFor(level, target, state)).map(ItemStack::new).orElse(ItemStack.EMPTY) : item;
+    }
     private static final int MAX_HARVEST_TICKS = 60;
 
     @Override
     protected boolean canAct(ServerLevel level, GolemEntity golem, BlockPos pos) {
-        return FarmingTargets.isHarvestable(level, pos);
+        // A harvest yields the crop and seeds that do not merge into a held supply, so the hand must be free for the output.
+        ItemStack hand = golem.getHandItem();
+        return (hand.isEmpty() || golem.isTool(hand)) && FarmingTargets.isHarvestable(level, pos);
     }
 
     /**

@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 import com.klikli_dev.principiamagica.content.golem.job.JobOptionValues;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingTargets;
@@ -133,17 +134,38 @@ public class FarmingGameTests {
         chest.setItem(0, stack);
     }
 
-    public static void harvestAndReplant(GameTestHelper helper) {
+    /**
+     * While it harvests, the golem's synced task says so and names the crop (wheat has no block item, so its seed is shown).
+     */
+    public static void taskShowsHarvestWhileHarvesting(GameTestHelper helper) {
         buildMatureWheat(helper);
         GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(), JobOptionValues.EMPTY);
-        golem.insertCarried(new ItemStack(Items.WHEAT_SEEDS, 9));
+        boolean[] seen = {false};
+
+        helper.succeedWhen(() -> {
+            GolemTask task = golem.getTask();
+            if (task.type() == GolemTask.TaskType.HARVEST && task.display().is(Items.WHEAT_SEEDS) && task.target().isPresent()) {
+                seen[0] = true;
+            }
+            helper.assertTrue(seen[0], "While harvesting, the golem's task should be a harvest of wheat, got " + task);
+        });
+    }
+
+    public static void harvestAndReplant(GameTestHelper helper) {
+        buildMatureWheat(helper);
+        // The seeds come from a BOTH chest, which also takes the harvest. The golem cannot hold seeds and wheat at once: it deposits
+        // the wheat before harvesting the next crop, and fetches the seeds for planting once the hand is free.
+        ContainerLink both = link(helper, CHEST_POS, ContainerRole.BOTH);
+        fillChest(helper, CHEST_POS, new ItemStack(Items.WHEAT_SEEDS, 16));
+        GolemEntity golem = spawnFarmer(helper, GOLEM_POS, List.of(both), JobOptionValues.EMPTY);
 
         helper.succeedWhen(() -> {
             for (BlockPos spot : farmSpots()) {
                 BlockState state = helper.getBlockState(spot);
                 helper.assertTrue(state.is(Blocks.WHEAT) && state.getValue(CropBlock.AGE) < 7, "Crop at " + spot + " should be harvested and replanted, got " + state);
             }
-            helper.assertTrue(golem.countCarried(Items.WHEAT) >= 9, "Golem should carry the harvested wheat, has " + golem.countCarried(Items.WHEAT));
+            int wheat = golem.countCarried(Items.WHEAT) + countInChest(helper, CHEST_POS, Items.WHEAT);
+            helper.assertTrue(wheat >= 9, "The harvested wheat should be carried or deposited, got " + wheat);
         });
     }
 
@@ -284,10 +306,11 @@ public class FarmingGameTests {
 
     public static void twoGolemsShareField(GameTestHelper helper) {
         buildMatureWheat(helper);
-        GolemEntity first = spawnFarmer(helper, GOLEM_POS, List.of(), JobOptionValues.EMPTY);
-        first.insertCarried(new ItemStack(Items.WHEAT_SEEDS, 9));
-        GolemEntity second = spawnFarmer(helper, new BlockPos(6, 2, 0), List.of(), JobOptionValues.EMPTY);
-        second.insertCarried(new ItemStack(Items.WHEAT_SEEDS, 9));
+        // Both golems take seeds from the same BOTH chest, which also takes the harvest.
+        ContainerLink both = link(helper, CHEST_POS, ContainerRole.BOTH);
+        fillChest(helper, CHEST_POS, new ItemStack(Items.WHEAT_SEEDS, 32));
+        spawnFarmer(helper, GOLEM_POS, List.of(both), JobOptionValues.EMPTY);
+        spawnFarmer(helper, new BlockPos(6, 2, 0), List.of(both), JobOptionValues.EMPTY);
 
         helper.succeedWhen(() -> {
             for (BlockPos spot : farmSpots()) {

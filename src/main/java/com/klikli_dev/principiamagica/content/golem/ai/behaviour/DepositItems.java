@@ -4,6 +4,10 @@
 
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
+import net.minecraft.world.entity.item.ItemEntity;
+
+import net.minecraft.world.item.Items;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -38,25 +42,22 @@ public class DepositItems extends MoveToAndInteract {
     protected GolemTask.TaskType taskType() {
         return GolemTask.TaskType.DEPOSIT;
     }
-    private static final int COOLDOWN_TICKS = 100;
-    /** After a switch the golem does not restock the item it just gave up, so the two cannot undo each other. */
-    private static final int RESTOCK_AFTER_SWITCH_TICKS = 100;
 
-    public enum Mode {
-        /** Deposits what the job does not keep. Runs before any other work. */
-        EXCESS,
-        /** Gives up a kept supply when the job needs its tool and the tool is on the back. Runs only when no other work can run. */
-        SWITCH
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return blockItem(level, target);
     }
+    private static final int COOLDOWN_TICKS = 100;
 
     private final GolemJob job;
-    private final Mode mode;
     private @Nullable Container openContainer;
 
-    public DepositItems(GolemJob job, Mode mode) {
+    /**
+     * Deposits what the job does not keep. Kept supplies are put away by {@link PutAwaySupplies} instead.
+     */
+    public DepositItems(GolemJob job) {
         super(Map.of(MemoryModuleTypeRegistry.DEPOSIT_COOLDOWN.value(), MemoryStatus.VALUE_ABSENT), 0.6F);
         this.job = job;
-        this.mode = mode;
     }
 
     /**
@@ -77,16 +78,6 @@ public class DepositItems extends MoveToAndInteract {
         return golem.getJob().map(job -> job.keepAmount(golem, hand) < hand.getCount()).orElse(false);
     }
 
-    /**
-     * @return true if the job needs its tool in the hand, which is on the back, while the hand holds something else, and there is work to do
-     */
-    static boolean needsToolSwitch(GolemEntity golem) {
-        ItemStack hand = golem.getHandItem();
-        return !hand.isEmpty()
-                && !golem.isTool(hand)
-                && golem.isTool(golem.getBackItem())
-                && golem.getJob().map(job -> job.requiredTool().isPresent()).orElse(false);
-    }
 
     @Override
     protected Optional<BlockPos> findTarget(ServerLevel level, GolemEntity golem) {
@@ -167,8 +158,6 @@ public class DepositItems extends MoveToAndInteract {
         if (this.depositExcess(golem, handler) == 0) {
             golem.reportBlocker(GolemStatus.DEPOSIT_FULL);
             golem.getBrain().setMemory(MemoryModuleTypeRegistry.DEPOSIT_COOLDOWN.value(), COOLDOWN_TICKS);
-        } else if (this.mode == Mode.SWITCH) {
-            golem.getBrain().setMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value(), RESTOCK_AFTER_SWITCH_TICKS);
         }
     }
 
@@ -215,10 +204,6 @@ public class DepositItems extends MoveToAndInteract {
         ItemStack hand = golem.getHandItem();
         if (hand.isEmpty() || golem.isTool(hand)) {
             return List.of();
-        }
-
-        if (this.mode == Mode.SWITCH) {
-            return needsToolSwitch(golem) ? List.of(new Excess(hand, hand.getCount())) : List.of();
         }
 
         int kept = Math.min(this.job.keepAmount(golem, hand), hand.getCount());
