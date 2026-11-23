@@ -59,7 +59,7 @@ public class ItemRegistry {
             p -> new ClayPhialItem(p.stacksTo(ClayPhialItem.STACK_SIZE)));
 
     public static final DeferredItem<NatronSpongeItem> NATRON_SPONGE = ITEMS.registerItem("natron_sponge",
-            p -> new NatronSpongeItem(p.stacksTo(1)));
+            p -> new NatronSpongeItem(p.stacksTo(16)));
 
     public static final DeferredItem<Item> AXIOM_TABLET = registerStackable("axiom_tablet", MATERIAL_STACK_SIZE);
 

@@ -716,6 +716,25 @@ public class LibationGameTests {
         helper.succeed();
     }
 
+    /**
+     * Crafting one quickened clay with three sand yields eight natron sponges.
+     */
+    public static void natronSpongeRecipeProducesEight(GameTestHelper helper) {
+        CraftingInput input = CraftingInput.of(2, 2, List.of(
+                new ItemStack(ItemRegistry.QUICKENED_CLAY.get()),
+                new ItemStack(Items.SAND),
+                new ItemStack(Items.SAND),
+                new ItemStack(Items.SAND)
+        ));
+        var recipe = helper.getLevel().getServer().getRecipeManager()
+                .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
+        helper.assertTrue(recipe.isPresent(), "Natron sponge crafting recipe should match 1 quickened clay + 3 sand");
+        ItemStack output = recipe.get().value().assemble(input);
+        helper.assertTrue(output.is(ItemRegistry.NATRON_SPONGE.get()) && output.getCount() == 8,
+                "Expected 8 natron sponges, got " + output);
+        helper.succeed();
+    }
+
     private static InteractionResult useHeldOn(GameTestHelper helper, Player player, BlockPos relPos) {
         BlockPos absPos = helper.absolutePos(relPos);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absPos), Direction.UP, absPos, false);

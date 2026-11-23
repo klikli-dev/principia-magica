@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "principiamagica:quickened_clay",
+    "#minecraft:sand",
+    "#minecraft:sand",
+    "#minecraft:sand"
+  ],
+  "result": {
+    "count": 8,
+    "id": "principiamagica:natron_sponge"
+  }
+}

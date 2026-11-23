@@ -86,6 +86,11 @@ public class ShapelessRecipeProvider implements DataProvider {
                 Ingredient.of(ItemRegistry.AXIOM_TABLET.get()),
                 Ingredient.of(this.items.getOrThrow(ItemTags.SAPLINGS)),
                 Ingredient.of(this.items.getOrThrow(ItemTags.LOGS))));
+
+        Ingredient sand = Ingredient.of(this.items.getOrThrow(ItemTags.SAND));
+        this.shapelessIngredients(consumer, ItemRegistry.NATRON_SPONGE.get(), 8, List.of(
+                Ingredient.of(ItemRegistry.QUICKENED_CLAY.get()),
+                sand, sand, sand));
     }
 
     private void shapeless(BiConsumer<Identifier, JsonObject> consumer, ItemLike result, int count, List<ItemLike> ingredients) {
