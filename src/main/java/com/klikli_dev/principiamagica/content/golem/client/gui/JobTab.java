@@ -4,17 +4,17 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
+import com.klikli_dev.codedefinedgui.api.screen.ContentRect;
 import com.klikli_dev.codedefinedgui.api.style.StyleContext;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
-import com.klikli_dev.principiamagica.client.gui.ContentRect;
+import com.klikli_dev.codedefinedgui.api.widget.tab.TabIcon;
 import com.klikli_dev.principiamagica.client.gui.GuiStyles;
 import com.klikli_dev.principiamagica.client.gui.widget.ItemIcon;
 import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
 import com.klikli_dev.principiamagica.client.gui.widget.ScrollList;
 import com.klikli_dev.principiamagica.client.gui.widget.SpriteWidget;
-import com.klikli_dev.principiamagica.client.gui.widget.TabIcon;
-import com.klikli_dev.principiamagica.client.gui.widget.TooltipArea;
 import com.klikli_dev.principiamagica.client.gui.widget.ToggleSwitch;
+import com.klikli_dev.principiamagica.client.gui.widget.TooltipArea;
 import com.klikli_dev.principiamagica.client.gui.widget.WidgetParts;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;

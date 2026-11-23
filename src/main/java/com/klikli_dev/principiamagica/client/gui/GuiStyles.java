@@ -130,9 +130,9 @@ public final class GuiStyles {
         }
 
         return builder
-                .set(WidgetParts.TAB, GuiStyleProperties.SPRITE, sprite("tab"))
-                .set(WidgetParts.TAB, GuiStyleProperties.HOVER_SPRITE, sprite("tab_hover"))
-                .set(WidgetParts.TAB, GuiStyleProperties.ON_SPRITE, sprite("tab_selected"))
+                .set(BuiltinGuiParts.TAB, GuiStyleProperties.SPRITE, sprite("tab"))
+                .set(BuiltinGuiParts.TAB, GuiStyleProperties.HOVER_SPRITE, sprite("tab_hover"))
+                .set(BuiltinGuiParts.TAB, GuiStyleProperties.ON_SPRITE, sprite("tab_selected"))
                 .set(WidgetParts.BUTTON, GuiStyleProperties.SPRITE, sprite("button"))
                 .set(WidgetParts.BUTTON, GuiStyleProperties.HOVER_SPRITE, sprite("button_hover"))
                 .set(WidgetParts.BUTTON, GuiStyleProperties.TEXT_COLOR, TEXT_PRIMARY)

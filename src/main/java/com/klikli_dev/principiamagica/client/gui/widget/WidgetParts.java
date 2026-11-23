@@ -23,7 +23,6 @@ import net.minecraft.sounds.SoundEvents;
  * <ul>
  *     <li>{@link #BUTTON}: {@code SPRITE}, {@code HOVER_SPRITE}, {@code TEXT_COLOR}, {@code COLOR} (disabled text)</li>
  *     <li>{@link #ICON_BUTTON}: {@code SPRITE}, {@code HOVER_SPRITE}, {@code ON_SPRITE} (selected), {@link #DISABLED_SPRITE}</li>
- *     <li>{@link #TAB}: {@code SPRITE}, {@code HOVER_SPRITE}, {@code ON_SPRITE} (selected)</li>
  *     <li>{@link #TOGGLE} and {@link #TOGGLE_HOVER}: {@code ON_SPRITE}, {@code OFF_SPRITE}</li>
  *     <li>{@link #ROW}: {@code COLOR} (hover highlight)</li>
  *     <li>{@link #SCROLLBAR}: {@code SPRITE} (track), {@link #HANDLE_SPRITE}, {@link #HANDLE_HOVER_SPRITE}</li>
@@ -35,7 +34,6 @@ public final class WidgetParts {
 
     public static final GuiPartKey BUTTON = key("button");
     public static final GuiPartKey ICON_BUTTON = key("icon_button");
-    public static final GuiPartKey TAB = key("tab");
     public static final GuiPartKey TOGGLE = key("toggle");
     public static final GuiPartKey TOGGLE_HOVER = key("toggle_hover");
     public static final GuiPartKey ROW = key("row");

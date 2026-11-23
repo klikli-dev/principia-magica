@@ -5,7 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.menu;
 
 import com.klikli_dev.codedefinedgui.api.layout.LayoutSpec;
-import com.klikli_dev.principiamagica.client.gui.ContentRect;
+import com.klikli_dev.codedefinedgui.api.screen.ContentRect;
 
 /**
  * Static geometry of the golem menu. The screen is a composition of a vertical tab rail, the golem panel and the player inventory panel

@@ -4,15 +4,15 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
+import com.klikli_dev.codedefinedgui.api.screen.ContentRect;
 import com.klikli_dev.codedefinedgui.api.screen.GuiHost;
+import com.klikli_dev.codedefinedgui.api.screen.WidgetGroup;
+import com.klikli_dev.codedefinedgui.api.screen.page.Tab;
+import com.klikli_dev.codedefinedgui.api.screen.page.TabHost;
 import com.klikli_dev.codedefinedgui.api.style.BuiltinGuiParts;
 import com.klikli_dev.codedefinedgui.api.style.StyleContext;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
-import com.klikli_dev.principiamagica.client.gui.ContentRect;
 import com.klikli_dev.principiamagica.client.gui.GuiStyles;
-import com.klikli_dev.principiamagica.client.gui.Tab;
-import com.klikli_dev.principiamagica.client.gui.TabHost;
-import com.klikli_dev.principiamagica.client.gui.WidgetGroup;
 import com.klikli_dev.principiamagica.client.gui.widget.ScrollList;
 import com.klikli_dev.principiamagica.client.gui.widget.SpriteWidget;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
@@ -97,7 +97,7 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
                 new GolemMainTab(views, this.menu, screen),
                 new JobTab(views)
         );
-        this.tabs = new TabHost(this, panel, tabs, index -> this.selectTab(GolemMenuTab.values()[index]));
+        this.tabs = new TabHost(this, panel, tabs, index -> this.selectTab(GolemMenuTab.values()[index]), style);
         this.tabs.setUnavailableTooltip(GolemMenuTab.JOB.ordinal(), Component.translatable("gui.principiamagica.golem.tab.job.disabled"));
         this.updateTabs();
         this.tabs.select(this.menu.activeTab().ordinal());

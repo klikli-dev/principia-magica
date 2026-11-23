@@ -4,9 +4,9 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
-import com.klikli_dev.principiamagica.client.gui.ContentRect;
-import com.klikli_dev.principiamagica.client.gui.Page;
-import com.klikli_dev.principiamagica.client.gui.PageContext;
+import com.klikli_dev.codedefinedgui.api.screen.ContentRect;
+import com.klikli_dev.codedefinedgui.api.screen.page.Page;
+import com.klikli_dev.codedefinedgui.api.screen.page.PageContext;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemMenuLayout;
 import net.minecraft.client.gui.components.AbstractWidget;
 import org.jspecify.annotations.Nullable;
