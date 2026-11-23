@@ -22,8 +22,8 @@ public class BlockRegistry {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(PrincipiaMagica.MODID);
 
     /**
-     * With a required tool, bare hands take {@code hardness * 100} ticks, so 0.6 matches breaking planks by hand (3s).
-     * Any pickaxe, including wood, breaks it quickly.
+     * Bare hands take {@code hardness * 100} ticks, so 0.6 matches breaking planks by hand (3s), and blocks drop their
+     * contents regardless of the tool used. The mineable pickaxe tag makes pickaxes faster.
      */
     private static final float HARDNESS = 0.6F;
 
@@ -31,7 +31,6 @@ public class BlockRegistry {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.STONE)
                     .strength(HARDNESS, 6.0F)
-                    .requiresCorrectToolForDrops()
                     .sound(SoundType.STONE)
                     .noOcclusion());
 
@@ -39,7 +38,6 @@ public class BlockRegistry {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.STONE)
                     .strength(HARDNESS, 6.0F)
-                    .requiresCorrectToolForDrops()
                     .sound(SoundType.STONE)
                     .noOcclusion());
 
@@ -47,7 +45,6 @@ public class BlockRegistry {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.COLOR_ORANGE)
                     .strength(HARDNESS, 6.0F)
-                    .requiresCorrectToolForDrops()
                     .sound(SoundType.METAL)
                     .noOcclusion());
 
@@ -55,7 +52,6 @@ public class BlockRegistry {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.TERRACOTTA_ORANGE)
                     .strength(HARDNESS, 4.2F)
-                    .requiresCorrectToolForDrops()
                     .sound(SoundType.STONE)
                     .noOcclusion());
 
@@ -63,7 +59,6 @@ public class BlockRegistry {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.SAND)
                     .strength(HARDNESS, 0.8F)
-                    .requiresCorrectToolForDrops()
                     .sound(SoundType.STONE)
                     .noOcclusion());
 
@@ -71,7 +66,6 @@ public class BlockRegistry {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.TERRACOTTA_RED)
                     .strength(HARDNESS, 6.0F)
-                    .requiresCorrectToolForDrops()
                     .sound(SoundType.STONE)
                     .noOcclusion());
 
@@ -79,7 +73,6 @@ public class BlockRegistry {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.SAND)
                     .strength(HARDNESS, 0.8F)
-                    .requiresCorrectToolForDrops()
                     .sound(SoundType.STONE)
                     .noOcclusion());
 }
