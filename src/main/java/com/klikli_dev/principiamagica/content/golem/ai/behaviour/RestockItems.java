@@ -4,6 +4,12 @@
 
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
+import net.minecraft.world.entity.item.ItemEntity;
+
+import net.minecraft.world.item.Items;
+
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
@@ -27,6 +33,16 @@ import java.util.Optional;
  * Takes items the job needs (keepAmount above what the golem holds) from a SUPPLY-capable container.
  */
 public class RestockItems extends MoveToAndInteract {
+
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.RESTOCK;
+    }
+
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return blockItem(level, target);
+    }
     private static final int COOLDOWN_TICKS = 100;
 
     private final GolemJob job;
@@ -71,9 +87,15 @@ public class RestockItems extends MoveToAndInteract {
                 .orElse(false);
     }
 
+    /**
+     * The cooldown only applies while the hand is free. A busy hand is checked cheaply every time, and a cooldown set now would otherwise
+     * still run when the hand becomes free, e.g. right after the golem deposited its harvest.
+     */
     @Override
     protected void onNoTarget(ServerLevel level, GolemEntity golem) {
-        golem.getBrain().setMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value(), COOLDOWN_TICKS);
+        if (golem.getHandItem().isEmpty()) {
+            golem.getBrain().setMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value(), COOLDOWN_TICKS);
+        }
     }
 
     @Override
@@ -105,7 +127,7 @@ public class RestockItems extends MoveToAndInteract {
                 try (Transaction transaction = Transaction.openRoot()) {
                     int extracted = handler.extract(slot, resource, amount, transaction);
                     if (extracted > 0) {
-                        golem.getInventory().insert(resource.toStack(extracted));
+                        golem.insertCarried(resource.toStack(extracted));
                         transaction.commit();
                         moved += extracted;
                     }
@@ -121,11 +143,23 @@ public class RestockItems extends MoveToAndInteract {
 
     private int neededAmount(GolemEntity golem, ItemStack template) {
         int keep = this.job.keepAmount(golem, template);
-        if (keep <= 0) {
+        if (keep <= 0 || !(golem.level() instanceof ServerLevel level)) {
             return 0;
         }
 
-        int missing = keep - golem.getInventory().countItem(template.getItem());
-        return Math.max(0, Math.min(missing, golem.getInventory().fitAmount(template)));
+        // Supplies only go into a free hand or onto the same supply, a tool stays where it is. The job must also have a target for the item,
+        // otherwise the golem would fetch it, find nothing to do with it and put it away again.
+        ItemStack hand = golem.getHandItem();
+        if (!hand.isEmpty() && !ItemStack.isSameItemSameComponents(hand, template)) {
+            return 0;
+        }
+
+        if (golem.getWorkplace(level).filter(workplace -> this.job.wantsSupply(level, golem, workplace, template)).isEmpty()) {
+            return 0;
+        }
+
+
+        int missing = keep - golem.countCarried(template.getItem());
+        return Math.max(0, Math.min(missing, golem.carryFitAmount(template)));
     }
 }

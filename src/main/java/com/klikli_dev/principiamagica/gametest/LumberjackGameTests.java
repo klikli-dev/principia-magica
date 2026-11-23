@@ -36,6 +36,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -209,7 +210,7 @@ public class LumberjackGameTests {
 
         helper.succeedWhen(() -> {
             helper.assertTrue(logsGone(helper, 5), "All logs of the natural tree should be felled");
-            helper.assertTrue(golem.getInventory().countItem(Items.OAK_LOG) >= 5, "Golem should carry the logs, has " + golem.getInventory().countItem(Items.OAK_LOG));
+            helper.assertTrue(logsCarriedOrDropped(golem) >= 5, "Golem should carry the logs, has " + logsCarriedOrDropped(golem));
             helper.assertTrue(golem.getItemBySlot(EquipmentSlot.MAINHAND).getDamageValue() > 0, "The axe should lose durability while felling");
         });
     }
@@ -222,7 +223,7 @@ public class LumberjackGameTests {
 
         helper.succeedWhen(() -> {
             helper.assertTrue(logsGone(helper, 5), "The tree walled in by natural leaves should be felled, leaves left at BASE_Y: " + countLowLeaves(helper, Blocks.OAK_LEAVES));
-            helper.assertTrue(golem.getInventory().countItem(Items.OAK_LOG) >= 5, "Golem should carry the logs, has " + golem.getInventory().countItem(Items.OAK_LOG));
+            helper.assertTrue(logsCarriedOrDropped(golem) >= 5, "Golem should carry the logs, has " + logsCarriedOrDropped(golem));
         });
     }
 
@@ -241,7 +242,7 @@ public class LumberjackGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(golem.getMainHandItem().isEmpty(), "The axe should break on the first log, got " + golem.getMainHandItem());
             helper.assertTrue(countLogs(helper, 5) == 4, "Only the first log should be felled with the broken axe, logs left " + countLogs(helper, 5));
-            helper.assertTrue(golem.getInventory().countItem(Items.OAK_LOG) == 1, "Golem should carry the one felled log, has " + golem.getInventory().countItem(Items.OAK_LOG));
+            helper.assertTrue(logsCarriedOrDropped(golem) == 1, "Golem should carry the one felled log, has " + logsCarriedOrDropped(golem));
         });
     }
 
@@ -455,10 +456,17 @@ public class LumberjackGameTests {
         buildGround(helper);
         buildTree(helper, List.of(TREE), 5, Blocks.OAK_LOG, naturalLeaves(Blocks.OAK_LEAVES));
         GolemEntity golem = spawnLumberjack(helper, List.of(), true);
-        golem.getInventory().insert(new ItemStack(Items.OAK_SAPLING, 4));
+        // The saplings go into the hand only once the tree is felled: the axe is in the hand while felling, and a held sapling would block it.
+        boolean[] supplied = {false};
 
-        helper.succeedWhen(() -> helper.assertTrue(helper.getBlockState(TREE).is(Blocks.OAK_SAPLING),
-                "A sapling should be planted on the stump, got " + helper.getBlockState(TREE)));
+        helper.succeedWhen(() -> {
+            if (!supplied[0] && logsGone(helper, 5)) {
+                golem.insertCarried(new ItemStack(Items.OAK_SAPLING, 4));
+                supplied[0] = true;
+            }
+
+            helper.assertTrue(helper.getBlockState(TREE).is(Blocks.OAK_SAPLING), "A sapling should be planted on the stump, got " + helper.getBlockState(TREE));
+        });
     }
 
     public static void ignoresPlayerLeaves(GameTestHelper helper) {
@@ -508,9 +516,15 @@ public class LumberjackGameTests {
         List<BlockPos> trunk = List.of(new BlockPos(3, 0, 3), new BlockPos(4, 0, 3), new BlockPos(3, 0, 4), new BlockPos(4, 0, 4));
         buildTree(helper, trunk, 5, Blocks.DARK_OAK_LOG, naturalLeaves(Blocks.DARK_OAK_LEAVES));
         GolemEntity golem = spawnLumberjack(helper, List.of(), true);
-        golem.getInventory().insert(new ItemStack(Items.DARK_OAK_SAPLING, 4));
+        boolean[] supplied = {false};
 
         helper.succeedWhen(() -> {
+            boolean felled = trunk.stream().allMatch(stump -> !helper.getBlockState(new BlockPos(stump.getX(), BASE_Y + 1, stump.getZ())).is(Blocks.DARK_OAK_LOG));
+            if (!supplied[0] && felled) {
+                golem.insertCarried(new ItemStack(Items.DARK_OAK_SAPLING, 4));
+                supplied[0] = true;
+            }
+
             for (BlockPos stump : trunk) {
                 BlockPos rel = new BlockPos(stump.getX(), BASE_Y, stump.getZ());
                 helper.assertTrue(helper.getBlockState(rel).is(Blocks.DARK_OAK_SAPLING), "Each stump of the 2x2 tree should get a dark oak sapling, got " + helper.getBlockState(rel) + " at " + rel);
@@ -556,12 +570,46 @@ public class LumberjackGameTests {
         });
     }
 
+    /**
+     * Carrying something moves the axe to the back. After the golem deposits the load, the axe comes back to the hand.
+     */
+    public static void backSlotHoldsToolWhileCarrying(GameTestHelper helper) {
+        buildGround(helper);
+        helper.setBlock(CHEST_POS, Blocks.CHEST);
+        ContainerLink deposit = link(helper, CHEST_POS, ContainerRole.DEPOSIT);
+        GolemEntity golem = spawnLumberjack(helper, List.of(deposit), true);
+        golem.insertCarried(new ItemStack(Items.OAK_LOG, 3));
+        boolean[] carried = {false};
+
+        helper.succeedWhen(() -> {
+            if (golem.getHandItem().is(Items.OAK_LOG) && golem.getBackItem().is(Items.IRON_AXE)) {
+                carried[0] = true;
+            }
+
+            var chest = ContainerAccess.containerAt(helper.getLevel(), helper.absolutePos(CHEST_POS));
+            int logs = 0;
+            if (chest != null) {
+                for (int i = 0; i < chest.getContainerSize(); i++) {
+                    if (chest.getItem(i).is(Items.OAK_LOG)) {
+                        logs += chest.getItem(i).getCount();
+                    }
+                }
+            }
+
+            helper.assertTrue(carried[0], "Carrying logs should move the axe to the back, hand " + golem.getHandItem() + ", back " + golem.getBackItem());
+            helper.assertTrue(logs >= 3, "The golem should deposit the logs into the chest, chest has " + logs);
+            helper.assertTrue(golem.getHandItem().is(Items.IRON_AXE) && golem.getBackItem().isEmpty(),
+                    "After the deposit the axe should be back in the hand, hand " + golem.getHandItem() + ", back " + golem.getBackItem());
+        });
+    }
+
     public static void restocksSaplingsFromSupply(GameTestHelper helper) {
         buildGround(helper);
         buildTree(helper, List.of(TREE), 5, Blocks.OAK_LOG, naturalLeaves(Blocks.OAK_LEAVES));
-        ContainerLink supply = link(helper, CHEST_POS, ContainerRole.SUPPLY);
+        // The chest is both: it supplies the saplings and takes the logs the golem carries back after felling.
+        ContainerLink both = link(helper, CHEST_POS, ContainerRole.BOTH);
         fillChest(helper, CHEST_POS, new ItemStack(Items.OAK_SAPLING, 4));
-        GolemEntity golem = spawnLumberjack(helper, List.of(supply), true);
+        spawnLumberjack(helper, List.of(both), true);
 
         helper.succeedWhen(() -> helper.assertTrue(helper.getBlockState(TREE).is(Blocks.OAK_SAPLING),
                 "A sapling restocked from the supply chest should be planted on the stump, got " + helper.getBlockState(TREE)));
@@ -571,11 +619,11 @@ public class LumberjackGameTests {
         buildGround(helper);
         helper.setBlock(TREE, Blocks.OAK_SAPLING);
         GolemEntity golem = spawnLumberjack(helper, List.of(), true, bonemealOn());
-        golem.getInventory().insert(new ItemStack(Items.BONE_MEAL, 16));
+        golem.insertCarried(new ItemStack(Items.BONE_MEAL, 16));
 
         helper.succeedWhen(() -> {
             helper.assertTrue(helper.getBlockState(TREE).getValue(SaplingBlock.STAGE) > 0, "Bone meal should advance the sapling, got " + helper.getBlockState(TREE));
-            helper.assertTrue(golem.getInventory().countItem(Items.BONE_MEAL) < 16, "Bone meal should be used on the sapling");
+            helper.assertTrue(golem.countCarried(Items.BONE_MEAL) < 16, "Bone meal should be used on the sapling");
         });
     }
 
@@ -583,11 +631,11 @@ public class LumberjackGameTests {
         buildGround(helper);
         helper.setBlock(TREE, Blocks.OAK_SAPLING);
         GolemEntity golem = spawnLumberjack(helper, List.of(), true, JobOptionValues.EMPTY.with(LumberjackTargets.REPLANT, false));
-        golem.getInventory().insert(new ItemStack(Items.BONE_MEAL, 16));
+        golem.insertCarried(new ItemStack(Items.BONE_MEAL, 16));
 
         helper.runAfterDelay(200, () -> {
             helper.assertTrue(helper.getBlockState(TREE).is(Blocks.OAK_SAPLING), "The sapling should not be touched while the option is off, got " + helper.getBlockState(TREE));
-            helper.assertTrue(golem.getInventory().countItem(Items.BONE_MEAL) == 16, "No bone meal should be used while the option is off");
+            helper.assertTrue(golem.countCarried(Items.BONE_MEAL) == 16, "No bone meal should be used while the option is off");
             helper.succeed();
         });
     }
@@ -597,7 +645,8 @@ public class LumberjackGameTests {
         helper.setBlock(TREE, Blocks.OAK_SAPLING);
         ContainerLink supply = link(helper, CHEST_POS, ContainerRole.SUPPLY);
         fillChest(helper, CHEST_POS, new ItemStack(Items.BONE_MEAL, 16));
-        spawnLumberjack(helper, List.of(supply), true, bonemealOn());
+        // No axe: bone meal only goes into a free hand, and an axe in the hand would keep the golem from fetching it.
+        spawnLumberjack(helper, List.of(supply), false, bonemealOn());
 
         helper.succeedWhen(() -> {
             helper.assertTrue(helper.getBlockState(TREE).getValue(SaplingBlock.STAGE) > 0, "A sapling should be advanced with bone meal restocked from the supply chest, got " + helper.getBlockState(TREE));
@@ -610,11 +659,11 @@ public class LumberjackGameTests {
         helper.setBlock(TREE, Blocks.OAK_SAPLING);
         helper.setBlock(TREE.above(), Blocks.STONE);
         GolemEntity golem = spawnLumberjack(helper, List.of(), true, bonemealOn());
-        golem.getInventory().insert(new ItemStack(Items.BONE_MEAL, 16));
+        golem.insertCarried(new ItemStack(Items.BONE_MEAL, 16));
 
         helper.runAfterDelay(900, () -> {
             helper.assertTrue(helper.getBlockState(TREE).is(Blocks.OAK_SAPLING), "A sapling without room should stay a sapling, got " + helper.getBlockState(TREE));
-            helper.assertTrue(golem.getInventory().countItem(Items.BONE_MEAL) == 4, "A sapling without room should take 12 bone meal and then be skipped, left " + golem.getInventory().countItem(Items.BONE_MEAL));
+            helper.assertTrue(golem.countCarried(Items.BONE_MEAL) == 4, "A sapling without room should take 12 bone meal and then be skipped, left " + golem.countCarried(Items.BONE_MEAL));
             helper.succeed();
         });
     }
@@ -672,5 +721,14 @@ public class LumberjackGameTests {
         helper.assertTrue(taken.is(ItemRegistry.AXIOM_OF_FELLING.get()), "Removing the job should return the axiom of felling, got " + taken);
         helper.assertTrue(golem.getSpec().job().isEmpty(), "Golem should have no job after the axiom is removed");
         helper.succeed();
+    }
+
+    /**
+     * Logs the golem carries, plus logs lying around it: felling drops logs on the ground for the golem to pick up.
+     */
+    private static int logsCarriedOrDropped(GolemEntity golem) {
+        int dropped = golem.level().getEntitiesOfClass(ItemEntity.class, golem.getBoundingBox().inflate(16), item -> item.getItem().is(Items.OAK_LOG))
+                .stream().mapToInt(item -> item.getItem().getCount()).sum();
+        return golem.countCarried(Items.OAK_LOG) + dropped;
     }
 }

@@ -13,6 +13,7 @@ import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.job.farming.crop.CropHandlers;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import com.klikli_dev.principiamagica.content.golem.workplace.WorkZone;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -38,6 +39,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -133,7 +135,58 @@ public final class FarmingTargets {
         return isPlantableSoil(level, soilPos) && seedToPlant(level, golem, workplace.get(), soilPos).isPresent();
     }
 
-    private static boolean isPlantableSoil(ServerLevel level, BlockPos soilPos) {
+    /**
+     * Seeds have a target while the zone has a free farmland spot the seed can grow on, bone meal while it has a crop it can grow. The zone
+     * scan is cached on the golem, so the golem only fetches supplies the job can use.
+     */
+    public static boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
+        return golem.supplyWants().get(level, workplace, template.getItem(), () -> scanZones(level, workplace, template));
+    }
+
+    private static boolean scanZones(ServerLevel level, Workplace workplace, ItemStack template) {
+        if (template.is(Items.BONE_MEAL)) {
+            return workplace.options().get(BONEMEAL) && anyInZone(workplace, pos -> {
+                BlockState state = level.getBlockState(pos);
+                return state.getBlock() instanceof BonemealableBlock block
+                        && block.isValidBonemealTarget(level, pos, state)
+                        && CropHandlers.find(state).isPresent();
+            });
+        }
+
+        if (!workplace.options().get(REPLANT) || !isPlantSeed(template)) {
+            return false;
+        }
+
+        Item seed = template.getItem();
+        // A farmland spot with an obstruction the job clears is a planting spot too, the golem clears it first.
+        return anyInZone(workplace, pos -> (isPlantableSoil(level, pos)
+                || (workplace.options().get(CLEAR_OBSTRUCTIONS) && isFarmSoil(level, pos) && level.getBlockState(pos.above()).is(CLEARABLE)))
+                && seedFitsSpot(level, workplace, seed, pos));
+    }
+
+    /**
+     * Mirrors {@link #seedToPlant} for a seed that is not in the hand yet: a spot that remembers a crop only takes that crop, and the seed
+     * must survive on the spot.
+     */
+    private static boolean seedFitsSpot(ServerLevel level, Workplace workplace, Item seed, BlockPos soilPos) {
+        BlockPos plantPos = soilPos.above();
+        Holder<Item> remembered = workplace.itemMemory().get(plantPos);
+        return (remembered == null || remembered.value() == seed) && survives(level, plantPos, seed);
+    }
+
+    private static boolean anyInZone(Workplace workplace, Predicate<BlockPos> test) {
+        for (WorkZone zone : workplace.zones(FarmingJob.BELOW, FarmingJob.ABOVE)) {
+            for (int i = 0; i < zone.volume(); i++) {
+                if (test.test(zone.positionAt(i))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean isPlantableSoil(ServerLevel level, BlockPos soilPos) {
         return isFarmSoil(level, soilPos) && level.getBlockState(soilPos.above()).isAir();
     }
 
@@ -167,15 +220,13 @@ public final class FarmingTargets {
         Holder<Item> remembered = workplace.itemMemory().get(plantPos);
         if (remembered != null) {
             Item item = remembered.value();
-            return golem.getInventory().countItem(item) > 0 && survives(level, plantPos, item) ? Optional.of(item) : Optional.empty();
+            return golem.countCarried(item) > 0 && survives(level, plantPos, item) ? Optional.of(item) : Optional.empty();
         }
 
         Map<Item, Integer> counts = new HashMap<>();
-        for (int slot = 0; slot < golem.getInventory().getUsableSlots(); slot++) {
-            ItemStack stack = golem.getInventory().getItem(slot);
-            if (isPlantSeed(stack) && survives(level, plantPos, stack.getItem())) {
-                counts.merge(stack.getItem(), stack.getCount(), Integer::sum);
-            }
+        ItemStack hand = golem.getHandItem();
+        if (!golem.isTool(hand) && isPlantSeed(hand) && survives(level, plantPos, hand.getItem())) {
+            counts.merge(hand.getItem(), hand.getCount(), Integer::sum);
         }
 
         return counts.entrySet().stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey);

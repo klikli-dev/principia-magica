@@ -7,6 +7,8 @@ package com.klikli_dev.principiamagica.content.golem.job;
 import com.google.common.collect.ImmutableList;
 import com.klikli_dev.principiamagica.content.golem.ai.JobBehaviours;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
+import net.minecraft.server.level.ServerLevel;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.chat.Component;
 import net.minecraft.tags.TagKey;
@@ -50,11 +52,33 @@ public interface GolemJob {
     }
 
     /**
+     * Tag of the items the golem accepts as its tool. Broader than {@link #requiredTool()} for jobs where a tool is useful but not needed.
+     */
+    default Optional<TagKey<Item>> toolTag() {
+        return this.requiredTool();
+    }
+
+    /**
+     * @return true if the stack is a tool this job can use, see {@link #toolTag()}
+     */
+    default boolean isTool(ItemStack stack) {
+        return this.toolTag().map(tag -> stack.is(tag)).orElse(false);
+    }
+
+    /**
      * How many of this item the golem keeps in its inventory. Items beyond this are deposited.
      * Items with a value above zero are also restocked from SUPPLY containers when lacking.
      */
     default int keepAmount(GolemEntity golem, ItemStack stack) {
         return 0;
+    }
+
+    /**
+     * Whether the job has a target that a supply item would serve right now, e.g. a free spot to plant a seed on or a sapling to apply bone
+     * meal to. The golem only restocks an item the job can use, so it does not fetch supplies it cannot place.
+     */
+    default boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
+        return true;
     }
 
     WorkTargetFinder targetFinder();

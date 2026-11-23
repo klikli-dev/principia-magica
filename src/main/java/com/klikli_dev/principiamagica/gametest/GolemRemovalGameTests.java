@@ -17,7 +17,6 @@ import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,8 +36,8 @@ public class GolemRemovalGameTests {
         GolemSpec spec = GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(job);
         golem.setSpec(spec);
         golem.setOwnerUUID(UUID.randomUUID());
-        golem.getInventory().insert(new ItemStack(Items.WHEAT, 3));
-        golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+        golem.setHandItem(new ItemStack(Items.WHEAT, 3));
+        golem.setBackItem(new ItemStack(Items.IRON_AXE));
         AABB area = new AABB(helper.absolutePos(pos)).inflate(4);
         ItemStack expectedAxiom = AxiomItem.createStack(job);
 
@@ -61,7 +60,7 @@ public class GolemRemovalGameTests {
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), pos);
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
         golem.setOwnerUUID(UUID.randomUUID());
-        golem.getInventory().insert(new ItemStack(Items.WHEAT, 3));
+        golem.insertCarried(new ItemStack(Items.WHEAT, 3));
         AABB area = new AABB(helper.absolutePos(pos)).inflate(4);
 
         golem.hurtServer(helper.getLevel(), helper.getLevel().damageSources().generic(), 1000.0F);
@@ -81,8 +80,8 @@ public class GolemRemovalGameTests {
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), pos);
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
         golem.setOwnerUUID(UUID.randomUUID());
-        golem.getInventory().insert(new ItemStack(Items.WHEAT, 3));
-        golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+        golem.setHandItem(new ItemStack(Items.WHEAT, 3));
+        golem.setBackItem(new ItemStack(Items.IRON_AXE));
         AABB area = new AABB(helper.absolutePos(pos)).inflate(4);
 
         golem.discard();
@@ -100,8 +99,8 @@ public class GolemRemovalGameTests {
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         golem.setOwnerUUID(player.getUUID());
-        golem.getInventory().insert(new ItemStack(Items.WHEAT, 3));
-        golem.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
+        golem.setHandItem(new ItemStack(Items.WHEAT, 3));
+        golem.setBackItem(new ItemStack(Items.IRON_AXE));
         AABB area = new AABB(helper.absolutePos(pos)).inflate(4);
         player.setShiftKeyDown(true);
 
@@ -137,8 +136,8 @@ public class GolemRemovalGameTests {
         }
 
         List<ItemStack> carried = new ArrayList<>();
-        storage.inventory().nonEmptyItemCopyStream().forEach(carried::add);
-        storage.equipment().nonEmptyItemCopyStream().forEach(carried::add);
+        carried.add(storage.hand());
+        carried.add(storage.back());
         return carried;
     }
 

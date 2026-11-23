@@ -29,11 +29,11 @@ public final class GolemDrops {
     }
 
     /**
-     * Puts the drops into the golem's inventory. Whatever does not fit is dropped at pos.
+     * Puts the drops into the golem's hand. Whatever does not fit is dropped at pos.
      */
     public static void collect(ServerLevel level, GolemEntity golem, BlockPos pos, List<ItemStack> drops) {
         for (ItemStack stack : drops) {
-            ItemStack remaining = golem.getInventory().insert(stack);
+            ItemStack remaining = golem.insertCarried(stack);
             if (!remaining.isEmpty()) {
                 Block.popResource(level, pos, remaining);
             }

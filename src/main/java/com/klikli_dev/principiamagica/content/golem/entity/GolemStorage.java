@@ -7,73 +7,47 @@ package com.klikli_dev.principiamagica.content.golem.entity;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemContainerContents;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * The inventory and equipment of a golem, kept on a golem item so they survive stylus pickup.
- * Inventory slots follow {@link GolemInventory}, equipment follows {@link EquipmentSlot#VALUES}.
+ * The items a golem carries, kept on a golem item so they survive stylus pickup.
+ *
+ * @param hand the hand item: the tool while working, or the carried item
+ * @param back the back item: the tool while the golem carries something
  */
-public record GolemStorage(ItemContainerContents inventory, ItemContainerContents equipment) {
+public record GolemStorage(ItemStack hand, ItemStack back) {
 
     public static final Codec<GolemStorage> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ItemContainerContents.CODEC.fieldOf("inventory").forGetter(GolemStorage::inventory),
-            ItemContainerContents.CODEC.fieldOf("equipment").forGetter(GolemStorage::equipment)
+            ItemStack.OPTIONAL_CODEC.fieldOf("hand").forGetter(GolemStorage::hand),
+            ItemStack.OPTIONAL_CODEC.fieldOf("back").forGetter(GolemStorage::back)
     ).apply(instance, GolemStorage::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, GolemStorage> STREAM_CODEC = StreamCodec.composite(
-            ItemContainerContents.STREAM_CODEC, GolemStorage::inventory,
-            ItemContainerContents.STREAM_CODEC, GolemStorage::equipment,
+            ItemStack.OPTIONAL_STREAM_CODEC, GolemStorage::hand,
+            ItemStack.OPTIONAL_STREAM_CODEC, GolemStorage::back,
             GolemStorage::new
     );
 
     /**
-     * @return the total number of items stored in the inventory and equipment
+     * @return the total number of items stored in the hand and the back
      */
     public int itemCount() {
-        return this.inventory.nonEmptyItemCopyStream().mapToInt(stack -> stack.getCount()).sum()
-                + this.equipment.nonEmptyItemCopyStream().mapToInt(stack -> stack.getCount()).sum();
+        return this.hand.getCount() + this.back.getCount();
     }
 
     /**
-     * Snapshots the inventory and equipment. The golem keeps them, so the caller decides what to do with the snapshot.
+     * Snapshots the hand and the back. The golem keeps them, so the caller decides what to do with the snapshot.
      */
     public static GolemStorage capture(GolemEntity golem) {
-        GolemInventory inventory = golem.getInventory();
-        List<ItemStack> items = new ArrayList<>();
-        for (int i = 0; i < inventory.getContainerSize(); i++) {
-            items.add(inventory.getItem(i));
-        }
-
-        List<ItemStack> equipment = new ArrayList<>();
-        for (EquipmentSlot slot : EquipmentSlot.VALUES) {
-            equipment.add(golem.getItemBySlot(slot));
-        }
-
-        return new GolemStorage(ItemContainerContents.fromItems(items), ItemContainerContents.fromItems(equipment));
+        return new GolemStorage(golem.getHandItem().copy(), golem.getBackItem().copy());
     }
 
     /**
-     * Puts the stored inventory and equipment back on the golem. Used when a golem item with storage is placed.
+     * Puts the stored hand and back item back on the golem. Used when a golem item with storage is placed.
      */
     public void restoreTo(GolemEntity golem) {
-        GolemInventory inventory = golem.getInventory();
-        NonNullList<ItemStack> items = NonNullList.withSize(inventory.getContainerSize(), ItemStack.EMPTY);
-        this.inventory.copyInto(items);
-        for (int i = 0; i < items.size(); i++) {
-            inventory.setItem(i, items.get(i));
-        }
-
-        NonNullList<ItemStack> equipment = NonNullList.withSize(EquipmentSlot.VALUES.size(), ItemStack.EMPTY);
-        this.equipment.copyInto(equipment);
-        for (int i = 0; i < equipment.size(); i++) {
-            golem.setItemSlot(EquipmentSlot.VALUES.get(i), equipment.get(i));
-        }
+        golem.setHandItem(this.hand.copy());
+        golem.setBackItem(this.back.copy());
     }
 }

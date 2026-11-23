@@ -11,6 +11,7 @@ import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.job.CommonJobOptions;
 import com.klikli_dev.principiamagica.content.golem.job.JobOptionValues;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
+import com.klikli_dev.principiamagica.content.golem.job.lumberjack.LumberjackJob;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.golem.workplace.CarvedGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
@@ -35,6 +36,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -367,6 +369,53 @@ public class GolemGameTests {
         helper.succeed();
     }
 
+    /**
+     * Right-clicking the owned golem with a tool puts it into the golem's slots: into the hand first, and a tool already there goes back
+     * to the player when the next tool is put in.
+     */
+    public static void inWorldToolEquipSwapsTools(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 2, 1);
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), pos);
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(PrincipiaMagicaRegistries.GOLEM_JOB.get(LumberjackJob.KEY).orElseThrow()));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        golem.setOwnerUUID(player.getUUID());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.IRON_AXE));
+        golem.mobInteract(player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(golem.getHandItem().is(Items.IRON_AXE), "The axe should go into the golem's hand, got " + golem.getHandItem());
+        helper.assertTrue(player.getMainHandItem().isEmpty(), "The axe should leave the player's hand, got " + player.getMainHandItem());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STONE_AXE));
+        golem.mobInteract(player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(golem.getHandItem().is(Items.STONE_AXE), "The new axe should replace the one in the hand, got " + golem.getHandItem());
+        helper.assertTrue(player.getInventory().contains(stack -> stack.is(Items.IRON_AXE)), "The axe it replaced should go back to the player");
+        helper.succeed();
+    }
+
+    /**
+     * Tools in the hand are held, not carried, so only non-tool items make the golem carry. A tool that is not the job's tool stays on the back.
+     */
+    public static void carryIsOnlyNonToolItems(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 2, 1);
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), pos);
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(PrincipiaMagicaRegistries.GOLEM_JOB.get(LumberjackJob.KEY).orElseThrow()));
+
+        golem.setHandItem(new ItemStack(Items.IRON_AXE));
+        helper.assertTrue(!golem.isCarrying(), "A job tool in the hand should be held, not carried");
+
+        golem.setHandItem(new ItemStack(Items.IRON_SWORD));
+        helper.assertTrue(!golem.isCarrying(), "A tool that is not the job's tool should be held, not carried");
+
+        golem.setHandItem(new ItemStack(Items.STONE));
+        helper.assertTrue(golem.isCarrying(), "A block in the hand should be carried");
+
+        golem.setHandItem(ItemStack.EMPTY);
+        golem.setBackItem(new ItemStack(Items.IRON_PICKAXE));
+        helper.assertTrue(!golem.swapToolIntoHand(), "A tool that is not the job's tool should not be swapped into the hand");
+        helper.assertTrue(golem.getBackItem().is(Items.IRON_PICKAXE), "A tool that is not the job's tool should stay on the back");
+        helper.succeed();
+    }
+
     public static void axiomGivenHarvestsField(GameTestHelper helper) {
         for (int x = 1; x <= 5; x++) {
             for (int z = 1; z <= 5; z++) {
@@ -396,7 +445,17 @@ public class GolemGameTests {
                     helper.assertTrue(!(state.is(Blocks.WHEAT) && state.getValue(CropBlock.AGE) == 7), "Mature wheat at " + x + "," + z + " should be harvested");
                 }
             }
-            helper.assertTrue(golem.getInventory().countItem(Items.WHEAT) >= 9, "The golem should carry the harvested wheat, has " + golem.getInventory().countItem(Items.WHEAT));
+            // The chest touching the golem is linked as both: the golem deposits the harvest into it, so count the chest too.
+            int chestWheat = 0;
+            if (helper.getLevel().getBlockEntity(helper.absolutePos(new BlockPos(2, 2, 1))) instanceof Container chest) {
+                for (int i = 0; i < chest.getContainerSize(); i++) {
+                    if (chest.getItem(i).is(Items.WHEAT)) {
+                        chestWheat += chest.getItem(i).getCount();
+                    }
+                }
+            }
+            int wheat = golem.countCarried(Items.WHEAT) + chestWheat;
+            helper.assertTrue(wheat >= 9, "The harvested wheat should be carried or deposited into the linked chest, got " + wheat);
         });
     }
 

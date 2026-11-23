@@ -4,7 +4,12 @@
 
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
-import com.klikli_dev.principiamagica.content.golem.entity.GolemInventory;
+import net.minecraft.world.entity.item.ItemEntity;
+
+import net.minecraft.world.item.Items;
+
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
@@ -16,48 +21,63 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 /**
- * Moves items the job does not keep into a DEPOSIT-capable container.
+ * Returns what the golem carries in its hand to a DEPOSIT-capable container. Only the part the job does not keep is deposited:
+ * seeds or bone meal the job keeps stay in the hand. A golem carrying harvest output goes here before it does anything else.
  */
 public class DepositItems extends MoveToAndInteract {
-    private static final int COOLDOWN_TICKS = 100;
 
-    public enum Mode {
-        /** Only deposit when the inventory has no empty usable slot left. */
-        WHEN_FULL,
-        /** Deposit any excess whenever there is nothing more important to do. */
-        LEFTOVER
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.DEPOSIT;
     }
 
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return blockItem(level, target);
+    }
+    private static final int COOLDOWN_TICKS = 100;
+
     private final GolemJob job;
-    private final Mode mode;
     private @Nullable Container openContainer;
 
-    public DepositItems(GolemJob job, Mode mode) {
+    /**
+     * Deposits what the job does not keep. Kept supplies are put away by {@link PutAwaySupplies} instead.
+     */
+    public DepositItems(GolemJob job) {
         super(Map.of(MemoryModuleTypeRegistry.DEPOSIT_COOLDOWN.value(), MemoryStatus.VALUE_ABSENT), 0.6F);
         this.job = job;
-        this.mode = mode;
     }
 
     /**
-     * A stack of the golem's inventory and the amount of it that is not kept, which is what gets deposited.
+     * The amount of the golem's hand that is not kept, which is what gets deposited.
      */
     private record Excess(ItemStack stack, int amount) {
     }
+
+    /**
+     * @return true if the golem's hand holds an item the job does not keep, i.e. something that has to be deposited before other work
+     */
+    public static boolean carriesExcess(GolemEntity golem) {
+        ItemStack hand = golem.getHandItem();
+        if (hand.isEmpty() || golem.isTool(hand)) {
+            return false;
+        }
+
+        return golem.getJob().map(job -> job.keepAmount(golem, hand) < hand.getCount()).orElse(false);
+    }
+
 
     @Override
     protected Optional<BlockPos> findTarget(ServerLevel level, GolemEntity golem) {
@@ -134,6 +154,7 @@ public class DepositItems extends MoveToAndInteract {
             return;
         }
 
+
         if (this.depositExcess(golem, handler) == 0) {
             golem.reportBlocker(GolemStatus.DEPOSIT_FULL);
             golem.getBrain().setMemory(MemoryModuleTypeRegistry.DEPOSIT_COOLDOWN.value(), COOLDOWN_TICKS);
@@ -141,10 +162,6 @@ public class DepositItems extends MoveToAndInteract {
     }
 
     private boolean shouldDeposit(GolemEntity golem) {
-        if (this.mode == Mode.WHEN_FULL && !golem.getInventory().isFull()) {
-            return false;
-        }
-
         return this.depositableCount(golem) > 0;
     }
 
@@ -181,28 +198,17 @@ public class DepositItems extends MoveToAndInteract {
     }
 
     /**
-     * @return the usable stacks with the amount of each that is not kept. The job keeps keepAmount of each item type across
-     * all stacks, in slot order.
+     * @return the hand's stack with the amount of it this mode deposits, empty if there is nothing to deposit
      */
     private List<Excess> excess(GolemEntity golem) {
-        GolemInventory inventory = golem.getInventory();
-        Map<Item, Integer> keepLeft = new HashMap<>();
-        List<Excess> result = new ArrayList<>();
-        for (int slot = 0; slot < inventory.getUsableSlots(); slot++) {
-            ItemStack stack = inventory.getItem(slot);
-            if (stack.isEmpty()) {
-                continue;
-            }
-
-            int left = keepLeft.computeIfAbsent(stack.getItem(), item -> this.job.keepAmount(golem, stack));
-            int kept = Math.min(left, stack.getCount());
-            keepLeft.put(stack.getItem(), left - kept);
-            int amount = stack.getCount() - kept;
-            if (amount > 0) {
-                result.add(new Excess(stack, amount));
-            }
+        ItemStack hand = golem.getHandItem();
+        if (hand.isEmpty() || golem.isTool(hand)) {
+            return List.of();
         }
-        return result;
+
+        int kept = Math.min(this.job.keepAmount(golem, hand), hand.getCount());
+        int amount = hand.getCount() - kept;
+        return amount > 0 ? List.of(new Excess(hand, amount)) : List.of();
     }
 
     private int depositExcess(GolemEntity golem, ResourceHandler<ItemResource> handler) {
@@ -212,11 +218,11 @@ public class DepositItems extends MoveToAndInteract {
                 int inserted = handler.insert(ItemResource.of(excess.stack()), excess.amount(), transaction);
                 transaction.commit();
                 excess.stack().shrink(inserted);
+                golem.setHandItem(excess.stack());
                 moved += inserted;
             }
         }
 
-        golem.getInventory().setChanged();
         return moved;
     }
 }

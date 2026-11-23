@@ -4,64 +4,46 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
-import com.klikli_dev.codedefinedgui.api.style.BuiltinGuiParts;
-import com.klikli_dev.codedefinedgui.api.style.GuiStyleProperties;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
-import com.klikli_dev.codedefinedgui.api.texture.GuiSprites;
-import com.klikli_dev.codedefinedgui.api.widget.GuiSpriteWidget;
 import com.klikli_dev.principiamagica.client.gui.ContentRect;
-import com.klikli_dev.principiamagica.client.gui.widget.WidgetParts;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
+import com.klikli_dev.principiamagica.client.gui.widget.SpriteWidget;
+import com.klikli_dev.principiamagica.client.gui.widget.TooltipArea;
+import com.klikli_dev.principiamagica.content.golem.menu.GolemMenuLayout;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 
 /**
- * Slot backgrounds and the greyed overlay for slots that are not usable.
+ * Decorations around the menu slots. A slot's item position is {@code slot.x} and {@code slot.y} on the screen. The slot sprites and the
+ * ghost icons are drawn relative to that position.
  */
 final class GolemSlotWidgets {
-
-    static final int SLOT_SIZE = 18;
-    private static final int OVERLAY_COLOR = 0xB0303030;
 
     private GolemSlotWidgets() {
     }
 
     /**
-     * @return the slot background, drawn one pixel up and left of the slot's item position
+     * @param screen the screen's rectangle, the slot positions are relative to it
+     * @param slot the slot whose sprite is drawn
+     * @param sprite the slot sprite
+     * @param dx horizontal offset of the sprite from the item position, e.g. -1 for an 18x18 slot
+     * @param dy vertical offset of the sprite from the item position
+     * @return a widget that draws the slot sprite
      */
-    static GuiSpriteWidget background(ContentRect frame, Slot slot) {
-        GuiSprite sprite = WidgetParts.defaultStyle().get(BuiltinGuiParts.PLAYER_SLOT, GuiStyleProperties.SPRITE, GuiSprites.INVENTORY_SLOT);
-        return new GuiSpriteWidget(frame.x() + slot.x - 1, frame.y() + slot.y - 1, sprite);
+    static SpriteWidget background(ContentRect screen, Slot slot, GuiSprite sprite, int dx, int dy) {
+        return new SpriteWidget(screen.x() + slot.x + dx, screen.y() + slot.y + dy, sprite.width(), sprite.height(), sprite);
     }
 
     /**
-     * A greyed, non-interactive overlay over a slot background. Shows the tooltip on hover.
-     *
-     * @param x left edge of the slot background
-     * @param y top edge of the slot background
+     * @return a 16x16 sprite drawn on the item position of the slot, e.g. the ghost icon of an empty slot
      */
-    static Overlay overlay(int x, int y, Component tooltip) {
-        return new Overlay(x, y, tooltip);
+    static SpriteWidget itemSprite(ContentRect screen, Slot slot, GuiSprite sprite) {
+        return new SpriteWidget(screen.x() + slot.x, screen.y() + slot.y, sprite.width(), sprite.height(), sprite);
     }
 
-    static final class Overlay extends AbstractWidget {
-
-        Overlay(int x, int y, Component tooltip) {
-            super(x, y, SLOT_SIZE, SLOT_SIZE, Component.empty());
-            this.active = false;
-            this.setTooltip(Tooltip.create(tooltip));
-        }
-
-        @Override
-        protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-            graphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), OVERLAY_COLOR);
-        }
-
-        @Override
-        protected void updateWidgetNarration(NarrationElementOutput output) {
-        }
+    /**
+     * @return an invisible tooltip area covering the 16x16 item position of the slot and its 1 pixel border
+     */
+    static TooltipArea hint(ContentRect screen, Slot slot, Component tooltip) {
+        return new TooltipArea(screen.x() + slot.x - 1, screen.y() + slot.y - 1, GolemMenuLayout.SLOT_SIZE, GolemMenuLayout.SLOT_SIZE, tooltip);
     }
 }

@@ -4,6 +4,14 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.farming.behaviour;
 
+import net.minecraft.world.entity.item.ItemEntity;
+
+import net.minecraft.world.item.Items;
+
+import net.minecraft.world.item.ItemStack;
+
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.JobTargetBehaviour;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingTargets;
@@ -21,6 +29,16 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import java.util.Optional;
 
 public class PlantSeed extends JobTargetBehaviour {
+
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.PLANT;
+    }
+
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return golem.getWorkplace(level).flatMap(workplace -> FarmingTargets.seedToPlant(level, golem, workplace, target)).map(ItemStack::new).orElse(ItemStack.EMPTY);
+    }
 
     @Override
     protected Optional<BlockPos> findTarget(ServerLevel level, GolemEntity golem) {
@@ -54,6 +72,6 @@ public class PlantSeed extends JobTargetBehaviour {
         level.setBlock(plantPos, plant, Block.UPDATE_ALL);
         level.playSound(null, plantPos, SoundEvents.CROP_PLANTED, SoundSource.BLOCKS, 1.0F, 1.0F);
         level.gameEvent(GameEvent.BLOCK_PLACE, plantPos, GameEvent.Context.of(golem, plant));
-        golem.getInventory().removeItemType(seed.get(), 1);
+        golem.consumeCarried(seed.get(), 1);
     }
 }

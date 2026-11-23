@@ -32,6 +32,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import com.klikli_dev.principiamagica.client.gui.GuiStyles;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -42,6 +43,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 public class PrincipiaMagicaClient {
     public PrincipiaMagicaClient(IEventBus modEventBus, ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+        GuiStyles.register();
 
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterEntityRenderers);
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterMenuScreens);

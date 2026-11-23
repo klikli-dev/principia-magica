@@ -6,6 +6,8 @@ package com.klikli_dev.principiamagica.compat.jei;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.client.recipe.ClientRecipes;
+import com.klikli_dev.principiamagica.content.golem.client.gui.GolemScreen;
+import com.klikli_dev.principiamagica.content.golem.menu.GolemMenuLayout;
 import com.klikli_dev.principiamagica.content.libation.vessel.VesselProperties;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.CuringRecipe;
@@ -15,11 +17,14 @@ import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
 import com.klikli_dev.principiamagica.registry.RecipeTypeRegistry;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IModIngredientRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -69,6 +74,19 @@ public class PrincipiaMagicaJeiPlugin implements IModPlugin {
         registration.addRecipes(JeiRecipeTypes.STEEPING_JAR_CURING, curings(CuringEnvironment.DARK));
         registration.addRecipes(JeiRecipeTypes.STEEPING, List.copyOf(ClientRecipes.byType(RecipeTypeRegistry.STEEPING.get())));
         registration.addRecipes(JeiRecipeTypes.DRYING, List.copyOf(ClientRecipes.byType(RecipeTypeRegistry.DRYING.get())));
+    }
+
+    /**
+     * The golem screen is one composition with the tab rail on its left. JEI's recipe overlays must not cover any of it.
+     */
+    @Override
+    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
+        registration.addGuiContainerHandler(GolemScreen.class, new IGuiContainerHandler<GolemScreen>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(GolemScreen screen) {
+                return List.of(new Rect2i(screen.leftPos(), screen.topPos(), GolemMenuLayout.WIDTH, GolemMenuLayout.HEIGHT));
+            }
+        });
     }
 
     @Override

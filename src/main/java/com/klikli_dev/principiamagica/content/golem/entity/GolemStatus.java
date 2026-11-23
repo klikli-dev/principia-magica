@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.golem.entity;
 
+import net.minecraft.network.chat.Component;
+
 import java.util.Locale;
 
 /**
@@ -27,5 +29,12 @@ public enum GolemStatus {
 
     public String translationKey() {
         return "golem_status.principiamagica." + this.name().toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * @return the one-line status text, e.g. "Carve a footprint with the Copper Stylus." The GUI can show it as a hint or a tooltip.
+     */
+    public Component description() {
+        return Component.translatable(this.translationKey() + ".description");
     }
 }

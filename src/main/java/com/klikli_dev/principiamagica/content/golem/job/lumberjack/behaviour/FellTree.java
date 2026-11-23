@@ -4,6 +4,12 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.lumberjack.behaviour;
 
+import net.minecraft.world.entity.item.ItemEntity;
+
+import net.minecraft.world.item.Items;
+
+import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemBreaking;
 import com.klikli_dev.principiamagica.content.golem.job.GolemDrops;
@@ -15,6 +21,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
@@ -22,10 +29,20 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Fells a natural tree from its stump, top down. Each log is broken and its drops go into the golem's inventory, and
- * the axe loses one durability per log. Felling stops when the axe breaks. Leaves are left alone, they decay on their own.
+ * Fells a natural tree from its stump, top down. Each log is broken and its drops land on the ground at the log, the axe stays
+ * in the hand and loses one durability per log. Felling stops when the axe breaks. Leaves are left alone, they decay on their own.
  */
 public class FellTree extends JobTargetBehaviour {
+
+    @Override
+    protected GolemTask.TaskType taskType() {
+        return GolemTask.TaskType.FELL;
+    }
+
+    @Override
+    protected ItemStack displayItem(ServerLevel level, GolemEntity golem, BlockPos target) {
+        return blockItem(level, target);
+    }
     private static final int MIN_FELL_TICKS = 20;
 
     @Override
@@ -90,8 +107,12 @@ public class FellTree extends JobTargetBehaviour {
                 continue;
             }
 
+            // The axe stays in the hand for the whole tree, so the logs cannot go into the hand. They land on the ground at the log
+            // and the stray item pickup collects them, the golem then deposits them.
             List<ItemStack> drops = GolemDrops.breakBlock(level, golem, log, state);
-            GolemDrops.collect(level, golem, log, drops);
+            for (ItemStack drop : drops) {
+                Block.popResource(level, log, drop);
+            }
             golem.getMainHandItem().hurtAndBreak(1, golem, EquipmentSlot.MAINHAND);
         }
 

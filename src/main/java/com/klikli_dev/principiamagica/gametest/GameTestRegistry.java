@@ -76,6 +76,12 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_GIVEN_HARVESTS_FIELD =
             TEST_FUNCTIONS.register("axiom_given_harvests_field", () -> GolemGameTests::axiomGivenHarvestsField);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> IN_WORLD_TOOL_EQUIP_SWAPS_TOOLS =
+            TEST_FUNCTIONS.register("in_world_tool_equip_swaps_tools", () -> GolemGameTests::inWorldToolEquipSwapsTools);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CARRY_IS_ONLY_NON_TOOL_ITEMS =
+            TEST_FUNCTIONS.register("carry_is_only_non_tool_items", () -> GolemGameTests::carryIsOnlyNonToolItems);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL =
             TEST_FUNCTIONS.register("axiom_given_lumberjack_without_axe_reports_missing_tool", () -> GolemGameTests::axiomGivenLumberjackWithoutAxeReportsMissingTool);
 
@@ -163,8 +169,8 @@ PICK_UP_CANCEL_RESTORES_FOOTPRINT =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_SHIFT_CLICK_INSTALLS_JOB =
             TEST_FUNCTIONS.register("axiom_shift_click_installs_job", () -> GolemMenuGameTests::axiomShiftClickInstallsJob);
 
-    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> TOOL_SLOT_REJECTS_WITHOUT_JOB =
-            TEST_FUNCTIONS.register("tool_slot_rejects_without_job", () -> GolemMenuGameTests::toolSlotRejectsWithoutJob);
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> TOOL_SLOT_ACCEPTS_TOOL_WITHOUT_JOB =
+            TEST_FUNCTIONS.register("tool_slot_accepts_tool_without_job", () -> GolemMenuGameTests::toolSlotAcceptsToolWithoutJob);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB =
             TEST_FUNCTIONS.register("golem_side_slots_inactive_on_job_tab", () -> GolemMenuGameTests::golemSideSlotsInactiveOnJobTab);
@@ -215,6 +221,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_TWO_GOLEMS_SHARE_FIELD =
             TEST_FUNCTIONS.register("farming_two_golems_share_field", () -> FarmingGameTests::twoGolemsShareField);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_TASK_SHOWS_HARVEST =
+            TEST_FUNCTIONS.register("farming_task_shows_harvest", () -> FarmingGameTests::taskShowsHarvestWhileHarvesting);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> FARMING_AXIOM_ROUND_TRIPS =
             TEST_FUNCTIONS.register("farming_axiom_round_trips", () -> FarmingGameTests::farmingAxiomRoundTrips);
@@ -298,6 +307,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_RESTOCKS_SAPLINGS_FROM_SUPPLY =
             TEST_FUNCTIONS.register("lumberjack_restocks_saplings_from_supply", () -> LumberjackGameTests::restocksSaplingsFromSupply);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_BACK_SLOT_HOLDS_TOOL =
+            TEST_FUNCTIONS.register("lumberjack_back_slot_holds_tool", () -> LumberjackGameTests::backSlotHoldsToolWhileCarrying);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_DETECTOR_FINDS_DIAGONAL_BRANCHES =
             TEST_FUNCTIONS.register("lumberjack_detector_finds_diagonal_branches", () -> LumberjackGameTests::detectorFindsDiagonalBranches);
@@ -500,7 +512,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, AXIOM_SLOT_PICKUP_RETURNS_AXIOM_ONCE, environment, structure, 40, 0);
         registerTest(event, AXIOM_SLOT_SWAP_RETURNS_PREVIOUS_AXIOM, environment, structure, 40, 0);
         registerTest(event, AXIOM_SHIFT_CLICK_INSTALLS_JOB, environment, structure, 40, 0);
-        registerTest(event, TOOL_SLOT_REJECTS_WITHOUT_JOB, environment, structure, 40, 0);
+        registerTest(event, TOOL_SLOT_ACCEPTS_TOOL_WITHOUT_JOB, environment, structure, 40, 0);
         registerTest(event, GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB, environment, structure, 40, 0);
         registerTest(event, SHIFT_CLICK_ON_JOB_TAB_DOES_NOT_ENTER_GOLEM_INVENTORY, environment, structure, 40, 0);
         registerTest(event, JOB_TAB_NEEDS_AXIOM, environment, structure, 40, 0);
@@ -515,7 +527,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, AXIOM_GIVEN_STARTS_WORK_IN_DEFAULT_AREA, environment, structure, 40, 0);
         registerTest(event, AXIOM_GIVEN_KEEPS_CONFIGURED_WORKPLACE, environment, structure, 40, 0);
         registerTest(event, NON_OWNER_CANNOT_GIVE_AXIOM, environment, structure, 40, 0);
-        registerTest(event, AXIOM_GIVEN_HARVESTS_FIELD, environment, structure, 800, 0);
+        registerTest(event, AXIOM_GIVEN_HARVESTS_FIELD, environment, structure, 2400, 0);
+        registerTest(event, IN_WORLD_TOOL_EQUIP_SWAPS_TOOLS, environment, structure, 40, 0);
+        registerTest(event, CARRY_IS_ONLY_NON_TOOL_ITEMS, environment, structure, 40, 0);
         registerTest(event, AXIOM_GIVEN_LUMBERJACK_WITHOUT_AXE_REPORTS_MISSING_TOOL, environment, structure, 80, 0);
     }
 
@@ -527,7 +541,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     }
 
     private static void registerFarmingTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
-        registerTest(event, FARMING_HARVEST_AND_REPLANT, environment, structure, 800, 0);
+        registerTest(event, FARMING_HARVEST_AND_REPLANT, environment, structure, 4800, 0);
         registerTest(event, STACKED_FARM_VOLUME_COVERS_EVERY_LAYER, environment, structure, 40, 0);
         registerTest(event, FARMING_DEPOSIT_FULL_INVENTORY, environment, structure, 800, 0);
         registerTest(event, FARMING_DEPOSIT_SKIPS_FULL_CHEST, environment, structure, 800, 0);
@@ -539,7 +553,8 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, FARMING_TILL_WITHOUT_HOE_REPORTS_MISSING_TOOL, environment, structure, 800, 0);
         registerTest(event, FARMING_PLANTING_WITHOUT_SEEDS_REPORTS_NEEDS_SUPPLIES, environment, structure, 800, 0);
         registerTest(event, FARMING_BONEMEAL_GROWS_CROPS, environment, structure, 800, 0);
-        registerTest(event, FARMING_TWO_GOLEMS_SHARE_FIELD, environment, structure, 800, 0);
+        registerTest(event, FARMING_TWO_GOLEMS_SHARE_FIELD, environment, structure, 2400, 0);
+        registerTest(event, FARMING_TASK_SHOWS_HARVEST, environment, structure, 800, 0);
         registerTest(event, FARMING_AXIOM_ROUND_TRIPS, environment, structure, 40, 0);
         registerTest(event, FARMING_FIELD_MEMORY_PRUNES_STALE_SPOTS, environment, structure, 800, 0);
         registerTest(event, FARMING_CLEARS_OBSTRUCTIONS_FOR_PLANTING, environment, structure, 800, 0);
@@ -570,6 +585,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LUMBERJACK_CARVES_ON_OWN_SIDE, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_MISSING_AXE_REPORTS_STATUS, environment, structure, 400, 0);
         registerTest(event, LUMBERJACK_RESTOCKS_SAPLINGS_FROM_SUPPLY, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_BACK_SLOT_HOLDS_TOOL, environment, structure, 800, 0);
         registerTest(event, LUMBERJACK_DETECTOR_FINDS_DIAGONAL_BRANCHES, environment, structure, 40, 0);
         registerTest(event, LUMBERJACK_AXIOM_ROUND_TRIPS, environment, structure, 40, 0);
         registerTest(event, LUMBERJACK_BREAK_TICKS_FOLLOW_THE_TOOL, environment, structure, 40, 0);

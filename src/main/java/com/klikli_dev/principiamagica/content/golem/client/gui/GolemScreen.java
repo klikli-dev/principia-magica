@@ -5,11 +5,16 @@
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
 import com.klikli_dev.codedefinedgui.api.screen.GuiHost;
-import com.klikli_dev.codedefinedgui.api.widget.GuiBackgroundWidget;
+import com.klikli_dev.codedefinedgui.api.style.BuiltinGuiParts;
+import com.klikli_dev.codedefinedgui.api.style.StyleContext;
+import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
 import com.klikli_dev.principiamagica.client.gui.ContentRect;
+import com.klikli_dev.principiamagica.client.gui.GuiStyles;
 import com.klikli_dev.principiamagica.client.gui.Tab;
 import com.klikli_dev.principiamagica.client.gui.TabHost;
 import com.klikli_dev.principiamagica.client.gui.WidgetGroup;
+import com.klikli_dev.principiamagica.client.gui.widget.ScrollList;
+import com.klikli_dev.principiamagica.client.gui.widget.SpriteWidget;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache.Entry;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -22,8 +27,8 @@ import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -35,19 +40,25 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
- * Golem GUI: a vertical tab bar on the left of a 176x222 frame. The Golem tab and the Job tab are {@link Tab}s with their own
- * detail pages. The player inventory backgrounds belong to the screen, so they stay drawn on both tabs.
+ * Golem GUI: a vertical tab rail on the left of the golem panel, and the player inventory panel below the golem panel. The golem panel
+ * has a name cartouche at the top, and holds the golem tab or the job tab. The composition is {@link GolemMenuLayout#WIDTH} by
+ * {@link GolemMenuLayout#HEIGHT}, and the screen centres it.
  * <p>
- * The screen rebuilds a {@link GolemView} every tick. Tabs and pages read it through a supplier, so their widgets follow
- * the data without being rebuilt, and scroll positions survive refreshes. Tab switches are sent to the server as menu button
- * clicks (see {@link #pressMenuButton}), so the server knows which slots are active.
+ * The screen rebuilds a {@link GolemView} every tick. Tabs and pages read it through a supplier, so their widgets follow the data without
+ * being rebuilt, and scroll positions survive refreshes. Tab switches are sent to the server as menu button clicks (see
+ * {@link #pressMenuButton}), so the server knows which slots are active.
  */
 public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements GuiHost {
 
-    private static final int TEXT_COLOR = 0xFF404040;
-    private static final int NAME_RESERVED_WIDTH = 28;
-    private static final int PREVIEW_SIZE = 24;
-    private static final float PREVIEW_OFFSET_Y = 0.0625F;
+    private static final int CARTOUCHE_X = 8;
+    private static final int CARTOUCHE_Y = 6;
+    private static final int CARTOUCHE_WIDTH = 188;
+    private static final int CARTOUCHE_HEIGHT = 17;
+    /**
+     * The height of the capitals and digits of the font. The font's line height adds one pixel of descender space below the baseline, so the
+     * text is centred with this height, not with the line height.
+     */
+    private static final int TITLE_GLYPH_HEIGHT = 7;
 
     private GolemView view;
     private @Nullable TabHost tabs;
@@ -60,20 +71,34 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     protected void init() {
         super.init();
         this.view = this.createView();
-        this.addGuiWidget(new GuiBackgroundWidget(this));
 
-        ContentRect frame = new ContentRect(this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
+        ContentRect screen = new ContentRect(this.leftPos, this.topPos, this.imageWidth, this.imageHeight);
+        ContentRect panel = new ContentRect(this.leftPos + GolemMenuLayout.PANEL_X, this.topPos + GolemMenuLayout.PANEL_Y,
+                GolemMenuLayout.PANEL_WIDTH, GolemMenuLayout.PANEL_HEIGHT);
+        ContentRect inventory = new ContentRect(this.leftPos + GolemMenuLayout.INVENTORY_PANEL_X, this.topPos + GolemMenuLayout.INVENTORY_PANEL_Y,
+                GolemMenuLayout.INVENTORY_PANEL_WIDTH, GolemMenuLayout.INVENTORY_PANEL_HEIGHT);
+        ContentRect content = GolemMenuLayout.content(panel);
+
+        StyleContext style = GuiStyles.context();
+        this.addGuiWidget(new SpriteWidget(panel.x(), panel.y(), panel.width(), panel.height(), this.sprite(style, "panel")));
+        this.addGuiWidget(new SpriteWidget(inventory.x(), inventory.y(), inventory.width(), inventory.height(),
+                style.sprite(BuiltinGuiParts.PLAYER_INVENTORY_BACKGROUND, GuiStyles.sprite("inventory_panel"))));
+        this.addGuiWidget(new SpriteWidget(content.x() + CARTOUCHE_X, content.y() + CARTOUCHE_Y, CARTOUCHE_WIDTH, CARTOUCHE_HEIGHT,
+                this.sprite(style, "cartouche")));
+
         WidgetGroup playerSlots = new WidgetGroup(this);
-        for (Slot slot : this.menu.playerSlots()) {
-            playerSlots.add(GolemSlotWidgets.background(frame, slot));
+        GuiSprite slot = style.sprite(BuiltinGuiParts.PLAYER_SLOT, GuiStyles.sprite("slot"));
+        for (Slot playerSlot : this.menu.playerSlots()) {
+            playerSlots.add(GolemSlotWidgets.background(screen, playerSlot, slot, -1, -1));
         }
 
         Supplier<GolemView> views = () -> this.view;
         List<Tab> tabs = List.of(
-                new GolemMainTab(views, this.menu),
+                new GolemMainTab(views, this.menu, screen),
                 new JobTab(views)
         );
-        this.tabs = new TabHost(this, frame, tabs, index -> this.selectTab(GolemMenuTab.values()[index]));
+        this.tabs = new TabHost(this, panel, tabs, index -> this.selectTab(GolemMenuTab.values()[index]));
+        this.tabs.setUnavailableTooltip(GolemMenuTab.JOB.ordinal(), Component.translatable("gui.principiamagica.golem.tab.job.disabled"));
         this.updateTabs();
         this.tabs.select(this.menu.activeTab().ordinal());
     }
@@ -89,7 +114,8 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
     }
 
     /**
-     * The job tab is only shown while the golem has an axiom. Hiding the selected job tab switches to the golem tab.
+     * The job tab is always shown, but it is disabled while the golem has no axiom. Losing the axiom while the job tab is open switches to the
+     * golem tab.
      */
     private void updateTabs() {
         boolean hasAxiom = this.view.job().isPresent();
@@ -97,6 +123,21 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
         if (!hasAxiom) {
             this.tabs.select(GolemMenuTab.GOLEM.ordinal());
         }
+    }
+
+    /**
+     * The wheel scrolls the scroll list under the cursor first. Vanilla's container screen only routes the wheel to slots, so the list
+     * would never see it otherwise.
+     */
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        for (GuiEventListener child : this.children()) {
+            if (child instanceof ScrollList<?> list && list.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) {
+                return true;
+            }
+        }
+
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     /**
@@ -111,27 +152,17 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
         return super.keyPressed(event);
     }
 
+    /**
+     * Draws the golem's name in the cartouche. Vanilla's title and inventory labels are replaced by this, so they never collide with the panels.
+     * The name is centred on the cartouche, both ways, without shadow. Coordinates are relative to the screen, like vanilla's labels.
+     */
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        String name = GolemGuiText.golemName(this.view).getString();
-        graphics.text(this.font, this.font.plainSubstrByWidth(name, this.imageWidth - 16 - NAME_RESERVED_WIDTH), 8, 6, TEXT_COLOR, false);
-
-        if (this.showsGolemPreview() && this.view.golem() != null) {
-            int previewRight = GolemMenuLayout.PREVIEW_X + GolemMenuLayout.PREVIEW_WIDTH;
-            int previewBottom = GolemMenuLayout.PREVIEW_Y + GolemMenuLayout.PREVIEW_HEIGHT;
-            graphics.enableScissor(GolemMenuLayout.PREVIEW_X, GolemMenuLayout.PREVIEW_Y, previewRight, previewBottom);
-            InventoryScreen.extractEntityInInventoryFollowsMouse(graphics,
-                    GolemMenuLayout.PREVIEW_X, GolemMenuLayout.PREVIEW_Y, previewRight, previewBottom,
-                    PREVIEW_SIZE, PREVIEW_OFFSET_Y, mouseX - this.leftPos, mouseY - this.topPos, this.view.golem());
-            graphics.disableScissor();
-        }
-    }
-
-    /**
-     * The preview is drawn on the golem tab's root page only, so it disappears with the golem tab's widgets.
-     */
-    private boolean showsGolemPreview() {
-        return this.menu.activeTab() == GolemMenuTab.GOLEM;
+        String name = this.font.plainSubstrByWidth(GolemGuiText.golemName(this.view).getString(), CARTOUCHE_WIDTH - 2 * CARTOUCHE_X);
+        int cartoucheTop = GolemMenuLayout.CONTENT_Y + CARTOUCHE_Y;
+        int nameY = cartoucheTop + (CARTOUCHE_HEIGHT - TITLE_GLYPH_HEIGHT) / 2;
+        int nameX = GolemMenuLayout.PANEL_X + GolemMenuLayout.PANEL_WIDTH / 2;
+        graphics.text(this.font, name, nameX - this.font.width(name) / 2, nameY, GuiStyles.TEXT_PRIMARY, false);
     }
 
     private void selectTab(GolemMenuTab tab) {
@@ -150,6 +181,10 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
         this.menu.clickMenuButton(this.minecraft.player, buttonId);
     }
 
+    private GuiSprite sprite(StyleContext style, String name) {
+        return style.sprite(GuiStyles.part(name), GuiStyles.sprite(name));
+    }
+
     private GolemView createView() {
         int golemId = this.menu.getGolemId();
         @Nullable GolemEntity golem = this.minecraft.level != null && this.minecraft.level.getEntity(golemId) instanceof GolemEntity found ? found : null;
@@ -163,7 +198,6 @@ public class GolemScreen extends AbstractContainerScreen<GolemMenu> implements G
                 workplace,
                 golem != null ? golem.getMode() : GolemMode.WORK,
                 golem != null ? golem.getSpec().job() : Optional.empty(),
-                this.menu.getUsableGolemSlots(),
                 golem != null ? golem.getStatus() : GolemStatus.OK
         );
     }

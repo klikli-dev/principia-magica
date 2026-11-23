@@ -27,6 +27,7 @@ import java.util.function.Supplier;
  * @param below           how far below the footprint's working level the job works
  * @param above           how far above the footprint's working level the job works
  * @param requiredTool    the tag the main hand tool must match for the job to work, empty if no tool is needed
+ * @param toolTag        the tag of items the golem accepts as its tool, see {@link GolemJob#toolTag()}
  * @param options         the options this job declares, shown in the GUI and stored per workplace
  * @param keeps           whether the golem keeps items of this stack for the workplace, see {@link GolemJob#keepAmount}
  * @param targetFinder    finds the blocks the job works on, see {@link WorkTargetFinder}
@@ -37,11 +38,21 @@ public record WorkJob(
         int below,
         int above,
         Optional<TagKey<Item>> requiredTool,
+        Optional<TagKey<Item>> toolTag,
         List<JobOption> options,
         BiPredicate<Workplace, ItemStack> keeps,
+        SupplyCheck supplies,
         WorkTargetFinder targetFinder,
         Supplier<List<BehaviorControl<? super GolemEntity>>> behaviours
 ) implements GolemJob {
+
+    /**
+     * Decides whether the job has a target for a supply item right now, see {@link GolemJob#wantsSupply}.
+     */
+    @FunctionalInterface
+    public interface SupplyCheck {
+        boolean wants(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template);
+    }
 
     /**
      * How many items of a kept stack the golem holds on to, the rest is deposited.
@@ -63,6 +74,11 @@ public record WorkJob(
                 .filter(workplace -> this.keeps.test(workplace, stack))
                 .map(workplace -> KEEP_AMOUNT)
                 .orElse(0);
+    }
+
+    @Override
+    public boolean wantsSupply(ServerLevel level, GolemEntity golem, Workplace workplace, ItemStack template) {
+        return this.supplies.wants(level, golem, workplace, template);
     }
 
     @Override

@@ -153,13 +153,13 @@ public class GolemMenuGameTests {
         helper.succeed();
     }
 
-    public static void toolSlotRejectsWithoutJob(GameTestHelper helper) {
+    public static void toolSlotAcceptsToolWithoutJob(GameTestHelper helper) {
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
         Player player = ownedPlayer(helper, golem);
         GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
 
-        helper.assertTrue(!menu.toolSlot().mayPlace(new ItemStack(Items.IRON_AXE)), "A golem without a job should not accept a tool");
+        helper.assertTrue(menu.backSlot().mayPlace(new ItemStack(Items.IRON_AXE)), "A golem without a job should accept a tool on its back");
 
         helper.succeed();
     }
@@ -172,17 +172,17 @@ public class GolemMenuGameTests {
         GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
         Slot playerSlot = menu.playerSlots().getFirst();
 
-        helper.assertTrue(menu.axiomSlot().isActive() && menu.toolSlot().isActive(), "Golem-side slots should be active on the golem tab by default");
+        helper.assertTrue(menu.axiomSlot().isActive() && menu.handSlot().isActive(), "Golem-side slots should be active on the golem tab by default");
 
         helper.assertTrue(menu.clickMenuButton(player, GolemMenuTab.JOB.ordinal()), "The job tab button should be accepted");
-        helper.assertTrue(!menu.axiomSlot().isActive() && !menu.toolSlot().isActive(), "Golem-side slots should be inactive on the job tab");
+        helper.assertTrue(!menu.axiomSlot().isActive() && !menu.handSlot().isActive(), "Golem-side slots should be inactive on the job tab");
         helper.assertTrue(playerSlot.isActive(), "Player slots should stay active on the job tab");
 
         menu.clicked(indexOf(menu, menu.axiomSlot()), 0, ContainerInput.PICKUP, player);
         helper.assertTrue(golem.getSpec().job().isPresent(), "Clicks on inactive slots should be ignored");
 
         helper.assertTrue(menu.clickMenuButton(player, GolemMenuTab.GOLEM.ordinal()), "The golem tab button should be accepted");
-        helper.assertTrue(menu.axiomSlot().isActive() && menu.toolSlot().isActive(), "Golem-side slots should be active again on the golem tab");
+        helper.assertTrue(menu.axiomSlot().isActive() && menu.handSlot().isActive(), "Golem-side slots should be active again on the golem tab");
 
         helper.succeed();
     }
@@ -194,7 +194,7 @@ public class GolemMenuGameTests {
         Player player = ownedPlayer(helper, golem);
         GolemMenu menu = new GolemMenu(0, player.getInventory(), golem.getId());
 
-        golem.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE));
+        golem.setHandItem(new ItemStack(Items.COBBLESTONE));
         player.getInventory().setItem(0, new ItemStack(Items.COBBLESTONE));
         Slot hotbar = menu.playerSlots().stream().filter(slot -> slot.getItem().is(Items.COBBLESTONE) && slot.getItem().getCount() == 1 && slot.getContainerSlot() == 0)
                 .findFirst().orElseThrow();
@@ -202,8 +202,8 @@ public class GolemMenuGameTests {
 
         menu.clicked(indexOf(menu, hotbar), 0, ContainerInput.QUICK_MOVE, player);
 
-        helper.assertTrue(golem.getInventory().getItem(0).getCount() == 1,
-                "Shift-clicking on the job tab should not merge into the golem inventory, got " + golem.getInventory().getItem(0).getCount());
+        helper.assertTrue(golem.getHandItem().getCount() == 1,
+                "Shift-clicking on the job tab should not merge into the golem inventory, got " + golem.getHandItem().getCount());
 
         helper.succeed();
     }
@@ -223,7 +223,7 @@ public class GolemMenuGameTests {
 
         golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD));
         helper.assertTrue(menu.activeTab() == GolemMenuTab.GOLEM, "The job tab should fall back to the golem tab when the axiom is gone");
-        helper.assertTrue(menu.axiomSlot().isActive() && menu.toolSlot().isActive(), "Golem-side slots should be active after the fallback");
+        helper.assertTrue(menu.axiomSlot().isActive() && menu.handSlot().isActive(), "Golem-side slots should be active after the fallback");
 
         helper.succeed();
     }

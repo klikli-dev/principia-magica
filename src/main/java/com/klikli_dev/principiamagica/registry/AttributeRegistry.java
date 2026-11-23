@@ -16,7 +16,4 @@ public class AttributeRegistry {
 
     public static final DeferredHolder<Attribute, Attribute> GOLEM_WORK_SPEED = ATTRIBUTES.register("golem_work_speed", () ->
             new RangedAttribute("attribute.principiamagica.golem_work_speed", 1.0, 0.0, 16.0).setSyncable(true));
-
-    public static final DeferredHolder<Attribute, Attribute> GOLEM_INVENTORY_SLOTS = ATTRIBUTES.register("golem_inventory_slots", () ->
-            new RangedAttribute("attribute.principiamagica.golem_inventory_slots", 3.0, 0.0, 9.0).setSyncable(true));
 }
