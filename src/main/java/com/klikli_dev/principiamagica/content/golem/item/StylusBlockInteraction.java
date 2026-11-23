@@ -129,7 +129,7 @@ final class StylusBlockInteraction {
         }
 
         BlockPos secondCorner = pos.offset(0, pending.get().ghostLift(), 0);
-        StylusActions.EditResult result = StylusActions.placeFootprint(workplace, level.dimension(), pending.get().pos().pos(), secondCorner);
+        StylusActions.EditResult result = StylusActions.completeMove(workplace, pending.get(), level.dimension(), secondCorner);
         if (result.isSuccess()) {
             boolean wasMove = pending.get().original().isPresent();
             stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());

@@ -58,12 +58,34 @@ public record Workplace(
             (footprints, links, options, memory, initialized) -> new Workplace(footprints, links, options, MemoryEntry.toMap(memory), initialized)
     );
 
+    /**
+     * Codec for item memory maps on their own, e.g. for memory carried by a pending corner move.
+     */
+    public static final Codec<Map<BlockPos, Holder<Item>>> ITEM_MEMORY_CODEC = MemoryEntry.CODEC.listOf().xmap(MemoryEntry::toMap, Workplace::toEntries);
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, Map<BlockPos, Holder<Item>>> ITEM_MEMORY_STREAM_CODEC =
+            MemoryEntry.STREAM_CODEC.apply(ByteBufCodecs.list()).map(MemoryEntry::toMap, Workplace::toEntries);
+
     public Workplace withFootprints(List<WorkFootprint> footprints) {
         List<WorkFootprint> kept = List.copyOf(footprints);
         Map<BlockPos, Holder<Item>> memory = this.itemMemory.entrySet().stream()
                 .filter(entry -> kept.stream().anyMatch(footprint -> footprint.containsColumn(entry.getKey())))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         return new Workplace(kept, this.links, this.options, memory, this.initialized);
+    }
+
+    /**
+     * @return a copy of this workplace with the given memory entries added. Entries whose column is not inside any footprint
+     * of this workplace are dropped, and entries already present are kept.
+     */
+    public Workplace withRestoredMemory(Map<BlockPos, Holder<Item>> memory) {
+        Map<BlockPos, Holder<Item>> merged = new HashMap<>(this.itemMemory);
+        memory.forEach((pos, item) -> {
+            if (this.footprints.stream().anyMatch(footprint -> footprint.containsColumn(pos))) {
+                merged.putIfAbsent(pos, item);
+            }
+        });
+        return withItemMemory(merged);
     }
 
     public Workplace withLinks(List<ContainerLink> links) {
@@ -156,7 +178,11 @@ public record Workplace(
     }
 
     private List<MemoryEntry> memoryEntries() {
-        return this.itemMemory.entrySet().stream().map(entry -> new MemoryEntry(entry.getKey(), entry.getValue())).toList();
+        return toEntries(this.itemMemory);
+    }
+
+    private static List<MemoryEntry> toEntries(Map<BlockPos, Holder<Item>> memory) {
+        return memory.entrySet().stream().map(entry -> new MemoryEntry(entry.getKey(), entry.getValue())).toList();
     }
 
     private record MemoryEntry(BlockPos pos, Holder<Item> item) {

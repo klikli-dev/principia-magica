@@ -172,7 +172,7 @@ public class StylusItem extends Item {
 
         ServerLevel level = (ServerLevel) golem.get().level();
         Workplace current = golem.get().getWorkplace(level).orElse(Workplace.EMPTY);
-        applyWorkplaceEdit(player, golem.get(), StylusActions.restoreFootprint(current, pending.original().get()));
+        applyWorkplaceEdit(player, golem.get(), StylusActions.restoreFootprint(current, pending.original().get(), pending.originalMemory()));
         stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
         return CancelOutcome.MOVE_CANCELLED;
     }

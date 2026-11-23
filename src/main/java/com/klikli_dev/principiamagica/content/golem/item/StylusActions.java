@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -126,9 +127,17 @@ public final class StylusActions {
      * Restores a previously removed footprint (e.g. when cancelling a corner move).
      */
     public static Workplace restoreFootprint(Workplace workplace, WorkFootprint footprint) {
+        return restoreFootprint(workplace, footprint, Map.of());
+    }
+
+    /**
+     * Restores a previously removed footprint together with the item memory that was dropped when it was picked up.
+     * Memory entries that do not lie inside the restored footprint are dropped.
+     */
+    public static Workplace restoreFootprint(Workplace workplace, WorkFootprint footprint, Map<BlockPos, Holder<Item>> memory) {
         List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
         footprints.add(footprint);
-        return workplace.withFootprints(footprints).markInitialized();
+        return workplace.withFootprints(footprints).withRestoredMemory(memory).markInitialized();
     }
 
     /**
@@ -173,8 +182,30 @@ public final class StylusActions {
         List<WorkFootprint> footprints = new ArrayList<>(workplace.footprints());
         footprints.remove(footprintIndex);
         Workplace updated = workplace.withFootprints(footprints).markInitialized();
-        PendingGlyph pending = PendingGlyph.moving(GlobalPos.of(dimension, fixedCorner), initialGhostLift, original);
+
+        // The memory inside the picked up footprint is dropped by withFootprints, keep it on the pending move
+        Map<BlockPos, Holder<Item>> droppedMemory = new HashMap<>();
+        workplace.itemMemory().forEach((pos, item) -> {
+            if (!updated.itemMemory().containsKey(pos)) {
+                droppedMemory.put(pos, item);
+            }
+        });
+
+        PendingGlyph pending = PendingGlyph.moving(GlobalPos.of(dimension, fixedCorner), initialGhostLift, original, droppedMemory);
         return Optional.of(new PickUpResult(updated, pending));
+    }
+
+    /**
+     * Places the moved footprint of a pending corner move, spanned between the fixed corner and secondCorner. The item memory
+     * that was dropped when the corner was picked up is restored where it still lies inside the new footprint.
+     */
+    public static EditResult completeMove(Workplace workplace, PendingGlyph pending, ResourceKey<Level> dimension, BlockPos secondCorner) {
+        EditResult result = placeFootprint(workplace, dimension, pending.pos().pos(), secondCorner);
+        if (!result.isSuccess()) {
+            return result;
+        }
+
+        return EditResult.ok(result.workplace().withRestoredMemory(pending.originalMemory()));
     }
 
     /**

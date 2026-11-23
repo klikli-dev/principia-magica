@@ -26,6 +26,7 @@ import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,6 +40,7 @@ import net.minecraft.util.TriState;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -54,6 +56,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -652,6 +655,41 @@ public class StylusGameTests {
         WorkFootprint shrunk = placed.workplace().footprints().getFirst();
         helper.assertTrue(shrunk.width() == 1 && shrunk.depth() == 1 && shrunk.height() == 1,
                 "Shrunk box should be 1x1x1");
+
+        helper.succeed();
+    }
+
+    public static void cornerMovePreservesPlantingMemory(GameTestHelper helper) {
+        WorkFootprint original = WorkFootprint.ofBox(new BlockPos(2, 64, 2), new BlockPos(6, 67, 5));
+        BlockPos planted = new BlockPos(4, 64, 4);
+        Holder<Item> log = Items.OAK_LOG.builtInRegistryHolder();
+        Workplace workplace = Workplace.EMPTY.withFootprints(List.of(original)).withItemMemory(Map.of(planted, log)).markInitialized();
+        helper.assertTrue(workplace.itemMemory().equals(Map.of(planted, log)), "Setup should store planting memory inside the footprint");
+
+        // Picking up the corner drops the memory from the workplace, but keeps it on the pending move
+        PickUpResult picked = StylusActions.pickUpCorner(workplace, Level.OVERWORLD, 0, 7).orElseThrow();
+        helper.assertTrue(picked.workplace().itemMemory().isEmpty(), "Picking up the corner should move the memory onto the pending move");
+        PendingGlyph pending = picked.pending();
+        helper.assertTrue(pending.originalMemory().equals(Map.of(planted, log)), "Pending move should keep the dropped memory");
+
+        // The pending move, including its memory, survives the codec round-trip that the stylus uses for persistence
+        Tag encoded = PendingGlyph.CODEC.encodeStart(NbtOps.INSTANCE, pending).getOrThrow();
+        PendingGlyph decoded = PendingGlyph.CODEC.parse(NbtOps.INSTANCE, encoded).getOrThrow();
+        helper.assertTrue(decoded.equals(pending), "PendingGlyph with memory should round-trip via codec");
+
+        // Cancelling restores the memory together with the footprint
+        Workplace cancelled = StylusActions.restoreFootprint(picked.workplace(), decoded.original().orElseThrow(), decoded.originalMemory());
+        helper.assertTrue(cancelled.itemMemory().equals(Map.of(planted, log)), "Cancelling should restore the planting memory");
+
+        // Completing the move at the original size keeps the memory, since it still lies inside the new footprint
+        EditResult kept = StylusActions.completeMove(picked.workplace(), pending, Level.OVERWORLD, new BlockPos(6, 67, 5));
+        helper.assertTrue(kept.isSuccess() && kept.workplace().itemMemory().equals(Map.of(planted, log)),
+                "Completing the move over the memory should keep it");
+
+        // Completing the move with a footprint that no longer covers the memory drops it, as it is outside the footprint
+        EditResult shrunk = StylusActions.completeMove(picked.workplace(), pending, Level.OVERWORLD, new BlockPos(3, 67, 3));
+        helper.assertTrue(shrunk.isSuccess() && shrunk.workplace().itemMemory().isEmpty(),
+                "Completing the move away from the memory should drop it");
 
         helper.succeed();
     }
