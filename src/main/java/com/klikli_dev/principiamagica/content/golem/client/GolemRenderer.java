@@ -13,10 +13,8 @@ public class GolemRenderer extends GeoEntityRenderer<GolemEntity, GolemRenderSta
     public GolemRenderer(EntityRendererProvider.Context context) {
         super(context, new GolemModel());
 
-        // The tool in the right hand, the carried item between the hands, and the tool on the back.
-        this.withRenderLayer(new GolemItemLayer(context, this, GolemItemLayer.Placement.TOOL_IN_HAND));
-        this.withRenderLayer(new GolemItemLayer(context, this, GolemItemLayer.Placement.CARRIED));
-        this.withRenderLayer(new GolemItemLayer(context, this, GolemItemLayer.Placement.TOOL_ON_BACK));
+        // The tool in the right hand, the carried item between the hands, and the tool on the back. One layer, see GolemItemLayer.
+        this.withRenderLayer(new GolemItemLayer(context, this));
     }
 
     @Override

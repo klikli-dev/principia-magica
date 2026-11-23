@@ -27,6 +27,7 @@ import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.UUIDUtil;
@@ -156,8 +157,8 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
      * animation's switch point. A tool that appears or disappears in one slot is not moved, so it gets no animation.
      */
     private void updateToolDisplay() {
-        boolean inHand = this.isTool(this.getHandItem());
-        boolean onBack = this.isTool(this.getBackItem());
+        boolean inHand = this.isHeldTool(this.getHandItem());
+        boolean onBack = !this.getBackItem().isEmpty();
 
         if (this.toolSwitchTicks > 0 && --this.toolSwitchTicks == 0) {
             this.toolDrawnOnBack = onBack;
@@ -389,11 +390,22 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     }
 
     /**
-     * @return true if the hand holds an item that is not the tool, i.e. the golem carries something
+     * A held tool is any tool, the job's tool or not. The golem's job decides which tool it works with ({@link #isTool}), the hand and
+     * the back hold any tool.
+     *
+     * @return true if the stack is a tool the golem can hold in its hand or on its back
+     */
+    public boolean isHeldTool(ItemStack stack) {
+        return !stack.isEmpty() && (this.isTool(stack) || stack.has(DataComponents.TOOL));
+    }
+
+    /**
+     * @return true if the hand holds an item that is not a tool, i.e. the golem carries something between its hands. A tool in the hand is
+     * held like a tool, its arms do not carry anything.
      */
     public boolean isCarrying() {
         ItemStack hand = this.getHandItem();
-        return !hand.isEmpty() && !this.isTool(hand);
+        return !hand.isEmpty() && !this.isHeldTool(hand);
     }
 
     /**

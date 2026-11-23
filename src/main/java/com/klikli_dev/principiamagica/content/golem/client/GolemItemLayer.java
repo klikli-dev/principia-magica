@@ -18,13 +18,22 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Draws one of the golem's held items on a bone. What is drawn follows {@link GolemEntity#isToolDrawnOnBack()}, so the tool changes
- * places with the stow and unstow animations at their switch point.
+ * Draws the golem's held items: the tool in the right hand, a carried item between the hands, and the tool on the back.
+ * <p>
+ * All items go through this one layer. GeckoLib keeps the items of a layer in one data ticket that every
+ * {@link BlockAndItemGeoLayer} shares, so a second item layer would draw the same items again on its own bone.
+ * <p>
+ * The tool moves with the stow and unstow animations: see {@link GolemEntity#isToolDrawnOnBack()}.
  */
 public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, GolemRenderState> {
+
+    static final String HAND_BONE = "RightHandItem";
+    static final String TORSO_BONE = "torso";
+    static final String BACK_BONE = "BackItem";
 
     /**
      * The middle of the hands. The hands hang at x = ±5.25 and y = 4.5, the torso pivot is at y = 6, so the middle is 1.5 pixels below it.
@@ -34,19 +43,19 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
     /**
      * Where an item is drawn, and which item it is.
      */
-    public enum Placement {
+    private enum Placement {
         /**
-         * The tool in the right hand. Not drawn while the tool is stowed on the back.
+         * The tool in the right hand, held like a player holds it. Not drawn while the tool is drawn on the back.
          */
-        TOOL_IN_HAND("RightHandItem", ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
+        TOOL_IN_HAND(HAND_BONE, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
         /**
-         * A carried item, which is not the tool. Drawn in the middle of the hands, on the torso.
+         * A carried item, which is not a tool. Drawn in the middle of the hands, on the torso.
          */
-        CARRIED("torso", ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
+        CARRIED(TORSO_BONE, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
         /**
-         * The tool on the back. Lies on the back bone, flat.
+         * The tool on the back. Lies on the back bone.
          */
-        TOOL_ON_BACK("BackItem", ItemDisplayContext.FIXED);
+        TOOL_ON_BACK(BACK_BONE, ItemDisplayContext.FIXED);
 
         private final String bone;
         private final ItemDisplayContext displayContext;
@@ -67,13 +76,13 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
                     if (golem.isToolDrawnOnBack()) {
                         yield ItemStack.EMPTY;
                     }
-                    if (golem.isTool(hand)) {
+                    if (golem.isHeldTool(hand)) {
                         yield hand;
                     }
                     // During a stow the tool is still drawn in the hand, the synced state already has it on the back.
-                    yield hand.isEmpty() && golem.isTool(back) ? back : ItemStack.EMPTY;
+                    yield hand.isEmpty() && !back.isEmpty() ? back : ItemStack.EMPTY;
                 }
-                case CARRIED -> hand.isEmpty() || golem.isTool(hand) ? ItemStack.EMPTY : hand;
+                case CARRIED -> hand.isEmpty() || golem.isHeldTool(hand) ? ItemStack.EMPTY : hand;
                 case TOOL_ON_BACK -> {
                     if (!golem.isToolDrawnOnBack()) {
                         yield ItemStack.EMPTY;
@@ -82,28 +91,28 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
                         yield back;
                     }
                     // During an unstow the tool is still drawn on the back, the synced state already has it in the hand.
-                    yield golem.isTool(hand) ? hand : ItemStack.EMPTY;
+                    yield golem.isHeldTool(hand) ? hand : ItemStack.EMPTY;
                 }
             };
         }
     }
 
-    private final Placement placement;
-
-    public GolemItemLayer(EntityRendererProvider.Context context, GeoRenderer<GolemEntity, Void, GolemRenderState> renderer, Placement placement) {
+    public GolemItemLayer(EntityRendererProvider.Context context, GeoRenderer<GolemEntity, Void, GolemRenderState> renderer) {
         super(context, renderer);
-        this.placement = placement;
     }
 
     @Override
     protected List<RenderData> getRelevantBones(GolemEntity animatable, @Nullable Void relatedObject, GolemRenderState renderState, float partialTick) {
-        ItemStack stack = this.placement.item(animatable);
-        if (stack.isEmpty()) {
-            return List.of();
+        List<RenderData> items = new ArrayList<>();
+        for (Placement placement : Placement.values()) {
+            ItemStack stack = placement.item(animatable);
+            if (!stack.isEmpty()) {
+                items.add(RenderData.item(placement.bone, placement.displayContext,
+                        RenderUtil.createRenderStateForItem(stack, this.itemModelResolver, placement.displayContext, animatable)));
+            }
         }
 
-        ItemDisplayContext displayContext = this.placement.displayContext;
-        return List.of(RenderData.item(this.placement.bone, displayContext, RenderUtil.createRenderStateForItem(stack, this.itemModelResolver, displayContext, animatable)));
+        return items;
     }
 
     @Override
@@ -117,12 +126,11 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
     @Override
     protected void submitItemStackRender(PoseStack poseStack, GeoBone bone, ItemStackRenderState stackState, ItemDisplayContext displayContext, GolemRenderState renderState, SubmitNodeCollector renderTasks, int packedLight) {
         poseStack.pushPose();
-        switch (this.placement) {
-            // Lay the item flat on the back: the sprite is in its own plane, which the back bone needs turned.
-            case TOOL_ON_BACK -> poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
-            case CARRIED -> poseStack.translate(0.0F, -CARRY_OFFSET_Y, 0.0F);
-            case TOOL_IN_HAND -> {
-            }
+        if (BACK_BONE.equals(bone.name())) {
+            // Lay the item flat on the back bone, the sprite is in its own plane and needs turning onto the bone.
+            poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
+        } else if (TORSO_BONE.equals(bone.name())) {
+            poseStack.translate(0.0F, -CARRY_OFFSET_Y, 0.0F);
         }
 
         super.submitItemStackRender(poseStack, bone, stackState, displayContext, renderState, renderTasks, packedLight);
