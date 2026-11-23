@@ -131,6 +131,62 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     }
 
     /**
+     * The stow and unstow animations move the tool at 0.25 s, so the client draws the tool on its old slot until then.
+     */
+    private static final int TOOL_SWITCH_TICKS = 5;
+
+    /**
+     * Client only. The tool's place on the screen, which lags the synced state by {@link #TOOL_SWITCH_TICKS} after a stow or unstow.
+     */
+    private boolean toolDrawnOnBack;
+    private int toolSwitchTicks;
+    private boolean toolWasInHand;
+    private boolean toolWasOnBack;
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (this.level().isClientSide()) {
+            this.updateToolDisplay();
+        }
+    }
+
+    /**
+     * Client only: starts the stow or unstow animation when the tool moves between hand and back, and switches the drawn slot at the
+     * animation's switch point. A tool that appears or disappears in one slot is not moved, so it gets no animation.
+     */
+    private void updateToolDisplay() {
+        boolean inHand = this.isTool(this.getHandItem());
+        boolean onBack = this.isTool(this.getBackItem());
+
+        if (this.toolSwitchTicks > 0 && --this.toolSwitchTicks == 0) {
+            this.toolDrawnOnBack = onBack;
+        }
+
+        if (onBack && this.toolWasInHand && !inHand) {
+            this.toolSwitchTicks = TOOL_SWITCH_TICKS;
+            this.triggerAnim(GolemAnimations.WORK_CONTROLLER, GolemAnimations.STOW);
+        } else if (inHand && this.toolWasOnBack && !onBack) {
+            this.toolSwitchTicks = TOOL_SWITCH_TICKS;
+            this.triggerAnim(GolemAnimations.WORK_CONTROLLER, GolemAnimations.UNSTOW);
+        } else if (this.toolSwitchTicks == 0) {
+            this.toolDrawnOnBack = onBack;
+        }
+
+        this.toolWasInHand = inHand;
+        this.toolWasOnBack = onBack;
+    }
+
+    /**
+     * Client only, for rendering. On the server the synced state is the state.
+     *
+     * @return true if the tool is drawn on the back, false if it is drawn in the hand
+     */
+    public boolean isToolDrawnOnBack() {
+        return this.toolDrawnOnBack;
+    }
+
+    /**
      * Plays the work swing matching the held tool.
      */
     public void swingWorkArm() {
