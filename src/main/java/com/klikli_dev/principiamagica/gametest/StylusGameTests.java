@@ -729,6 +729,44 @@ public class StylusGameTests {
         helper.succeed();
     }
 
+    public static void crouchRightClickDiscardsStuckCornerMove(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+
+        WorkFootprint original = WorkFootprint.ofBox(new BlockPos(1, 1, 1), new BlockPos(5, 1, 5), helper.getLevel().dimension());
+        Workplace workplace = Workplace.EMPTY.withFootprints(List.of(original)).markInitialized();
+        PickUpResult picked = StylusActions.pickUpCorner(workplace, helper.getLevel().dimension(), 0, 7).orElseThrow();
+        golem.updateWorkplace(current -> picked.workplace());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        stylus.set(DataComponentRegistry.STYLUS_PENDING_GLYPH.get(), picked.pending());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+
+        // Out of reach: a plain right-click in the air keeps the move
+        player.setPos(golem.getX() + 100.0, golem.getY(), golem.getZ());
+        ItemStack held = player.getMainHandItem();
+        StylusItem item = (StylusItem) ItemRegistry.COPPER_STYLUS.get();
+        item.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(held.has(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()),
+                "Plain right-click should keep the stuck move");
+        helper.assertTrue(held.has(DataComponentRegistry.STYLUS_SELECTION.get()),
+                "Plain right-click should keep the selection");
+
+        // Crouch right-click in the air discards the move and clears the selection
+        player.setShiftKeyDown(true);
+        item.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(!held.has(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()),
+                "Crouch right-click should discard the stuck move");
+        helper.assertTrue(!held.has(DataComponentRegistry.STYLUS_SELECTION.get()),
+                "Crouch right-click should clear the selection");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().footprints().isEmpty(),
+                "Discarding the move should not restore the footprint");
+
+        helper.succeed();
+    }
+
     public static void sneakRightClickInsideFootprintErasesFootprint(GameTestHelper helper) {
         GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
         Player player = helper.makeMockServerPlayerInLevel();

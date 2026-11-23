@@ -167,6 +167,9 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CORNER_MOVE_PRESERVES_PLANTING_MEMORY =
             TEST_FUNCTIONS.register("corner_move_preserves_planting_memory", () -> StylusGameTests::cornerMovePreservesPlantingMemory);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CROUCH_RIGHT_CLICK_DISCARDS_STUCK_CORNER_MOVE =
+            TEST_FUNCTIONS.register("crouch_right_click_discards_stuck_corner_move", () -> StylusGameTests::crouchRightClickDiscardsStuckCornerMove);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CANCEL_MOVE_KEPT_UNTIL_GOLEM_IS_REACHABLE =
             TEST_FUNCTIONS.register("cancel_move_kept_until_golem_is_reachable", () -> StylusGameTests::cancelMoveKeptUntilGolemIsReachable);
 
@@ -558,6 +561,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, PICK_UP_MOVE_AND_CANCEL_CORNER, environment, structure, 40, 0);
         registerTest(event, CANCEL_MOVE_KEPT_UNTIL_GOLEM_IS_REACHABLE, environment, structure, 40, 0);
         registerTest(event, CORNER_MOVE_PRESERVES_PLANTING_MEMORY, environment, structure, 40, 0);
+        registerTest(event, CROUCH_RIGHT_CLICK_DISCARDS_STUCK_CORNER_MOVE, environment, structure, 40, 0);
         registerTest(event, SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, IMPRINT_TABLET_COPIES_PASTES_AND_CLEARS, environment, structure, 40, 0);
         registerTest(event, CREATIVE_STYLUS_SELECTS_GOLEM, environment, structure, 40, 0);

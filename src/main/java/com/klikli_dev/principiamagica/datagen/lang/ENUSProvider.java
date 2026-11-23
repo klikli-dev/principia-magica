@@ -188,6 +188,8 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.stylus.hint.carve_opposite", "%s a block: carve the opposite corner");
         this.add("hud.principiamagica.stylus.hint.place_moved_corner", "%s a block: place corner");
         this.add("hud.principiamagica.stylus.hint.cancel", "%s air: cancel");
+        this.add("hud.principiamagica.stylus.hint.move_closer", "Move closer to the golem to cancel the move");
+        this.add("hud.principiamagica.stylus.hint.discard_move", "%s air: discard the moved work area");
         this.add("hud.principiamagica.stylus.hint.lift_corner", "%s: move corner up / down");
         this.add("hud.principiamagica.stylus.hint.move_corner", "%s: pick up and move corner");
         this.add("hud.principiamagica.stylus.hint.erase", "%s: erase work area");
@@ -263,7 +265,8 @@ public class ENUSProvider extends LanguageProvider {
         this.add("message.principiamagica.stylus.corner_picked_up", "Corner picked up, right-click a block to place it");
         this.add("message.principiamagica.stylus.corner_moved", "Work area corner moved");
         this.add("message.principiamagica.stylus.corner_move_cancelled", "Corner move cancelled");
-        this.add("message.principiamagica.stylus.corner_move_golem_not_found", "Move closer to the golem to cancel the corner move");
+        this.add("message.principiamagica.stylus.corner_move_golem_not_found", "Move closer to the golem to cancel the corner move, or crouch to discard it");
+        this.add("message.principiamagica.stylus.corner_move_discarded", "Moved work area discarded, it is lost");
         this.add("message.principiamagica.stylus.corner_occupied", "Another corner is already at that block");
         this.add("message.principiamagica.stylus.out_of_bounds", "Reached the world height limit");
         this.add("message.principiamagica.stylus.footprint_carved", "Footprint carved");

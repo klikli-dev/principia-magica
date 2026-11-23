@@ -43,7 +43,10 @@ import java.util.function.Predicate;
  */
 public class StylusItem extends Item {
 
-    private static final double MAX_DISTANCE_SQR = 64.0 * 64.0;
+    /**
+     * The squared distance within which the selected golem can be reached with the stylus.
+     */
+    public static final double MAX_DISTANCE_SQR = 64.0 * 64.0;
 
     public StylusItem(Properties properties) {
         super(properties);
@@ -120,7 +123,16 @@ public class StylusItem extends Item {
         switch (cancelPending(stack, serverPlayer)) {
             case CORNER_CANCELLED -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_cancelled"));
             case MOVE_CANCELLED -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_cancelled"));
-            case MOVE_KEPT -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_golem_not_found"));
+            case MOVE_KEPT -> {
+                if (player.isShiftKeyDown()) {
+                    // Escape hatch for a move whose golem can never be reached again: the moved work area is lost
+                    stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
+                    stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
+                    serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_discarded"));
+                } else {
+                    serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_golem_not_found"));
+                }
+            }
             case NONE -> {
                 if (player.isShiftKeyDown() && stack.remove(DataComponentRegistry.STYLUS_SELECTION.get()) != null) {
                     serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));

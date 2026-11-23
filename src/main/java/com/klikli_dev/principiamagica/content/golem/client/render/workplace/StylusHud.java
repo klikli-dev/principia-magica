@@ -12,6 +12,7 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
+import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
@@ -121,6 +122,15 @@ public class StylusHud {
             hints.add(HintLine.neutral(Component.translatable(isMoving
                     ? "hud.principiamagica.stylus.moving_corner"
                     : "hud.principiamagica.stylus.pending_corner")));
+            boolean unreachable = golem == null || minecraft.player == null
+                    || golem.distanceToSqr(minecraft.player) > StylusItem.MAX_DISTANCE_SQR;
+            if (isMoving && unreachable) {
+                // The move cannot be placed or cancelled until the golem is reachable again
+                hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.move_closer")));
+                hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.discard_move", KeyCombo.CROUCH_RIGHT_CLICK.component())));
+                return hints;
+            }
+
             BlockHitResult hovered = WorkplaceTargeting.hoveredHit(minecraft);
             if (hovered != null && golem != null) {
                 Workplace workplace = ClientGolemWorkplaceCache.latest(golem.getId())
