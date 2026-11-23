@@ -865,6 +865,32 @@ public class LibationGameTests {
         helper.succeed();
     }
 
+    /**
+     * The slab leaves clay phials to their own use, so an empty phial draws the principles stored in the slab. The slab itself
+     * does not consume the click.
+     */
+    public static void libationSlabLetsPhialsDrawStoredPrinciples(GameTestHelper helper) {
+        BlockPos slab = new BlockPos(3, 2, 3);
+        helper.setBlock(slab, BlockRegistry.LIBATION_SLAB.get().defaultBlockState());
+        LibationSlabBlockEntity be = stockSlab(helper, slab);
+
+        helper.runAfterDelay(120, () -> {
+            helper.assertTrue(be.getStored().total() == 50, "The slab should store 50 mB of ash, stored " + be.getStored().total());
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.CLAY_PHIAL.get()));
+
+            InteractionResult slabResult = be.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(slabResult == InteractionResult.PASS, "The slab should leave the phial to its own use, got " + slabResult);
+
+            InteractionResult drawn = useHeldOn(helper, player, slab);
+            PrincipleStack stored = ClayPhialItem.getStored(player.getMainHandItem());
+            helper.assertTrue(drawn.consumesAction() && stored != null && stored.amount() == 50,
+                    "An empty phial should draw the 50 mB of ash from the slab, holds " + stored);
+            helper.assertTrue(be.getStored().isEmpty(), "The slab should give up the drawn principles, stored " + be.getStored().total());
+            helper.succeed();
+        });
+    }
+
     private static InteractionResult useHeldOn(GameTestHelper helper, Player player, BlockPos relPos) {
         BlockPos absPos = helper.absolutePos(relPos);
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(absPos), Direction.UP, absPos, false);

@@ -451,6 +451,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_SLAB_HOPPER_INSERTS_WASHABLE_ONLY =
             TEST_FUNCTIONS.register("libation_slab_hopper_inserts_washable_only", () -> LibationGameTests::libationSlabHopperInsertsWashableItemOnly);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_SLAB_LETS_PHIALS_DRAW_STORED_PRINCIPLES =
+            TEST_FUNCTIONS.register("libation_slab_lets_phials_draw_stored_principles", () -> LibationGameTests::libationSlabLetsPhialsDrawStoredPrinciples);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_PRINCIPLE_BLOCK_CAPABILITIES =
             TEST_FUNCTIONS.register("libation_principle_block_capabilities", () -> LibationGameTests::principleBlockCapabilitiesInsertAndExtract);
 
@@ -720,6 +723,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LIBATION_TROUGH_HOPPER_STEEPS_AND_RELEASES_ITEM, environment, structure, 300, 0);
         registerTest(event, LIBATION_TROUGH_REFUSES_UNSTEEPABLE_FOR_PLAYER_AND_HOPPER, environment, structure, 40, 0);
         registerTest(event, LIBATION_SLAB_HOPPER_INSERTS_WASHABLE_ONLY, environment, structure, 40, 0);
+        registerTest(event, LIBATION_SLAB_LETS_PHIALS_DRAW_STORED_PRINCIPLES, environment, structure, 300, 0);
         registerTest(event, LIBATION_PRINCIPLE_BLOCK_CAPABILITIES, environment, structure, 300, 0);
         registerTest(event, LIBATION_CLAY_PHIAL_FILLS_POURS_AND_STACKS, environment, structure, 40, 0);
         registerTest(event, LIBATION_CLAY_PHIAL_SEPARATES_MIXED_PRINCIPLES, environment, structure, 40, 0);

@@ -13,6 +13,8 @@ import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
+import com.klikli_dev.principiamagica.content.libation.item.ClayPhialItem;
+import com.klikli_dev.principiamagica.content.libation.item.NatronSpongeItem;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.LibationRecipe;
@@ -185,6 +187,10 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
             }
             this.sync.syncNow();
             return InteractionResult.SUCCESS;
+        }
+        // Phials and sponges act on the stored principles. They are left to their own use, which runs after this block.
+        if (held.getItem() instanceof ClayPhialItem || held.getItem() instanceof NatronSpongeItem) {
+            return InteractionResult.PASS;
         }
         if (!FluidUtil.getFirstStackContained(held).isEmpty()) {
             LibationUtils.message(player, this.getWater() >= WATER_CAPACITY
