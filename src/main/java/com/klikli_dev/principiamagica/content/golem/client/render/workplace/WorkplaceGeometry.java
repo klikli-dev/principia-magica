@@ -32,7 +32,6 @@ public final class WorkplaceGeometry {
     private final PoseStack.Pose pose;
     private final Vec3 camera;
     private final VertexConsumer ribbons;
-    private final VertexConsumer cornerXray;
     private final VertexConsumer beams;
     private final VertexConsumer fills;
     private final VertexConsumer decals;
@@ -42,7 +41,6 @@ public final class WorkplaceGeometry {
         this.pose = pose;
         this.camera = camera;
         this.ribbons = buffers.getBuffer(WorkplaceRenderTypes.RIBBON);
-        this.cornerXray = buffers.getBuffer(WorkplaceRenderTypes.CORNER_XRAY);
         this.beams = buffers.getBuffer(WorkplaceRenderTypes.BEAM);
         this.fills = buffers.getBuffer(WorkplaceRenderTypes.FILL);
         this.decals = buffers.getBuffer(WorkplaceRenderTypes.GLYPH);
@@ -161,20 +159,14 @@ public final class WorkplaceGeometry {
     }
 
     /**
-     * Small 3D 3-axis jack marking an interactive box corner, drawn in both normal depth-tested pass and subtle x-ray pass
-     * so bottom corners sitting at ground depth remain visible.
+     * Small 3D 3-axis cross marking an interactive box corner. Depth tested, so it is hidden behind terrain.
      */
-    public void cornerNode(Vec3 centre, float size, int argb, int xrayArgb) {
+    public void cornerNode(Vec3 centre, float size, int argb) {
         float width = size * 0.25F;
         double half = size * 0.5;
-        this.drawJack(this.ribbons, centre, half, width, argb);
-        this.drawJack(this.cornerXray, centre, half, width, xrayArgb);
-    }
-
-    private void drawJack(VertexConsumer consumer, Vec3 centre, double half, float width, int argb) {
-        this.segment(consumer, centre.add(-half, 0.0, 0.0), centre.add(half, 0.0, 0.0), width, argb);
-        this.segment(consumer, centre.add(0.0, -half, 0.0), centre.add(0.0, half, 0.0), width, argb);
-        this.segment(consumer, centre.add(0.0, 0.0, -half), centre.add(0.0, 0.0, half), width, argb);
+        this.segment(this.ribbons, centre.add(-half, 0.0, 0.0), centre.add(half, 0.0, 0.0), width, argb);
+        this.segment(this.ribbons, centre.add(0.0, -half, 0.0), centre.add(0.0, half, 0.0), width, argb);
+        this.segment(this.ribbons, centre.add(0.0, 0.0, -half), centre.add(0.0, 0.0, half), width, argb);
     }
 
     /**

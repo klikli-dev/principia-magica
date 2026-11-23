@@ -32,8 +32,9 @@ public final class ZoneRenderer {
     }
 
     /**
-     * Draws a footprint as a single solid box with a glyph on each of its 8 virtual corner blocks. Each corner glyph is drawn
-     * on the one face of its block that points towards the camera, without depth testing so corners below ground stay visible.
+     * Draws a footprint as a single solid box with a cross marker on each of its 8 box corners, depth tested like the box.
+     * Each virtual corner block shows a glyph on one face: top corners on their upper face, bottom corners on their lower face.
+     * The glyphs are drawn without depth testing so corners below ground stay visible.
      */
     public static void render(WorkplaceGeometry geometry, WorkFootprint footprint, @Nullable BlockPos highlightedCornerBlock, float alpha, double time) {
         AABB box = footprint.zone(0, 0).aabb().inflate(0.01);
@@ -42,7 +43,7 @@ public final class ZoneRenderer {
         geometry.boxFaces(box, WorkplaceGeometry.argb(COLOR, alpha * 0.06F * pulse));
         geometry.boxEdges(box, WorkplaceGeometry.argb(COLOR, alpha * pulse));
 
-        Set<BlockPos> renderedCorners = new HashSet<>(8);
+        Set<CornerFace> renderedGlyphs = new HashSet<>(16);
         for (int i = 0; i < 8; i++) {
             BlockPos cornerPos = footprint.cornerBlock(i);
             boolean highlighted = cornerPos.equals(highlightedCornerBlock);
@@ -50,11 +51,11 @@ public final class ZoneRenderer {
             Vec3 vertex = WorkplaceGeometry.boxCorner(box, i);
             float markSize = highlighted ? HIGHLIGHT_CORNER_SIZE : CORNER_NODE_SIZE;
             int markRgb = highlighted ? HIGHLIGHT_COLOR : COLOR;
-            float cornerAlpha = highlighted ? alpha : alpha * 0.9F;
-            float xrayAlpha = highlighted ? alpha * 0.55F : alpha * 0.35F;
-            geometry.cornerNode(vertex, markSize, WorkplaceGeometry.argb(markRgb, cornerAlpha), WorkplaceGeometry.argb(markRgb, xrayAlpha));
+            float markAlpha = highlighted ? alpha : alpha * 0.9F;
+            geometry.cornerNode(vertex, markSize, WorkplaceGeometry.argb(markRgb, markAlpha));
 
-            if (!renderedCorners.add(cornerPos)) {
+            Direction face = WorkFootprint.isTopCorner(i) ? Direction.UP : Direction.DOWN;
+            if (!renderedGlyphs.add(new CornerFace(cornerPos, face))) {
                 continue;
             }
 
@@ -62,16 +63,14 @@ public final class ZoneRenderer {
             float size = highlighted ? HIGHLIGHT_GLYPH_SIZE : GLYPH_SIZE;
             int decalArgb = WorkplaceGeometry.argb(rgb, alpha * (highlighted ? 1.0F : pulse));
 
-            geometry.xrayDecal(cornerPos, facingCamera(geometry, cornerPos), size, decalArgb);
+            geometry.xrayDecal(cornerPos, face, size, decalArgb);
         }
     }
 
     /**
-     * The face of the block that points most towards the camera, so the glyph is readable from where the player looks.
+     * A glyph on one face of a virtual corner block. A flat footprint has top and bottom corners on the same block, which get one glyph each.
      */
-    private static Direction facingCamera(WorkplaceGeometry geometry, BlockPos pos) {
-        Vec3 toCamera = geometry.camera().subtract(Vec3.atCenterOf(pos));
-        return Direction.getApproximateNearest(toCamera);
+    private record CornerFace(BlockPos pos, Direction face) {
     }
 
     /**

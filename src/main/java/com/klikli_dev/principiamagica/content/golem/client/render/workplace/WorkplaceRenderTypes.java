@@ -37,11 +37,6 @@ public final class WorkplaceRenderTypes {
     public static final RenderPipeline RIBBON_PIPELINE = pipeline("ribbon", RIBBON_FRAGMENT_SHADER, BlendFunction.ADDITIVE, false);
 
     /**
-     * Corner handle pass rendered behind terrain (depth > scene depth) at reduced alpha so ground-level corners remain visible.
-     */
-    public static final RenderPipeline CORNER_XRAY_PIPELINE = pipeline("corner_xray", RIBBON_FRAGMENT_SHADER, BlendFunction.ADDITIVE, false, CompareOp.GREATER_THAN);
-
-    /**
      * Same ribbon shader with dashes flowing along the ribbon, used for the work target beam.
      */
     public static final RenderPipeline BEAM_PIPELINE = pipeline("beam", RIBBON_FRAGMENT_SHADER, BlendFunction.ADDITIVE, true);
@@ -62,7 +57,6 @@ public final class WorkplaceRenderTypes {
     public static final RenderPipeline GLYPH_XRAY_PIPELINE = glyphPipeline("glyph_xray", CompareOp.ALWAYS_PASS);
 
     public static final RenderType RIBBON = create("principiamagica_workplace_ribbon", RIBBON_PIPELINE);
-    public static final RenderType CORNER_XRAY = create("principiamagica_workplace_corner_xray", CORNER_XRAY_PIPELINE);
     public static final RenderType BEAM = create("principiamagica_workplace_beam", BEAM_PIPELINE);
     public static final RenderType FILL = create("principiamagica_workplace_fill", FILL_PIPELINE);
     public static final RenderType GLYPH = createTextured("principiamagica_workplace_glyph", GLYPH_PIPELINE, GLYPH_TEXTURE);
@@ -73,7 +67,6 @@ public final class WorkplaceRenderTypes {
 
     public static void onRegisterRenderPipelines(RegisterRenderPipelinesEvent event) {
         event.registerPipeline(RIBBON_PIPELINE);
-        event.registerPipeline(CORNER_XRAY_PIPELINE);
         event.registerPipeline(BEAM_PIPELINE);
         event.registerPipeline(FILL_PIPELINE);
         event.registerPipeline(GLYPH_PIPELINE);
@@ -98,10 +91,6 @@ public final class WorkplaceRenderTypes {
     }
 
     private static RenderPipeline pipeline(String name, Identifier fragmentShader, BlendFunction blend, boolean dashed) {
-        return pipeline(name, fragmentShader, blend, dashed, CompareOp.LESS_THAN_OR_EQUAL);
-    }
-
-    private static RenderPipeline pipeline(String name, Identifier fragmentShader, BlendFunction blend, boolean dashed, CompareOp depthTest) {
         RenderPipeline.Builder builder = RenderPipeline.builder()
                 .withLocation(PrincipiaMagica.loc("pipeline/workplace_" + name))
                 .withVertexShader(RIBBON_VERTEX_SHADER)
@@ -113,7 +102,7 @@ public final class WorkplaceRenderTypes {
                 .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
                 .withColorTargetState(new ColorTargetState(blend))
                 .withCull(false)
-                .withDepthStencilState(new DepthStencilState(depthTest, false));
+                .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false));
 
         if (dashed) {
             builder.withShaderDefine("DASHED");
