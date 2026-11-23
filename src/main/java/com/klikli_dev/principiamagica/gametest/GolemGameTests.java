@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.gametest;
 
+import com.klikli_dev.principiamagica.content.golem.ai.GolemAi;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
@@ -130,6 +131,29 @@ public class GolemGameTests {
             count++;
         }
         helper.assertTrue(count == zone.volume(), "Iteration should visit every position, visited " + count);
+
+        helper.succeed();
+    }
+
+    /**
+     * A golem carrying an item to deposit waits when its only deposit link points at a container that is gone, as if it had no deposit link.
+     * Once a container stands there, the golem no longer waits.
+     */
+    public static void staleDepositLinkMakesGolemWait(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(1, 2, 1));
+        golem.setSpec(GolemSpec.of(GolemMaterialRegistry.WOOD).withJob(PrincipiaMagicaRegistries.GOLEM_JOB.get(FarmingJob.KEY).orElseThrow()));
+        golem.setHandItem(new ItemStack(Items.WHEAT, 64));
+
+        BlockPos chest = helper.absolutePos(new BlockPos(2, 2, 1));
+        helper.setBlock(new BlockPos(2, 2, 1), Blocks.AIR);
+        golem.updateWorkplace(current -> Workplace.EMPTY
+                .withLinks(List.of(new ContainerLink(chest, Direction.UP, ContainerRole.DEPOSIT)))
+                .markInitialized());
+        helper.assertTrue(GolemAi.isWaitingForDeposit(level, golem), "A golem with only a stale deposit link should wait with its item");
+
+        helper.setBlock(new BlockPos(2, 2, 1), Blocks.CHEST);
+        helper.assertTrue(!GolemAi.isWaitingForDeposit(level, golem), "A golem with an available deposit chest should not wait");
 
         helper.succeed();
     }

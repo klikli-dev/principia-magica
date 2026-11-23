@@ -52,6 +52,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORK_RESERVATIONS_ARE_EXCLUSIVE =
             TEST_FUNCTIONS.register("work_reservations_are_exclusive", () -> GolemGameTests::workReservationsAreExclusive);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STALE_DEPOSIT_LINK_MAKES_GOLEM_WAIT =
+            TEST_FUNCTIONS.register("stale_deposit_link_makes_golem_wait", () -> GolemGameTests::staleDepositLinkMakesGolemWait);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST =
             TEST_FUNCTIONS.register("workplace_defaults_link_adjacent_chest", () -> GolemGameTests::workplaceDefaultsLinkAdjacentChest);
 
@@ -188,6 +191,15 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CREATIVE_STYLUS_SELECTS_GOLEM =
             TEST_FUNCTIONS.register("creative_stylus_selects_golem", () -> StylusGameTests::creativeStylusSelectsGolem);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STYLUS_UNLINKS_BROKEN_CONTAINER =
+            TEST_FUNCTIONS.register("stylus_unlinks_broken_container", () -> StylusGameTests::stylusUnlinksBrokenContainer);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> NEW_LINK_PRUNES_BROKEN_CONTAINER_LINKS =
+            TEST_FUNCTIONS.register("new_link_prunes_broken_container_links", () -> StylusGameTests::newLinkPrunesBrokenContainerLinks);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PRUNE_KEEPS_LINKS_IT_CANNOT_JUDGE =
+            TEST_FUNCTIONS.register("prune_keeps_links_it_cannot_judge", () -> StylusGameTests::pruneKeepsLinksItCannotJudge);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS =
             TEST_FUNCTIONS.register("work_area_dimension_prevents_cross_dimension_weirdness", () -> StylusGameTests::workAreaDimensionPreventsCrossDimensionWeirdness);
 
@@ -198,6 +210,9 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> ZONE_AND_LINK_INDICES_ARE_VALIDATED =
             TEST_FUNCTIONS.register("zone_and_link_indices_are_validated", () -> GolemMenuGameTests::zoneAndLinkIndicesAreValidated);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CLEAR_LINKS_KEEPS_FOOTPRINTS_AND_REFUSES_EMPTY =
+            TEST_FUNCTIONS.register("clear_links_keeps_footprints_and_refuses_empty", () -> GolemMenuGameTests::clearLinksKeepsFootprintsAndRefusesEmpty);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_SLOT_INSTALLS_JOB =
             TEST_FUNCTIONS.register("axiom_slot_installs_job", () -> GolemMenuGameTests::axiomSlotInstallsJob);
@@ -560,6 +575,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, WORKPLACE_CODEC_ROUND_TRIPS, environment, structure, 40, 0);
         registerTest(event, WORK_RESERVATIONS_ARE_EXCLUSIVE, environment, structure, 40, 0);
         registerTest(event, WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST, environment, structure, 40, 0);
+        registerTest(event, STALE_DEPOSIT_LINK_MAKES_GOLEM_WAIT, environment, structure, 40, 0);
         registerTest(event, PERSISTENCE_SAVE_AND_LOAD_KEEPS_EVERYTHING, environment, structure, 40, 0);
     }
 
@@ -591,6 +607,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT, environment, structure, 40, 0);
         registerTest(event, IMPRINT_TABLET_COPIES_PASTES_AND_CLEARS, environment, structure, 40, 0);
         registerTest(event, CREATIVE_STYLUS_SELECTS_GOLEM, environment, structure, 40, 0);
+        registerTest(event, STYLUS_UNLINKS_BROKEN_CONTAINER, environment, structure, 40, 0);
+        registerTest(event, NEW_LINK_PRUNES_BROKEN_CONTAINER_LINKS, environment, structure, 40, 0);
+        registerTest(event, PRUNE_KEEPS_LINKS_IT_CANNOT_JUDGE, environment, structure, 40, 0);
         registerTest(event, WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS, environment, structure, 40, 0);
     }
 
@@ -605,6 +624,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB, environment, structure, 40, 0);
         registerTest(event, SHIFT_CLICK_ON_JOB_TAB_DOES_NOT_ENTER_GOLEM_INVENTORY, environment, structure, 40, 0);
         registerTest(event, JOB_TAB_NEEDS_AXIOM, environment, structure, 40, 0);
+        registerTest(event, CLEAR_LINKS_KEEPS_FOOTPRINTS_AND_REFUSES_EMPTY, environment, structure, 40, 0);
     }
 
     private static void registerAxiomTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {

@@ -47,6 +47,25 @@ public class GolemMenuGameTests {
         helper.succeed();
     }
 
+    /**
+     * The job tab's unlink-all button clears every container link and keeps the work zones. A golem without links has nothing to clear.
+     */
+    public static void clearLinksKeepsFootprintsAndRefusesEmpty(GameTestHelper helper) {
+        Workplace workplace = Workplace.EMPTY
+                .withFootprints(List.of(WorkFootprint.centered(BlockPos.ZERO, 1, 0)))
+                .withLinks(List.of(
+                        new ContainerLink(new BlockPos(1, 1, 1), Direction.NORTH, ContainerRole.SUPPLY),
+                        new ContainerLink(new BlockPos(2, 1, 1), Direction.NORTH, ContainerRole.DEPOSIT)));
+
+        Optional<Workplace> cleared = GolemCommands.clearLinks(workplace);
+        helper.assertTrue(cleared.isPresent() && cleared.get().links().isEmpty(), "Clearing should remove every link");
+        helper.assertTrue(cleared.get().footprints().size() == 1, "Clearing links should keep the work zones");
+        helper.assertTrue(cleared.get().initialized(), "Clearing links should mark the workplace initialized");
+        helper.assertTrue(GolemCommands.clearLinks(cleared.get()).isEmpty(), "A workplace without links should have nothing to clear");
+
+        helper.succeed();
+    }
+
     public static void zoneAndLinkIndicesAreValidated(GameTestHelper helper) {
         Workplace workplace = Workplace.EMPTY
                 .withFootprints(List.of(WorkFootprint.centered(BlockPos.ZERO, 1, 0)))

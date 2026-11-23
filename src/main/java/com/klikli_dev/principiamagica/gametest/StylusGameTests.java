@@ -798,6 +798,85 @@ public class StylusGameTests {
     }
 
     /**
+     * A container that was broken leaves its link behind. The stylus still treats the position as linked, so a plain click cycles the
+     * link and a sneak-click removes it, even though there is no container left to find.
+     */
+    public static void stylusUnlinksBrokenContainer(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        Player player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2))));
+
+        BlockPos broken = helper.absolutePos(new BlockPos(3, 2, 3));
+        helper.setBlock(new BlockPos(3, 2, 3), Blocks.AIR);
+        golem.updateWorkplace(current -> Workplace.EMPTY.withLinks(List.of(new ContainerLink(broken, Direction.UP, ContainerRole.SUPPLY))).markInitialized());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(broken), Direction.UP, broken, false);
+
+        player.setShiftKeyDown(false);
+        stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+        List<ContainerLink> cycled = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(cycled.size() == 1 && cycled.get(0).role() == ContainerRole.DEPOSIT,
+                "A plain click on a broken container should cycle its link to DEPOSIT, got " + cycled);
+
+        player.setShiftKeyDown(true);
+        stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().isEmpty(),
+                "A sneak-click on a broken container should remove its link");
+
+        helper.succeed();
+    }
+
+    /**
+     * Setting a new container link drops the links whose container is gone, and keeps the links to containers that exist.
+     */
+    public static void newLinkPrunesBrokenContainerLinks(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        Player player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2))));
+
+        BlockPos broken = helper.absolutePos(new BlockPos(3, 2, 3));
+        BlockPos chest = helper.absolutePos(new BlockPos(5, 2, 3));
+        helper.setBlock(new BlockPos(3, 2, 3), Blocks.AIR);
+        helper.setBlock(new BlockPos(5, 2, 3), Blocks.CHEST);
+        golem.updateWorkplace(current -> Workplace.EMPTY.withLinks(List.of(new ContainerLink(broken, Direction.UP, ContainerRole.DEPOSIT))).markInitialized());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+        player.setShiftKeyDown(false);
+        stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(chest), Direction.UP, chest, false)));
+
+        List<ContainerLink> links = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(links.size() == 1 && links.get(0).pos().equals(chest) && links.get(0).role() == ContainerRole.SUPPLY,
+                "Linking a new container should drop the broken link and keep only the new one, got " + links);
+
+        helper.succeed();
+    }
+
+    /**
+     * Pruning only removes the links the predicate marks as stale. Links the predicate does not judge, e.g. in unloaded chunks, stay.
+     */
+    public static void pruneKeepsLinksItCannotJudge(GameTestHelper helper) {
+        BlockPos judged = new BlockPos(1, 1, 1);
+        BlockPos unjudged = new BlockPos(900, 1, 900);
+        Workplace workplace = Workplace.EMPTY.withLinks(List.of(
+                new ContainerLink(judged, Direction.UP, ContainerRole.SUPPLY),
+                new ContainerLink(unjudged, Direction.UP, ContainerRole.DEPOSIT)));
+
+        Workplace pruned = StylusActions.pruneLinks(workplace, pos -> pos.equals(judged));
+        helper.assertTrue(pruned.links().size() == 1 && pruned.links().get(0).pos().equals(unjudged),
+                "Only the stale link should be pruned, got " + pruned.links());
+        helper.assertTrue(StylusActions.pruneLinks(workplace, pos -> false) == workplace, "Pruning nothing should return the same workplace");
+
+        helper.succeed();
+    }
+
+    /**
      * A creative player right-clicking a golem with a stylus selects it. Vanilla hands the item a copy of the held stack in creative,
      * so the selection must be written to the player's held stack.
      */
