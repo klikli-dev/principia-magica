@@ -30,7 +30,8 @@ public final class ZoneRenderer {
     }
 
     /**
-     * Draws a footprint as a single solid box with glowing glyph decals on all 8 virtual corner blocks.
+     * Draws a footprint as a single solid box with a glyph on each of its 8 virtual corner blocks. Each corner glyph is drawn
+     * on the one face of its block that points towards the camera, without depth testing so corners below ground stay visible.
      */
     public static void render(WorkplaceGeometry geometry, WorkFootprint footprint, @Nullable BlockPos highlightedCornerBlock, float alpha, double time) {
         AABB box = footprint.zone(0, 0).aabb().inflate(0.01);
@@ -51,14 +52,16 @@ public final class ZoneRenderer {
             float size = highlighted ? HIGHLIGHT_GLYPH_SIZE : GLYPH_SIZE;
             int decalArgb = WorkplaceGeometry.argb(rgb, alpha * (highlighted ? 1.0F : pulse));
 
-            geometry.decal(cornerPos, Direction.UP, size, decalArgb);
-            geometry.decal(cornerPos, Direction.DOWN, size, decalArgb);
-            geometry.decal(cornerPos, (i & 1) == 0 ? Direction.WEST : Direction.EAST, size, decalArgb);
-            geometry.decal(cornerPos, (i & 4) == 0 ? Direction.NORTH : Direction.SOUTH, size, decalArgb);
-
-            float frameAlpha = highlighted ? alpha * 0.95F : alpha * 0.35F * pulse;
-            geometry.boxEdges(new AABB(cornerPos).inflate(0.015), WorkplaceGeometry.argb(rgb, frameAlpha));
+            geometry.xrayDecal(cornerPos, facingCamera(geometry, cornerPos), size, decalArgb);
         }
+    }
+
+    /**
+     * The face of the block that points most towards the camera, so the glyph is readable from where the player looks.
+     */
+    private static Direction facingCamera(WorkplaceGeometry geometry, BlockPos pos) {
+        Vec3 toCamera = geometry.camera().subtract(Vec3.atCenterOf(pos));
+        return Direction.getApproximateNearest(toCamera);
     }
 
     /**

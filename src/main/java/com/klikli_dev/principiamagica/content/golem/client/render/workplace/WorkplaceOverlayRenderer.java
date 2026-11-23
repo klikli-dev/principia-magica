@@ -105,7 +105,7 @@ public class WorkplaceOverlayRenderer {
             this.pending.render(geometry, corner, this.cornerFade.alpha(partialTick), partialTick, time);
         }
 
-        // Draws in the insertion order of the fixed buffers: fill, beam, ribbon, glyph.
+        // Draws in the insertion order of the fixed buffers: fill, beam, ribbon, glyph, glyph x-ray.
         buffers.endBatch();
     }
 
@@ -121,6 +121,7 @@ public class WorkplaceOverlayRenderer {
             fixed.put(WorkplaceRenderTypes.BEAM, new ByteBufferBuilder(BUFFER_SIZE));
             fixed.put(WorkplaceRenderTypes.RIBBON, new ByteBufferBuilder(BUFFER_SIZE));
             fixed.put(WorkplaceRenderTypes.GLYPH, new ByteBufferBuilder(BUFFER_SIZE));
+            fixed.put(WorkplaceRenderTypes.GLYPH_XRAY, new ByteBufferBuilder(BUFFER_SIZE));
             this.buffers = MultiBufferSource.immediateWithBuffers(fixed, new ByteBufferBuilder(BUFFER_SIZE));
         }
         return this.buffers;
