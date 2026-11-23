@@ -66,8 +66,17 @@ final class GolemPortrait extends AbstractWidget {
         int y1 = y0 + this.getHeight();
 
         graphics.enableScissor(x0, y0, x1, y1);
-        this.extractGolem(graphics, entity, x0, y0, x1, y1, mouseX, mouseY, partialTick);
+        this.extractGolem(graphics, entity, x0, y0, x1, y1, mouseX, mouseY, entityPartialTick(entity));
         graphics.disableScissor();
+    }
+
+    /**
+     * The partial tick the world uses for this entity, see LevelRenderer. GeckoLib's animation time is the entity's age plus this partial
+     * tick, and the animation controllers remember the time they last rendered at. Rendering the golem twice in one frame at different times
+     * makes the controllers step back and forth, which shows as jitter. The partial tick of the screen is not the same as the world's.
+     */
+    private static float entityPartialTick(GolemEntity entity) {
+        return Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(!entity.level().tickRateManager().isEntityFrozen(entity));
     }
 
     private void extractGolem(GuiGraphicsExtractor graphics, GolemEntity entity, int x0, int y0, int x1, int y1, float mouseX, float mouseY, float partialTick) {
