@@ -71,6 +71,8 @@ public class ShapelessRecipeProvider implements DataProvider {
     private void buildRecipes(BiConsumer<Identifier, JsonObject> consumer) {
         this.shapeless(consumer, ItemRegistry.PRINCIPIA.get(), 1, List.of(Items.BOOK, Items.CLAY_BALL));
 
+        this.shapeless(consumer, ItemRegistry.IMPRINT_TABLET.get(), 1, List.of(ItemRegistry.COPPER_STYLUS.get(), Items.CLAY_BALL));
+
         this.shapeless(consumer, ItemRegistry.AXIOM_TABLET.get(), 1, List.of(ItemRegistry.COPPER_STYLUS.get(), ItemRegistry.QUICKENED_CLAY.get(), ItemRegistry.QUICKENED_CLAY.get()));
 
         this.shapelessIngredients(consumer, ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get(), 1, List.of(

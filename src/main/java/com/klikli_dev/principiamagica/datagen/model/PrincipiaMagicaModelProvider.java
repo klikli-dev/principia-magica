@@ -45,6 +45,7 @@ public class PrincipiaMagicaModelProvider extends ModelProvider {
     protected void registerModels(@NotNull BlockModelGenerators blockModels, @NotNull ItemModelGenerators itemModels) {
         GolemItemModels.register(itemModels);
         itemModels.generateFlatItem(ItemRegistry.COPPER_STYLUS.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels.generateFlatItem(ItemRegistry.IMPRINT_TABLET.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.PRINCIPIA.get(), ModelTemplates.FLAT_ITEM);
         Identifier axiomTabletModel = ModelTemplates.FLAT_ITEM.create(ModelLocationUtils.getModelLocation(ItemRegistry.AXIOM_TABLET.get()),
                 TextureMapping.layer0(new Material(PrincipiaMagica.loc("item/axiom_unfired"))), itemModels.modelOutput);

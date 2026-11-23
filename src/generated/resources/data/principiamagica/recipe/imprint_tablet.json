@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "principiamagica:copper_stylus",
+    "minecraft:clay_ball"
+  ],
+  "result": {
+    "id": "principiamagica:imprint_tablet"
+  }
+}

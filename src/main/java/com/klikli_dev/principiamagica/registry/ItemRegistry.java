@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
+import com.klikli_dev.principiamagica.content.golem.item.ImprintTabletItem;
 import com.klikli_dev.principiamagica.content.golem.job.farming.FarmingJob;
 import com.klikli_dev.principiamagica.content.golem.job.lumberjack.LumberjackJob;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
@@ -33,6 +34,9 @@ public class ItemRegistry {
 
     public static final DeferredItem<StylusItem> COPPER_STYLUS = ITEMS.registerItem("copper_stylus",
             p -> new StylusItem(p.stacksTo(1).craftRemainder(selfTemplate("copper_stylus"))));
+
+    public static final DeferredItem<ImprintTabletItem> IMPRINT_TABLET = ITEMS.registerItem("imprint_tablet",
+            p -> new ImprintTabletItem(p.stacksTo(1)));
 
     public static final DeferredItem<BlockItem> LIBATION_SLAB = ITEMS.registerSimpleBlockItem("libation_slab", BlockRegistry.LIBATION_SLAB);
 

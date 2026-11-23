@@ -217,6 +217,7 @@
   "item.principiamagica.copper_stylus": "Copper Stylus",
   "item.principiamagica.golem": "Golem",
   "item.principiamagica.golem.named": "%s Golem",
+  "item.principiamagica.imprint_tablet": "Imprint Tablet",
   "item.principiamagica.principia": "Principia",
   "item.principiamagica.quickened_clay": "Quickened Clay",
   "itemGroup.principiamagica": "Principia Magica",
@@ -253,6 +254,9 @@
   "message.principiamagica.golem.no_job": "This golem has no job",
   "message.principiamagica.golem.not_owner": "You do not own this golem",
   "message.principiamagica.golem.slots_full": "Both of the golem's slots are full",
+  "message.principiamagica.imprint_tablet.cleared": "Cleared clipboard",
+  "message.principiamagica.imprint_tablet.copied": "Copied workplace: %s footprints, %s container links",
+  "message.principiamagica.imprint_tablet.pasted": "Pasted workplace",
   "message.principiamagica.libation_slab.full": "The slab is full",
   "message.principiamagica.libation_slab.not_washable": "Nothing can be washed from this",
   "message.principiamagica.libation_slab.other_item": "The slab already holds a different item",
@@ -346,5 +350,9 @@
   "tooltip.principiamagica.copper_stylus.pending_corner": "Pending glyph: %s, %s, %s",
   "tooltip.principiamagica.copper_stylus.selected": "Selected golem: %s",
   "tooltip.principiamagica.copper_stylus.yes": "yes",
-  "tooltip.principiamagica.golem.material": "Material: %s"
+  "tooltip.principiamagica.golem.material": "Material: %s",
+  "tooltip.principiamagica.imprint_tablet.clipboard": "Clipboard: %s footprints, %s container links",
+  "tooltip.principiamagica.imprint_tablet.clipboard_empty": "Clipboard: empty",
+  "tooltip.principiamagica.imprint_tablet.hint_clear": "Crouch + Right Click air: clear clipboard",
+  "tooltip.principiamagica.imprint_tablet.hint_copy_paste": "Crouch + Right Click golem: copy workplace / paste clipboard"
 }

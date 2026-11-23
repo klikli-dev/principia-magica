@@ -231,6 +231,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("tooltip.principiamagica.golem.material", "Material: %s");
         this.add("message.principiamagica.golem.destroyed", "Your %s was destroyed at %s, %s, %s.");
         this.add("item.principiamagica.copper_stylus", "Copper Stylus");
+        this.add("item.principiamagica.imprint_tablet", "Imprint Tablet");
         this.add("golem_role.principiamagica.supply", "Supply");
         this.add("golem_role.principiamagica.deposit", "Deposit");
         this.add("golem_role.principiamagica.both", "Supply and deposit");
@@ -274,6 +275,14 @@ public class ENUSProvider extends LanguageProvider {
         this.add("tooltip.principiamagica.copper_stylus.hint_select", "Right-click golem: select / deselect");
         this.add("tooltip.principiamagica.copper_stylus.hint_copy_paste", "Shift-right-click golem: copy workplace / paste clipboard");
         this.add("tooltip.principiamagica.copper_stylus.hint_pickup", "Shift-left-click own golem: pick up (keeps workplace)");
+
+        this.add("tooltip.principiamagica.imprint_tablet.clipboard_empty", "Clipboard: empty");
+        this.add("tooltip.principiamagica.imprint_tablet.clipboard", "Clipboard: %s footprints, %s container links");
+        this.add("tooltip.principiamagica.imprint_tablet.hint_copy_paste", "Crouch + Right Click golem: copy workplace / paste clipboard");
+        this.add("tooltip.principiamagica.imprint_tablet.hint_clear", "Crouch + Right Click air: clear clipboard");
+        this.add("message.principiamagica.imprint_tablet.copied", "Copied workplace: %s footprints, %s container links");
+        this.add("message.principiamagica.imprint_tablet.pasted", "Pasted workplace");
+        this.add("message.principiamagica.imprint_tablet.cleared", "Cleared clipboard");
 
         this.langCache.data().forEach(this::add);
     }

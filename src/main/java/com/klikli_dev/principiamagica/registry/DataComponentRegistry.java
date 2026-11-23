@@ -62,6 +62,14 @@ public class DataComponentRegistry {
     );
 
     /**
+     * Relative workplace copied from a golem with the imprint tablet (positions relative to the source golem's anchor).
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Workplace>> IMPRINT_CLIPBOARD = DATA_COMPONENTS.registerComponentType("imprint_clipboard", builder -> builder
+            .persistent(Workplace.CODEC)
+            .networkSynchronized(Workplace.STREAM_CODEC)
+    );
+
+    /**
      * Principles held by a principle container (catch trough, Wabet Basin, Steeping Jar) when it was broken, restored when the item is placed.
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<PrincipleContents>> STORED_PRINCIPLES = DATA_COMPONENTS.registerComponentType("stored_principles", builder -> builder

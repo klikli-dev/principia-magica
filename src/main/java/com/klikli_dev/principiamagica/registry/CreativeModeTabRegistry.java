@@ -32,6 +32,7 @@ public class CreativeModeTabRegistry {
                 output.accept(ItemRegistry.VESSEL_TAP.get());
                 output.accept(ItemRegistry.DRYING_SLAB.get());
                 output.accept(ItemRegistry.COPPER_STYLUS.get());
+                output.accept(ItemRegistry.IMPRINT_TABLET.get());
                 output.accept(ItemRegistry.AXIOM_TABLET.get());
                 output.accept(ItemRegistry.QUICKENED_CLAY.get());
                 output.accept(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get());
