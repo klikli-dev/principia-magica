@@ -25,22 +25,4 @@ public class GolemMaterialRegistry {
                     GolemMaterial.modifier(AttributeRegistry.GOLEM_WORK_SPEED, 0.25, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
             )));
 
-    public static final DeferredHolder<GolemMaterial, GolemMaterial> STONE = GOLEM_MATERIALS.register("stone", () -> new GolemMaterial(
-            PrincipiaMagica.loc("textures/entity/golem/stone_golem.png"),
-            false,
-            List.of(
-                    GolemMaterial.modifier(Attributes.MAX_HEALTH, 4.0, AttributeModifier.Operation.ADD_VALUE),
-                    GolemMaterial.modifier(Attributes.ARMOR, 4.0, AttributeModifier.Operation.ADD_VALUE),
-                    GolemMaterial.modifier(Attributes.MOVEMENT_SPEED, -0.1, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
-                    GolemMaterial.modifier(AttributeRegistry.GOLEM_WORK_SPEED, -0.2, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
-            )));
-
-    public static final DeferredHolder<GolemMaterial, GolemMaterial> METAL = GOLEM_MATERIALS.register("metal", () -> new GolemMaterial(
-            PrincipiaMagica.loc("textures/entity/golem/metal_golem.png"),
-            true,
-            List.of(
-                    GolemMaterial.modifier(Attributes.MAX_HEALTH, 10.0, AttributeModifier.Operation.ADD_VALUE),
-                    GolemMaterial.modifier(Attributes.ARMOR, 8.0, AttributeModifier.Operation.ADD_VALUE),
-                    GolemMaterial.modifier(Attributes.MOVEMENT_SPEED, -0.15, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
-            )));
 }

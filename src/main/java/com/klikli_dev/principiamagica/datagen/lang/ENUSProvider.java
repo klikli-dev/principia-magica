@@ -83,8 +83,6 @@ public class ENUSProvider extends LanguageProvider {
         this.add("item.principiamagica.axiom_of_felling", "Axiom of Felling");
 
         this.add("golem_material.principiamagica.wood", "Wooden");
-        this.add("golem_material.principiamagica.stone", "Stone");
-        this.add("golem_material.principiamagica.metal", "Metal");
 
         this.add("attribute.principiamagica.golem_work_speed", "Golem Work Speed");
         this.add("attribute.principiamagica.golem_inventory_slots", "Golem Inventory Slots");

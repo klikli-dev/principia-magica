@@ -9,12 +9,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
-import com.klikli_dev.principiamagica.content.golem.spec.GolemMaterial;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import com.mojang.serialization.JsonOps;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentPatch;
@@ -26,13 +24,11 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.common.Tags;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,15 +40,6 @@ import java.util.function.Function;
 /**
  * Crafting table recipes. Golems are a single item carrying a {@link GolemSpec} component, so each material gets its
  * own recipe whose result carries the component.
- * <p>
- * The stone and metal golem shape is the same, only the material ingredient changes:
- * <pre>
- * M _ M
- * _ R _
- * M _ M
- * </pre>
- * where M is the material, R is redstone dust and _ is empty. The wood golem has its own shape, see
- * {@link #woodGolemRecipe}.
  */
 public class ShapedRecipeProvider implements DataProvider {
     private static final String RECIPE_TYPE = "minecraft:crafting_shaped";
@@ -87,8 +74,6 @@ public class ShapedRecipeProvider implements DataProvider {
 
     private void buildRecipes(BiConsumer<Identifier, JsonObject> consumer) {
         this.woodGolemRecipe(consumer);
-        this.golemRecipe(consumer, "stone", GolemMaterialRegistry.STONE, Tags.Items.COBBLESTONES);
-        this.golemRecipe(consumer, "metal", GolemMaterialRegistry.METAL, Tags.Items.INGOTS_IRON);
 
         this.shaped(consumer, ItemRegistry.COPPER_STYLUS.get(),
                 List.of("  C", " S ", "S  "),
@@ -135,16 +120,6 @@ public class ShapedRecipeProvider implements DataProvider {
                         'Q', Ingredient.of(ItemRegistry.QUICKENED_CLAY.get()),
                         'P', Ingredient.of(this.items.getOrThrow(ItemTags.PLANKS)),
                         'S', Ingredient.of(ItemRegistry.COPPER_STYLUS.get())));
-    }
-
-    private void golemRecipe(BiConsumer<Identifier, JsonObject> consumer, String name, Holder<GolemMaterial> material, TagKey<Item> materialTag) {
-        DataComponentPatch patch = DataComponentPatch.builder()
-                .set(DataComponentRegistry.GOLEM_SPEC.get(), GolemSpec.of(material))
-                .build();
-
-        this.recipe(consumer, PrincipiaMagica.loc("golem/" + name), ItemRegistry.GOLEM.get(), 1, patch,
-                List.of("M M", " R ", "M M"),
-                Map.of('M', Ingredient.of(this.items.getOrThrow(materialTag)), 'R', Ingredient.of(Items.REDSTONE)));
     }
 
     private void shaped(BiConsumer<Identifier, JsonObject> consumer, ItemLike result, List<String> pattern, Map<Character, ItemLike> keys) {

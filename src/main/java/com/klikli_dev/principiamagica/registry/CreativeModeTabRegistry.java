@@ -23,8 +23,6 @@ public class CreativeModeTabRegistry {
             .title(Component.translatable("itemGroup." + PrincipiaMagica.MODID))
             .displayItems((parameters, output) -> {
                 output.accept(GolemItem.createStack(GolemSpec.of(GolemMaterialRegistry.WOOD)));
-                output.accept(GolemItem.createStack(GolemSpec.of(GolemMaterialRegistry.STONE)));
-                output.accept(GolemItem.createStack(GolemSpec.of(GolemMaterialRegistry.METAL)));
                 output.accept(ItemRegistry.PRINCIPIA.get());
                 output.accept(ItemRegistry.LIBATION_SLAB.get());
                 output.accept(ItemRegistry.LIBATION_SPOUT.get());
