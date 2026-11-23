@@ -8,10 +8,13 @@ import com.klikli_dev.codedefinedgui.api.style.GuiStyleProperties;
 import com.klikli_dev.codedefinedgui.api.style.StyleContext;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
 import com.klikli_dev.principiamagica.client.gui.GuiStyles;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -29,6 +32,8 @@ import java.util.function.Function;
  *     <li>Draggable scrollbar on the right edge, shown only if the content does not fit. Its sprites come from the style.</li>
  *     <li>Rows are clipped to the list bounds with a scissor and drawn by a {@link ListEntryRenderer}.</li>
  *     <li>Optional per-row tooltip: while a row is hovered, the list shows the tooltip of that row.</li>
+ *     <li>Keyboard: while the list is focused, the arrow keys move a focus row and Enter or Space selects it. The focus row is scrolled into view.</li>
+ *     <li>Optional narration: the hovered row, or the focus row while the list is focused, is narrated with its text.</li>
  *     <li>{@link #setEntries(List)} replaces the content but keeps the scroll offset (clamped to the new content).</li>
  * </ul>
  *
@@ -48,6 +53,7 @@ public class ScrollList<T> extends AbstractWidget {
     private final Consumer<T> onSelect;
     private StyleContext style = WidgetParts.defaultStyle();
     private Function<T, Component> tooltips = entry -> null;
+    private Function<T, Component> narrations = entry -> null;
     private List<T> entries = List.of();
     private float previousOffset;
     private float offset;
@@ -55,7 +61,8 @@ public class ScrollList<T> extends AbstractWidget {
     private boolean dragging;
     private double dragStartY;
     private float dragStartOffset;
-    private int tooltipRow = -1;
+    private int hoveredRow = -1;
+    private int focusedRow = -1;
 
     /**
      * @param x left edge
@@ -83,6 +90,15 @@ public class ScrollList<T> extends AbstractWidget {
      */
     public ScrollList<T> withTooltips(Function<T, Component> tooltips) {
         this.tooltips = tooltips;
+        return this;
+    }
+
+    /**
+     * @param narrations the text a row is narrated with, e.g. its name and state, or null for rows without narration. Called when the
+     *                   narration is built, so it reads the current state of the entry.
+     */
+    public ScrollList<T> withNarration(Function<T, Component> narrations) {
+        this.narrations = narrations;
         return this;
     }
 
@@ -124,8 +140,8 @@ public class ScrollList<T> extends AbstractWidget {
         int rowsRight = right - SCROLLBAR_WIDTH - SCROLLBAR_GAP;
 
         int scroll = Math.round(Mth.lerp(partialTick, this.previousOffset, this.offset));
-        int hoveredRow = this.isHovered() && mouseX < rowsRight ? this.rowIndexAt(mouseY) : -1;
-        this.updateTooltip(hoveredRow);
+        int hoveredIndex = this.isHovered() && mouseX < rowsRight ? this.rowIndexAt(mouseY) : -1;
+        this.updateHoveredRow(hoveredIndex);
 
         if (this.entries.isEmpty()) {
             return;
@@ -141,7 +157,7 @@ public class ScrollList<T> extends AbstractWidget {
                 break;
             }
 
-            boolean hovered = i == hoveredRow;
+            boolean hovered = i == hoveredIndex || (this.isFocused() && i == this.focusedRow);
             if (hovered) {
                 graphics.fill(left, rowY, rowsRight, rowY + this.rowHeight, highlight);
             }
@@ -155,13 +171,13 @@ public class ScrollList<T> extends AbstractWidget {
         }
     }
 
-    private void updateTooltip(int hoveredRow) {
-        if (hoveredRow == this.tooltipRow) {
+    private void updateHoveredRow(int row) {
+        if (row == this.hoveredRow) {
             return;
         }
 
-        this.tooltipRow = hoveredRow;
-        Component tooltip = hoveredRow >= 0 && hoveredRow < this.entries.size() ? this.tooltips.apply(this.entries.get(hoveredRow)) : null;
+        this.hoveredRow = row;
+        Component tooltip = row >= 0 && row < this.entries.size() ? this.tooltips.apply(this.entries.get(row)) : null;
         this.setTooltip(tooltip != null ? Tooltip.create(tooltip) : null);
     }
 
@@ -224,7 +240,67 @@ public class ScrollList<T> extends AbstractWidget {
     }
 
     @Override
+    public boolean keyPressed(KeyEvent event) {
+        switch (event.key()) {
+            case InputConstants.KEY_UP -> this.moveFocus(-1);
+            case InputConstants.KEY_DOWN -> this.moveFocus(1);
+            case InputConstants.KEY_RETURN, InputConstants.KEY_NUMPADENTER, InputConstants.KEY_SPACE -> this.selectFocusedRow();
+            default -> {
+                return super.keyPressed(event);
+            }
+        }
+
+        return true;
+    }
+
+    @Override
     protected void updateWidgetNarration(NarrationElementOutput output) {
+        int row = this.isFocused() ? this.focusedRow : this.hoveredRow;
+        if (this.narrations == null || row < 0 || row >= this.entries.size()) {
+            return;
+        }
+
+        Component narration = this.narrations.apply(this.entries.get(row));
+        if (narration != null) {
+            output.add(NarratedElementType.TITLE, narration);
+        }
+
+        if (this.isFocused()) {
+            output.add(NarratedElementType.USAGE, Component.translatable("narration.button.usage.focused"));
+        }
+    }
+
+    /**
+     * Moves the focus row by the given number of rows. The first move starts at the first row, and the focus stays inside the list.
+     */
+    private void moveFocus(int delta) {
+        if (this.entries.isEmpty()) {
+            return;
+        }
+
+        int next = this.focusedRow < 0 ? 0 : this.focusedRow + delta;
+        this.focusedRow = Mth.clamp(next, 0, this.entries.size() - 1);
+        this.revealRow(this.focusedRow);
+    }
+
+    private void selectFocusedRow() {
+        if (this.focusedRow >= 0 && this.focusedRow < this.entries.size()) {
+            WidgetParts.playClickSound();
+            this.onSelect.accept(this.entries.get(this.focusedRow));
+        }
+    }
+
+    /**
+     * Scrolls the smallest amount that brings the row fully into view.
+     */
+    private void revealRow(int index) {
+        float top = index * this.rowHeight;
+        float bottom = top + this.rowHeight;
+        if (top < this.targetOffset) {
+            this.targetOffset = this.clamp(top);
+        } else if (bottom > this.targetOffset + this.getHeight()) {
+            this.targetOffset = this.clamp(bottom - this.getHeight());
+        }
     }
 
     private int rowIndexAt(double mouseY) {

@@ -27,6 +27,7 @@ import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -93,7 +94,9 @@ final class JobTab extends GolemTab {
         this.optionList = this.add(new ScrollList<JobOption>(bounds.x() + LIST_X, bounds.y() + LIST_Y, LIST_WIDTH, LIST_HEIGHT, ROW_HEIGHT,
                 this::renderOption, this::toggleOption)
                 .withStyle(this.style)
-                .withTooltips(option -> Component.translatable(option.descriptionKey())));
+                .withTooltips(option -> Component.translatable(option.descriptionKey()))
+                .withNarration(option -> CommonComponents.optionNameValue(Component.translatable(option.translationKey()),
+                        CommonComponents.optionStatus(this.isOn(option)))));
 
         this.add(new SpriteWidget(bounds.x() + 8, bounds.y() + 95, 188, 3, this.sprite("divider")));
 
