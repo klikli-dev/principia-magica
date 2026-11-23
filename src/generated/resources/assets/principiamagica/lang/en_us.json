@@ -127,7 +127,7 @@
   "golem_status.principiamagica.no_zone.description": "Without a work area the golem has nothing to work on.",
   "golem_status.principiamagica.ok": "Working",
   "golem_status.principiamagica.ok.description": "The golem is working on its job.",
-  "golem_task.principiamagica.bonemeal": "Bonemeal %s",
+  "golem_task.principiamagica.bonemeal": "Fertilise %s",
   "golem_task.principiamagica.clear": "Clearing %s",
   "golem_task.principiamagica.deposit": "Deposit %s",
   "golem_task.principiamagica.fell": "Felling %s",
