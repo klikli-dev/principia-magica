@@ -75,7 +75,9 @@ public class WorkplaceOverlayRenderer {
         this.pending.tick(level, corner, WorkplaceTargeting.hoveredHit(minecraft), workplace);
         this.targetedCorner = WorkplaceTargeting.targetedCorner(minecraft);
         this.targetedZone = WorkplaceTargeting.targetedZone(minecraft);
-        this.targetedLink = WorkplaceTargeting.targetedLink(minecraft);
+        // A locked corner takes the click over a link under it, so that link is not highlighted
+        boolean cornerLocked = this.targetedCorner != null && this.targetedCorner.locked();
+        this.targetedLink = cornerLocked ? null : WorkplaceTargeting.targetedLink(minecraft);
 
         if (player != null && level != null) {
             this.spawnSparkles(level, player);
