@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Pure workplace edits used by the golem stylus. No world access, so they can be unit tested as gametests.
@@ -61,8 +62,10 @@ public final class StylusActions {
 
     /**
      * Cycles the link at pos: none -> SUPPLY -> DEPOSIT -> BOTH -> removed.
+     *
+     * @param side the side a new link queries, ignored for existing links, so it may be null when cycling an existing one
      */
-    public static Workplace cycleLink(Workplace workplace, BlockPos pos, Direction side) {
+    public static Workplace cycleLink(Workplace workplace, BlockPos pos, @Nullable Direction side) {
         List<ContainerLink> links = new ArrayList<>(workplace.links());
         for (int i = 0; i < links.size(); i++) {
             ContainerLink link = links.get(i);
@@ -76,6 +79,10 @@ public final class StylusActions {
                 links.set(i, link.withRole(link.role().next()));
             }
             return workplace.withLinks(links).markInitialized();
+        }
+
+        if (side == null) {
+            throw new IllegalArgumentException("A new container link needs a side");
         }
 
         links.add(new ContainerLink(pos, side, ContainerRole.SUPPLY));
@@ -96,6 +103,22 @@ public final class StylusActions {
         }
 
         return Optional.of(workplace.withLinks(links).markInitialized());
+    }
+
+    /**
+     * Drops the links whose position is marked stale by the predicate, e.g. because the container there was broken.
+     *
+     * @return the workplace without the stale links, or the same workplace if none was stale
+     */
+    public static Workplace pruneLinks(Workplace workplace, Predicate<BlockPos> stale) {
+        List<ContainerLink> links = workplace.links().stream()
+                .filter(link -> !stale.test(link.pos()))
+                .toList();
+        if (links.size() == workplace.links().size()) {
+            return workplace;
+        }
+
+        return workplace.withLinks(links).markInitialized();
     }
 
     /**

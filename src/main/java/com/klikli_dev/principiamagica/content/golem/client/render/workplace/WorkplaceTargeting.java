@@ -9,6 +9,9 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.CornerHit;
+import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
+import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
+import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.ZoneHit;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
@@ -16,6 +19,7 @@ import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -281,17 +285,128 @@ public class WorkplaceTargeting {
     }
 
     /**
-     * @return whether the crosshair block is currently linked as a container to the given golem
+     * The container link of the selected golem under the crosshair. Found like a corner: a ray test against the link's box, not the
+     * crosshair block, so a link whose container is gone can be targeted in the air too.
+     *
+     * @param golemId the entity id of the golem the link belongs to
+     * @param link    the targeted link
      */
-    public static boolean isHoveredLinkedContainer(Minecraft minecraft, int golemId) {
-        BlockPos hovered = hoveredBlock(minecraft);
-        if (hovered == null) {
-            return false;
+    public record TargetedLink(int golemId, ContainerLink link) {
+    }
+
+    /**
+     * A container the stylus would act on, found the way the server finds it: a container link in the air, or a block under the
+     * crosshair with an item container. The click acts on it before corners and zones.
+     *
+     * @param golemId the entity id of the selected golem
+     * @param pos     the container position
+     * @param face    the clicked face, used for a new link
+     * @param role    the role of the link, or null if the position is not linked
+     * @param missing whether the linked container is gone
+     */
+    public record TargetedContainer(int golemId, BlockPos pos, Direction face, @Nullable ContainerRole role, boolean missing) {
+        public boolean linked() {
+            return this.role != null;
+        }
+    }
+
+    /**
+     * @return the container the stylus would act on at the crosshair, or null. Linked positions are found by the link's box (see
+     * {@link #targetedLink}), unlinked containers by the crosshair block having an item capability, like the server checks.
+     */
+    @Nullable
+    public static TargetedContainer targetedContainer(Minecraft minecraft) {
+        return findContainer(minecraft, false);
+    }
+
+    /**
+     * The container under the crosshair while a corner is pending too. The click does not act on it then, but the HUD shows what the
+     * sneak-click does, so it uses this. Clicks use {@link #targetedContainer}.
+     */
+    @Nullable
+    public static TargetedContainer containerAtCrosshair(Minecraft minecraft) {
+        return findContainer(minecraft, true);
+    }
+
+    @Nullable
+    private static TargetedContainer findContainer(Minecraft minecraft, boolean allowPending) {
+        Player player = minecraft.player;
+        ClientLevel level = minecraft.level;
+        if (player == null || level == null || minecraft.screen != null) {
+            return null;
         }
 
-        return ClientGolemWorkplaceCache.latest(golemId)
-                .map(entry -> entry.workplace().links().stream().anyMatch(link -> link.pos().equals(hovered)))
-                .orElse(false);
+        ItemStack stylus = heldStylus(player);
+        if (stylus == null || (!allowPending && pendingGlyph(stylus, level) != null)) {
+            return null;
+        }
+
+        GolemEntity golem = findGolem(level, stylus.get(DataComponentRegistry.STYLUS_SELECTION.get()));
+        if (golem == null) {
+            return null;
+        }
+
+        BlockHitResult hovered = hoveredHit(minecraft);
+        TargetedLink link = findLink(minecraft, allowPending);
+        if (link != null) {
+            BlockPos pos = link.link().pos();
+            Direction face = hovered != null && hovered.getBlockPos().equals(pos) ? hovered.getDirection() : Direction.UP;
+            return new TargetedContainer(golem.getId(), pos, face, link.link().role(), LinkRenderer.isMissing(level, pos));
+        }
+
+        if (hovered != null && ContainerAccess.hasItemCapability(level, hovered.getBlockPos())) {
+            BlockPos pos = hovered.getBlockPos();
+            @Nullable
+            ContainerRole role = ClientGolemWorkplaceCache.latest(golem.getId())
+                    .flatMap(entry -> entry.workplace().links().stream()
+                            .filter(candidate -> candidate.pos().equals(pos))
+                            .map(ContainerLink::role)
+                            .findFirst())
+                    .orElse(null);
+            return new TargetedContainer(golem.getId(), pos, hovered.getDirection(), role, false);
+        }
+
+        return null;
+    }
+
+    @Nullable
+    public static TargetedLink targetedLink(Minecraft minecraft) {
+        return findLink(minecraft, false);
+    }
+
+    @Nullable
+    private static TargetedLink findLink(Minecraft minecraft, boolean allowPending) {
+        Player player = minecraft.player;
+        ClientLevel level = minecraft.level;
+        if (player == null || level == null || minecraft.screen != null) {
+            return null;
+        }
+
+        ItemStack stylus = heldStylus(player);
+        if (stylus == null || (!allowPending && pendingGlyph(stylus, level) != null)) {
+            return null;
+        }
+
+        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
+        GolemEntity golem = findGolem(level, selected);
+        if (golem == null) {
+            return null;
+        }
+
+        List<ContainerLink> links = ClientGolemWorkplaceCache.latest(golem.getId())
+                .map(entry -> entry.workplace().links())
+                .orElse(List.of());
+        if (links.isEmpty()) {
+            return null;
+        }
+
+        float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        Vec3 from = player.getEyePosition(partialTick);
+        Vec3 to = from.add(player.getViewVector(partialTick).scale(GlyphTargeting.MAX_RANGE));
+
+        return GlyphTargeting.pickLink(from, to, links, blockDistance(level, player, from, to))
+                .map(hit -> new TargetedLink(golem.getId(), hit.link()))
+                .orElse(null);
     }
 
     private static double blockDistance(ClientLevel level, Player player, Vec3 from, Vec3 to) {

@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.network;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.network.messages.MessageClearContainerLinks;
 import com.klikli_dev.principiamagica.network.messages.MessageEraseZone;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftPending;
 import com.klikli_dev.principiamagica.network.messages.MessagePickUpCorner;
@@ -12,6 +13,7 @@ import com.klikli_dev.principiamagica.network.messages.MessageResizeCorner;
 import com.klikli_dev.principiamagica.network.messages.MessageSelectPrinciple;
 import com.klikli_dev.principiamagica.network.messages.MessageSetGolemMode;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
+import com.klikli_dev.principiamagica.network.messages.MessageTargetLink;
 import com.klikli_dev.principiamagica.network.messages.MessageSyncGolemWorkplace;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -29,6 +31,8 @@ public class Networking {
         //to server
         registrar.playToServer(MessageSetGolemMode.TYPE, MessageSetGolemMode.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageSetJobOption.TYPE, MessageSetJobOption.STREAM_CODEC, MessageHandler::handle);
+        registrar.playToServer(MessageClearContainerLinks.TYPE, MessageClearContainerLinks.STREAM_CODEC, MessageHandler::handle);
+        registrar.playToServer(MessageTargetLink.TYPE, MessageTargetLink.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageEraseZone.TYPE, MessageEraseZone.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageLiftPending.TYPE, MessageLiftPending.STREAM_CODEC, MessageHandler::handle);
         registrar.playToServer(MessageResizeCorner.TYPE, MessageResizeCorner.STREAM_CODEC, MessageHandler::handle);

@@ -4,6 +4,8 @@
 
 package com.klikli_dev.principiamagica.content.golem.item;
 
+import com.klikli_dev.principiamagica.content.Plurals;
+import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
@@ -23,15 +25,15 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.capabilities.Capabilities;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
 /**
  * A stylus click on a block for the golem selected on the stylus. What it does depends on the block and on sneaking:
  * <ul>
- *     <li>container, plain: cycles the container link (supply, deposit, both, removed)</li>
- *     <li>container, sneaking: removes the container link</li>
+ *     <li>container or linked position, plain: cycles the container link (supply, deposit, both, removed)</li>
+ *     <li>container or linked position, sneaking: removes the container link. A linked position whose block is gone counts, so stale links can be removed</li>
  *     <li>other block, sneaking: erases the footprint at the block</li>
  *     <li>other block, plain: sets or finishes the pending work-area corner</li>
  * </ul>
@@ -42,25 +44,46 @@ final class StylusBlockInteraction {
     }
 
     static void interact(ServerLevel level, ServerPlayer player, ItemStack stack, GolemEntity golem, BlockPos pos, Direction face) {
-        boolean container = level.getCapability(Capabilities.Item.BLOCK, pos, face) != null;
-        boolean sneaking = player.isShiftKeyDown();
         PendingGlyph pending = stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
         boolean hasPending = pending != null && pending.pos().dimension().equals(level.dimension());
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
+        // A linked position is a container even if its block is gone, so the link can still be cycled or removed
+        boolean linked = workplace.links().stream().anyMatch(link -> link.pos().equals(pos));
+        boolean container = linked || ContainerAccess.hasItemCapability(level, pos);
+        boolean sneaking = player.isShiftKeyDown();
 
-        if (hasPending && !sneaking) {
-            placeCorner(level, player, stack, golem, workplace, pos, face);
-        } else if (container && sneaking) {
-            removeLink(level, player, golem, workplace, pos);
-        } else if (container) {
-            cycleLink(level, player, golem, workplace, pos, face);
-        } else if (sneaking) {
-            eraseFootprint(level, player, golem, workplace, pos);
-        } else {
-            placeCorner(level, player, stack, golem, workplace, pos, face);
+        switch (StylusClick.blockOutcome(hasPending, sneaking, container)) {
+            case PLACE_CORNER -> placeCorner(level, player, stack, golem, workplace, pos, face);
+            case REMOVE_LINK -> removeLink(level, player, golem, workplace, pos);
+            case CYCLE_LINK -> cycleLink(level, player, golem, workplace, pos, face);
+            case ERASE_FOOTPRINT -> eraseFootprint(level, player, golem, workplace, pos);
         }
 
         StylusItem.syncWorkplace(player, golem);
+    }
+
+    /**
+     * Acts on a container the player targeted, e.g. a container in the air or a block the client resolved. Exactly the click on that
+     * position: plain cycles the container link, sneaking removes it. Positions that are neither a container nor linked are refused, as
+     * the click would place a corner or erase a footprint instead. The caller has validated the golem, the stylus and the reach.
+     *
+     * @return whether the click acted on a container
+     */
+    static boolean targetLink(ServerLevel level, ServerPlayer player, GolemEntity golem, BlockPos pos, Direction face, boolean remove) {
+        Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
+        boolean linked = workplace.links().stream().anyMatch(link -> link.pos().equals(pos));
+        boolean container = linked || ContainerAccess.hasItemCapability(level, pos);
+        StylusClick.Outcome outcome = StylusClick.blockOutcome(false, remove, container);
+        if (outcome == StylusClick.Outcome.REMOVE_LINK) {
+            removeLink(level, player, golem, workplace, pos);
+        } else if (outcome == StylusClick.Outcome.CYCLE_LINK) {
+            cycleLink(level, player, golem, workplace, pos, face);
+        } else {
+            return false;
+        }
+
+        StylusItem.syncWorkplace(player, golem);
+        return true;
     }
 
     private static void eraseFootprint(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos) {
@@ -89,8 +112,26 @@ final class StylusBlockInteraction {
         }
     }
 
-    private static void cycleLink(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos, Direction face) {
-        Workplace updated = StylusActions.cycleLink(workplace, pos, face);
+    /**
+     * Setting a new link drops the links whose container is gone. Stale positions in unloaded chunks are kept, as they cannot be checked.
+     */
+    private static void cycleLink(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos, @Nullable Direction face) {
+        boolean isNewLink = workplace.links().stream().noneMatch(link -> link.pos().equals(pos));
+        // A new link queries the clicked face if it exposes the item handler, otherwise another face that does.
+        // Existing links keep the side they were linked with, so they need no face.
+        Direction side = isNewLink ? ContainerAccess.usableSide(level, pos, face) : null;
+        if (isNewLink && side == null) {
+            level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
+            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
+            return;
+        }
+
+        Workplace pruned = isNewLink
+                ? StylusActions.pruneLinks(workplace, stalePos -> isUnavailable(level, stalePos))
+                : workplace;
+        int removed = workplace.links().size() - pruned.links().size();
+
+        Workplace updated = StylusActions.cycleLink(pruned, pos, side);
         golem.updateWorkplace(current -> updated);
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
@@ -100,7 +141,12 @@ final class StylusBlockInteraction {
                 .findFirst();
         if (role.isPresent()) {
             level.playSound(null, pos, linkSound(role.get()), SoundSource.BLOCKS, 1.0F, 1.0F);
-            player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set", Component.translatable("golem_role.principiamagica." + role.get().getSerializedName())));
+            Component roleName = Component.translatable("golem_role.principiamagica." + role.get().getSerializedName());
+            if (removed > 0) {
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set_pruned", roleName, Plurals.of(Plurals.UNAVAILABLE_LINKS, removed)));
+            } else {
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set", roleName));
+            }
         } else {
             level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_removed"));
@@ -149,6 +195,13 @@ final class StylusBlockInteraction {
                     WorkFootprint.MAX_SIZE, WorkFootprint.MAX_SIZE));
             case null -> {}
         }
+    }
+
+    /**
+     * @return whether the position is loaded and has no item container anymore. Unloaded positions are never judged.
+     */
+    private static boolean isUnavailable(ServerLevel level, BlockPos pos) {
+        return level.isLoaded(pos) && !ContainerAccess.hasItemCapability(level, pos);
     }
 
     private static SoundEvent linkSound(ContainerRole role) {

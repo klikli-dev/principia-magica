@@ -6,6 +6,8 @@ package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -14,12 +16,27 @@ public final class LinkRenderer {
     public static final int SUPPLY_COLOR = 0x3366FF;
     public static final int DEPOSIT_COLOR = 0xFF8800;
     public static final int BOTH_COLOR = 0x33FF55;
+    public static final int MISSING_COLOR = 0xFF5555;
 
     private LinkRenderer() {
     }
 
-    public static void render(WorkplaceGeometry geometry, ContainerLink link, float alpha, double time) {
-        int color = colorOf(link.role());
+    /**
+     * The client cannot reliably query item capabilities, so a link counts as missing when its chunk is loaded and there is no block entity
+     * at its position. A broken container leaves air, and whatever replaced it usually has no block entity. Positions in unloaded chunks are
+     * never judged missing. Mods with containers that have no block entity would show as missing here, though the server still uses them.
+     *
+     * @return whether the linked position is loaded and has no block entity
+     */
+    public static boolean isMissing(Level level, BlockPos pos) {
+        return level.isLoaded(pos) && level.getBlockEntity(pos) == null;
+    }
+
+    /**
+     * @param missing whether the container is missing, drawn in red instead of its role color
+     */
+    public static void render(WorkplaceGeometry geometry, ContainerLink link, boolean missing, float alpha, double time) {
+        int color = missing ? MISSING_COLOR : colorOf(link.role());
         float pulse = WorkplaceGeometry.pulse(time, 0.12, 0.55F);
         AABB box = new AABB(link.pos()).inflate(0.01);
 

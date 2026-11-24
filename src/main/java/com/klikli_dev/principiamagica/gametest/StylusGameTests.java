@@ -5,8 +5,10 @@
 package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
+import com.klikli_dev.principiamagica.content.golem.item.StylusClick;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditResult;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.PickUpResult;
@@ -59,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 public class StylusGameTests {
 
@@ -793,6 +796,237 @@ public class StylusGameTests {
         List<WorkFootprint> remaining = golem.getWorkplace(helper.getLevel()).orElseThrow().footprints();
         helper.assertTrue(remaining.equals(List.of(netherFootprint)),
                 "Sneak-right-clicking inside the zone should erase the current dimension's footprint and keep other dimensions intact, got " + remaining);
+
+        helper.succeed();
+    }
+
+    /**
+     * A container that was broken leaves its link behind. The stylus still treats the position as linked, so a plain click cycles the
+     * link and a sneak-click removes it, even though there is no container left to find.
+     */
+    public static void stylusUnlinksBrokenContainer(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        Player player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2))));
+
+        BlockPos broken = helper.absolutePos(new BlockPos(3, 2, 3));
+        helper.setBlock(new BlockPos(3, 2, 3), Blocks.AIR);
+        golem.updateWorkplace(current -> Workplace.EMPTY.withLinks(List.of(new ContainerLink(broken, Direction.UP, ContainerRole.SUPPLY))).markInitialized());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(broken), Direction.UP, broken, false);
+
+        player.setShiftKeyDown(false);
+        stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+        List<ContainerLink> cycled = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(cycled.size() == 1 && cycled.get(0).role() == ContainerRole.DEPOSIT,
+                "A plain click on a broken container should cycle its link to DEPOSIT, got " + cycled);
+
+        player.setShiftKeyDown(true);
+        stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().isEmpty(),
+                "A sneak-click on a broken container should remove its link");
+
+        helper.succeed();
+    }
+
+    /**
+     * Setting a new container link drops the links whose container is gone, and keeps the links to containers that exist.
+     */
+    public static void newLinkPrunesBrokenContainerLinks(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        Player player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2))));
+
+        BlockPos broken = helper.absolutePos(new BlockPos(3, 2, 3));
+        BlockPos chest = helper.absolutePos(new BlockPos(5, 2, 3));
+        helper.setBlock(new BlockPos(3, 2, 3), Blocks.AIR);
+        helper.setBlock(new BlockPos(5, 2, 3), Blocks.CHEST);
+        golem.updateWorkplace(current -> Workplace.EMPTY.withLinks(List.of(new ContainerLink(broken, Direction.UP, ContainerRole.DEPOSIT))).markInitialized());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+        player.setShiftKeyDown(false);
+        stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(chest), Direction.UP, chest, false)));
+
+        List<ContainerLink> links = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(links.size() == 1 && links.get(0).pos().equals(chest) && links.get(0).role() == ContainerRole.SUPPLY,
+                "Linking a new container should drop the broken link and keep only the new one, got " + links);
+
+        helper.succeed();
+    }
+
+    /**
+     * The click outcome table of the stylus, and that the role a plain click sets next is the one the link cycle actually stores.
+     */
+    public static void stylusClickOutcomesAndRoleCycle(GameTestHelper helper) {
+        assertOutcome(helper, StylusClick.blockOutcome(true, false, true), StylusClick.Outcome.PLACE_CORNER, "A pending corner places the corner on a plain click, even on a container");
+        assertOutcome(helper, StylusClick.blockOutcome(true, true, true), StylusClick.Outcome.REMOVE_LINK, "A sneak click on a container removes its link, even with a pending corner");
+        assertOutcome(helper, StylusClick.blockOutcome(false, false, true), StylusClick.Outcome.CYCLE_LINK, "A plain click on a container cycles its link");
+        assertOutcome(helper, StylusClick.blockOutcome(false, true, true), StylusClick.Outcome.REMOVE_LINK, "A sneak click on a container removes its link");
+        assertOutcome(helper, StylusClick.blockOutcome(false, true, false), StylusClick.Outcome.ERASE_FOOTPRINT, "A sneak click elsewhere erases the footprint");
+        assertOutcome(helper, StylusClick.blockOutcome(false, false, false), StylusClick.Outcome.PLACE_CORNER, "A plain click elsewhere places a corner");
+
+        // The role a plain click sets next must be the one StylusActions.cycleLink stores, through the whole cycle back to removed
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Workplace workplace = Workplace.EMPTY;
+        ContainerRole expected = null;
+        for (int step = 0; step < 4; step++) {
+            ContainerRole next = StylusClick.nextRole(expected);
+            workplace = StylusActions.cycleLink(workplace, pos, Direction.UP);
+            ContainerRole stored = workplace.links().isEmpty() ? null : workplace.links().get(0).role();
+            helper.assertTrue(stored == next, "Step " + step + " should store " + next + ", got " + stored);
+            expected = next;
+        }
+
+        helper.succeed();
+    }
+
+    private static void assertOutcome(GameTestHelper helper, StylusClick.Outcome actual, StylusClick.Outcome expected, String message) {
+        helper.assertTrue(actual == expected, message + ", got " + actual);
+    }
+
+    /**
+     * Targeting an unlinked container links it like clicking it: plain click links it on the clicked face, sneaking on an unlinked container
+     * has nothing to remove, and a position that is neither a container nor linked is refused.
+     */
+    public static void targetedContainerLinksOnClickedFace(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2))));
+
+        BlockPos chest = helper.absolutePos(new BlockPos(5, 2, 3));
+        helper.setBlock(new BlockPos(5, 2, 3), Blocks.CHEST);
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+
+        helper.assertTrue(StylusItem.targetLink(player, golem, chest, Direction.EAST, false), "Targeting a chest should act on it");
+        List<ContainerLink> links = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(links.size() == 1 && links.get(0).side() == Direction.EAST && links.get(0).role() == ContainerRole.SUPPLY,
+                "A plain target on a chest should link it as supply on the clicked face, got " + links);
+
+        helper.assertTrue(StylusItem.targetLink(player, golem, chest, Direction.EAST, true), "Sneak-targeting a linked chest should act on it");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().isEmpty(), "Sneak-targeting should unlink the chest");
+
+        helper.assertTrue(!StylusItem.targetLink(player, golem, helper.absolutePos(new BlockPos(9, 2, 9)), Direction.UP, false),
+                "A position that is neither a container nor linked should be refused");
+
+        helper.succeed();
+    }
+
+    /**
+     * A link on a position without a container can be cycled and removed when the client targets it in the air. Only linked positions
+     * are accepted, and only from a player who holds the selection, owns the golem, and is in range.
+     */
+    public static void targetedAirLinkCyclesAndRemoves(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        Vec3 near = Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2)));
+        player.setPos(near);
+
+        BlockPos air = helper.absolutePos(new BlockPos(3, 2, 3));
+        helper.setBlock(new BlockPos(3, 2, 3), Blocks.AIR);
+        golem.updateWorkplace(current -> Workplace.EMPTY.withLinks(List.of(new ContainerLink(air, Direction.UP, ContainerRole.SUPPLY))).markInitialized());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+
+        helper.assertTrue(!StylusItem.targetLink(player, golem, helper.absolutePos(new BlockPos(9, 2, 9)), Direction.UP, false),
+                "A position that is not a link should be refused");
+        helper.assertTrue(StylusItem.targetLink(player, golem, air, Direction.UP, false), "A linked air position should be targetable");
+        List<ContainerLink> cycled = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(cycled.size() == 1 && cycled.get(0).role() == ContainerRole.DEPOSIT, "Targeting should cycle the link, got " + cycled);
+        helper.assertTrue(StylusItem.targetLink(player, golem, air, Direction.UP, true), "A sneak-targeted air link should be removable");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().isEmpty(), "Removing should drop the link");
+
+        golem.updateWorkplace(current -> Workplace.EMPTY.withLinks(List.of(new ContainerLink(air, Direction.UP, ContainerRole.SUPPLY))).markInitialized());
+        player.setPos(near.add(100.0, 0.0, 0.0));
+        helper.assertTrue(!StylusItem.targetLink(player, golem, air, Direction.UP, false), "A player out of stylus range should be refused");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().get(0).role() == ContainerRole.SUPPLY,
+                "A refused target should not change the link");
+
+        helper.succeed();
+    }
+
+    /**
+     * Targeting a link in the air is a ray test against its box, like a corner: the nearest link wins, a ray that misses the box does not
+     * pick it, and a block nearer than the link hides it.
+     */
+    public static void linkTargetPicksNearestBoxAndYieldsToBlocks(GameTestHelper helper) {
+        ContainerLink near = new ContainerLink(new BlockPos(0, 0, 10), Direction.UP, ContainerRole.SUPPLY);
+        ContainerLink far = new ContainerLink(new BlockPos(0, 0, 20), Direction.UP, ContainerRole.DEPOSIT);
+        Vec3 from = new Vec3(0.5, 0.5, 0.5);
+        Vec3 along = new Vec3(0.5, 0.5, 40.5);
+
+        var nearest = GlyphTargeting.pickLink(from, along, List.of(far, near), Double.POSITIVE_INFINITY);
+        helper.assertTrue(nearest.isPresent() && nearest.get().link().equals(near), "The nearest link box should be picked");
+        helper.assertTrue(GlyphTargeting.pickLink(from, new Vec3(5.0, 0.5, 5.0), List.of(near), Double.POSITIVE_INFINITY).isEmpty(),
+                "A ray that misses the link box should not pick the link");
+        helper.assertTrue(GlyphTargeting.pickLink(from, along, List.of(near), 3.0).isEmpty(),
+                "A block nearer than the link should hide it");
+
+        // A chest is hit on its inset shape, 1/16 inside its block, which is farther than its link box: the chest must not hide its own link
+        ContainerLink chest = new ContainerLink(new BlockPos(0, 0, 10), Direction.UP, ContainerRole.SUPPLY);
+        double chestShape = 10.0 - 0.5 + 0.0625;
+        helper.assertTrue(GlyphTargeting.pickLink(from, along, List.of(chest), chestShape).isPresent(),
+                "A container's own inset shape must not occlude its link");
+
+        helper.succeed();
+    }
+
+    /**
+     * A link queries a side, so it must be a side that exposes the item handler. The clicked face is kept when it exposes it, otherwise
+     * the link falls back to a face that does. A block exposing no side cannot be linked at all.
+     */
+    public static void linkSideFallsBackToExposedFace(GameTestHelper helper) {
+        Predicate<Direction> westOnly = side -> side == Direction.WEST;
+        helper.assertTrue(ContainerAccess.resolveSide(Direction.WEST, westOnly) == Direction.WEST, "An exposed clicked face should be kept");
+        helper.assertTrue(ContainerAccess.resolveSide(Direction.NORTH, westOnly) == Direction.WEST, "An unexposed clicked face should fall back to an exposed one");
+        helper.assertTrue(ContainerAccess.resolveSide(null, westOnly) == Direction.WEST, "Without a clicked face the first exposed face should be used");
+        helper.assertTrue(ContainerAccess.resolveSide(Direction.UP, side -> false) == null, "A block exposing no face should not be linkable");
+
+        BlockPos chest = helper.absolutePos(new BlockPos(3, 2, 3));
+        helper.setBlock(new BlockPos(3, 2, 3), Blocks.CHEST);
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        Player player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2))));
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+        player.setShiftKeyDown(false);
+        stylus.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, new BlockHitResult(Vec3.atCenterOf(chest), Direction.EAST, chest, false)));
+
+        List<ContainerLink> links = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(links.size() == 1 && links.get(0).side() == Direction.EAST,
+                "A new link on a chest should store the clicked face, got " + links);
+
+        helper.succeed();
+    }
+
+    /**
+     * Pruning only removes the links the predicate marks as stale. Links the predicate does not judge, e.g. in unloaded chunks, stay.
+     */
+    public static void pruneKeepsLinksItCannotJudge(GameTestHelper helper) {
+        BlockPos judged = new BlockPos(1, 1, 1);
+        BlockPos unjudged = new BlockPos(900, 1, 900);
+        Workplace workplace = Workplace.EMPTY.withLinks(List.of(
+                new ContainerLink(judged, Direction.UP, ContainerRole.SUPPLY),
+                new ContainerLink(unjudged, Direction.UP, ContainerRole.DEPOSIT)));
+
+        Workplace pruned = StylusActions.pruneLinks(workplace, pos -> pos.equals(judged));
+        helper.assertTrue(pruned.links().size() == 1 && pruned.links().get(0).pos().equals(unjudged),
+                "Only the stale link should be pruned, got " + pruned.links());
+        helper.assertTrue(StylusActions.pruneLinks(workplace, pos -> false) == workplace, "Pruning nothing should return the same workplace");
 
         helper.succeed();
     }

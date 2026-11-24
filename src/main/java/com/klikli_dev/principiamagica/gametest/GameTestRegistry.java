@@ -52,6 +52,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORK_RESERVATIONS_ARE_EXCLUSIVE =
             TEST_FUNCTIONS.register("work_reservations_are_exclusive", () -> GolemGameTests::workReservationsAreExclusive);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STALE_DEPOSIT_LINK_MAKES_GOLEM_WAIT =
+            TEST_FUNCTIONS.register("stale_deposit_link_makes_golem_wait", () -> GolemGameTests::staleDepositLinkMakesGolemWait);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST =
             TEST_FUNCTIONS.register("workplace_defaults_link_adjacent_chest", () -> GolemGameTests::workplaceDefaultsLinkAdjacentChest);
 
@@ -188,6 +191,30 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CREATIVE_STYLUS_SELECTS_GOLEM =
             TEST_FUNCTIONS.register("creative_stylus_selects_golem", () -> StylusGameTests::creativeStylusSelectsGolem);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STYLUS_UNLINKS_BROKEN_CONTAINER =
+            TEST_FUNCTIONS.register("stylus_unlinks_broken_container", () -> StylusGameTests::stylusUnlinksBrokenContainer);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> NEW_LINK_PRUNES_BROKEN_CONTAINER_LINKS =
+            TEST_FUNCTIONS.register("new_link_prunes_broken_container_links", () -> StylusGameTests::newLinkPrunesBrokenContainerLinks);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LINK_TARGET_PICKS_NEAREST_BOX_AND_YIELDS_TO_BLOCKS =
+            TEST_FUNCTIONS.register("link_target_picks_nearest_box_and_yields_to_blocks", () -> StylusGameTests::linkTargetPicksNearestBoxAndYieldsToBlocks);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> TARGETED_CONTAINER_LINKS_ON_CLICKED_FACE =
+            TEST_FUNCTIONS.register("targeted_container_links_on_clicked_face", () -> StylusGameTests::targetedContainerLinksOnClickedFace);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STYLUS_CLICK_OUTCOMES_AND_ROLE_CYCLE =
+            TEST_FUNCTIONS.register("stylus_click_outcomes_and_role_cycle", () -> StylusGameTests::stylusClickOutcomesAndRoleCycle);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> TARGETED_AIR_LINK_CYCLES_AND_REMOVES =
+            TEST_FUNCTIONS.register("targeted_air_link_cycles_and_removes", () -> StylusGameTests::targetedAirLinkCyclesAndRemoves);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LINK_SIDE_FALLS_BACK_TO_EXPOSED_FACE =
+            TEST_FUNCTIONS.register("link_side_falls_back_to_exposed_face", () -> StylusGameTests::linkSideFallsBackToExposedFace);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> PRUNE_KEEPS_LINKS_IT_CANNOT_JUDGE =
+            TEST_FUNCTIONS.register("prune_keeps_links_it_cannot_judge", () -> StylusGameTests::pruneKeepsLinksItCannotJudge);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS =
             TEST_FUNCTIONS.register("work_area_dimension_prevents_cross_dimension_weirdness", () -> StylusGameTests::workAreaDimensionPreventsCrossDimensionWeirdness);
 
@@ -198,6 +225,9 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> ZONE_AND_LINK_INDICES_ARE_VALIDATED =
             TEST_FUNCTIONS.register("zone_and_link_indices_are_validated", () -> GolemMenuGameTests::zoneAndLinkIndicesAreValidated);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CLEAR_LINKS_KEEPS_FOOTPRINTS_AND_REFUSES_EMPTY =
+            TEST_FUNCTIONS.register("clear_links_keeps_footprints_and_refuses_empty", () -> GolemMenuGameTests::clearLinksKeepsFootprintsAndRefusesEmpty);
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> AXIOM_SLOT_INSTALLS_JOB =
             TEST_FUNCTIONS.register("axiom_slot_installs_job", () -> GolemMenuGameTests::axiomSlotInstallsJob);
@@ -577,61 +607,71 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     }
 
     private static void registerGolemCoreTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
-        registerTest(event, GOLEM_SPAWNS_WITH_BRAIN, environment, structure, 80, 0);
-        registerTest(event, QUICKENED_CLAY_HEALS_GOLEM, environment, structure, 80, 0);
-        registerTest(event, WOOD_GOLEM_REGENERATES, environment, structure, 600, 0);
-        registerTest(event, WORK_ZONE_CONTAINS_AND_ITERATES, environment, structure, 80, 0);
-        registerTest(event, FLAT_AND_VOLUME_ZONES, environment, structure, 80, 0);
-        registerTest(event, BREAKING_GLYPH_KEEPS_FOOTPRINT, environment, structure, 80, 0);
-        registerTest(event, CONTAINER_ROLE_CYCLES, environment, structure, 80, 0);
-        registerTest(event, WORKPLACE_CODEC_ROUND_TRIPS, environment, structure, 80, 0);
-        registerTest(event, WORK_RESERVATIONS_ARE_EXCLUSIVE, environment, structure, 80, 0);
-        registerTest(event, WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST, environment, structure, 80, 0);
-        registerTest(event, PERSISTENCE_SAVE_AND_LOAD_KEEPS_EVERYTHING, environment, structure, 80, 0);
+        registerTest(event, GOLEM_SPAWNS_WITH_BRAIN, environment, structure, 40, 0);
+        registerTest(event, QUICKENED_CLAY_HEALS_GOLEM, environment, structure, 40, 0);
+        registerTest(event, WOOD_GOLEM_REGENERATES, environment, structure, 300, 0);
+        registerTest(event, WORK_ZONE_CONTAINS_AND_ITERATES, environment, structure, 40, 0);
+        registerTest(event, FLAT_AND_VOLUME_ZONES, environment, structure, 40, 0);
+        registerTest(event, BREAKING_GLYPH_KEEPS_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, CONTAINER_ROLE_CYCLES, environment, structure, 40, 0);
+        registerTest(event, WORKPLACE_CODEC_ROUND_TRIPS, environment, structure, 40, 0);
+        registerTest(event, WORK_RESERVATIONS_ARE_EXCLUSIVE, environment, structure, 40, 0);
+        registerTest(event, WORKPLACE_DEFAULTS_LINK_ADJACENT_CHEST, environment, structure, 40, 0);
+        registerTest(event, STALE_DEPOSIT_LINK_MAKES_GOLEM_WAIT, environment, structure, 40, 0);
+        registerTest(event, PERSISTENCE_SAVE_AND_LOAD_KEEPS_EVERYTHING, environment, structure, 40, 0);
     }
 
     private static void registerStylusTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
-        registerTest(event, CONTAINER_LINK_CYCLES, environment, structure, 80, 0);
-        registerTest(event, REMOVE_LINK_KEEPS_FOOTPRINT, environment, structure, 80, 0);
-        registerTest(event, CARVING_TWO_GLYPHS_CREATES_FOOTPRINT, environment, structure, 80, 0);
-        registerTest(event, OVERSIZED_FOOTPRINT_IS_REJECTED, environment, structure, 80, 0);
-        registerTest(event, SHIFT_CARVE_ERASES_FOOTPRINT, environment, structure, 80, 0);
-        registerTest(event, GLYPH_TARGET_HITS_EVERY_FACE_FROM_AFAR, environment, structure, 80, 0);
-        registerTest(event, GLYPH_TARGET_PREFERS_NEAREST_GLYPH, environment, structure, 80, 0);
-        registerTest(event, GLYPH_TARGET_MISSES_BESIDE_AND_YIELDS_TO_BLOCKS, environment, structure, 80, 0);
-        registerTest(event, REMOVE_FOOTPRINT_WITH_GLYPH_MATCHES_BLOCK_AND_FACE, environment, structure, 80, 0);
-        registerTest(event, COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT, environment, structure, 80, 0);
-        registerTest(event, CORNER_LIFT_KEEPS_PLUMB_LINE_AND_CLAMPS, environment, structure, 80, 0);
-        registerTest(event, WHOLE_MOVE_CLAMPS_CORNERS, environment, structure, 80, 0);
-        registerTest(event, LEGACY_FOOTPRINT_LOADS_FLAT, environment, structure, 80, 0);
-        registerTest(event, CORNER_COLLISION_BLOCKED_ON_PLACEMENT, environment, structure, 80, 0);
-        registerTest(event, CORNER_COLLISION_BLOCKED_ON_LIFT_AND_SHIFT, environment, structure, 80, 0);
-        registerTest(event, ZONE_BOX_TARGETING_PICKS_NEAREST_AND_FLOATING_BOXES, environment, structure, 80, 0);
-        registerTest(event, RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED, environment, structure, 80, 0);
-        registerTest(event, COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES, environment, structure, 80, 0);
-        registerTest(event, EIGHT_CORNERS_RAYCAST_AND_OCCLUSION, environment, structure, 80, 0);
-        registerTest(event, CORNER_RESIZE_MOVES_COPLANAR_CORNERS_AND_PUSHES_FLAT_BOX, environment, structure, 80, 0);
-        registerTest(event, PICK_UP_MOVE_AND_CANCEL_CORNER, environment, structure, 80, 0);
-        registerTest(event, CANCEL_MOVE_KEPT_UNTIL_GOLEM_IS_REACHABLE, environment, structure, 80, 0);
-        registerTest(event, CORNER_MOVE_PRESERVES_PLANTING_MEMORY, environment, structure, 80, 0);
-        registerTest(event, CROUCH_RIGHT_CLICK_DISCARDS_STUCK_CORNER_MOVE, environment, structure, 80, 0);
-        registerTest(event, SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT, environment, structure, 80, 0);
-        registerTest(event, IMPRINT_TABLET_COPIES_PASTES_AND_CLEARS, environment, structure, 80, 0);
-        registerTest(event, CREATIVE_STYLUS_SELECTS_GOLEM, environment, structure, 80, 0);
-        registerTest(event, WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS, environment, structure, 80, 0);
+        registerTest(event, CONTAINER_LINK_CYCLES, environment, structure, 40, 0);
+        registerTest(event, REMOVE_LINK_KEEPS_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, CARVING_TWO_GLYPHS_CREATES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, OVERSIZED_FOOTPRINT_IS_REJECTED, environment, structure, 40, 0);
+        registerTest(event, SHIFT_CARVE_ERASES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, GLYPH_TARGET_HITS_EVERY_FACE_FROM_AFAR, environment, structure, 40, 0);
+        registerTest(event, GLYPH_TARGET_PREFERS_NEAREST_GLYPH, environment, structure, 40, 0);
+        registerTest(event, GLYPH_TARGET_MISSES_BESIDE_AND_YIELDS_TO_BLOCKS, environment, structure, 40, 0);
+        registerTest(event, REMOVE_FOOTPRINT_WITH_GLYPH_MATCHES_BLOCK_AND_FACE, environment, structure, 40, 0);
+        registerTest(event, COPY_AND_PASTE_KEEPS_RELATIVE_LAYOUT, environment, structure, 40, 0);
+        registerTest(event, CORNER_LIFT_KEEPS_PLUMB_LINE_AND_CLAMPS, environment, structure, 40, 0);
+        registerTest(event, WHOLE_MOVE_CLAMPS_CORNERS, environment, structure, 40, 0);
+        registerTest(event, LEGACY_FOOTPRINT_LOADS_FLAT, environment, structure, 40, 0);
+        registerTest(event, CORNER_COLLISION_BLOCKED_ON_PLACEMENT, environment, structure, 40, 0);
+        registerTest(event, CORNER_COLLISION_BLOCKED_ON_LIFT_AND_SHIFT, environment, structure, 40, 0);
+        registerTest(event, ZONE_BOX_TARGETING_PICKS_NEAREST_AND_FLOATING_BOXES, environment, structure, 40, 0);
+        registerTest(event, RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED, environment, structure, 40, 0);
+        registerTest(event, COPPER_STYLUS_RETURNED_BY_CRAFTING_RECIPES, environment, structure, 40, 0);
+        registerTest(event, EIGHT_CORNERS_RAYCAST_AND_OCCLUSION, environment, structure, 40, 0);
+        registerTest(event, CORNER_RESIZE_MOVES_COPLANAR_CORNERS_AND_PUSHES_FLAT_BOX, environment, structure, 40, 0);
+        registerTest(event, PICK_UP_MOVE_AND_CANCEL_CORNER, environment, structure, 40, 0);
+        registerTest(event, CANCEL_MOVE_KEPT_UNTIL_GOLEM_IS_REACHABLE, environment, structure, 40, 0);
+        registerTest(event, CORNER_MOVE_PRESERVES_PLANTING_MEMORY, environment, structure, 40, 0);
+        registerTest(event, CROUCH_RIGHT_CLICK_DISCARDS_STUCK_CORNER_MOVE, environment, structure, 40, 0);
+        registerTest(event, SNEAK_RIGHT_CLICK_INSIDE_FOOTPRINT_ERASES_FOOTPRINT, environment, structure, 40, 0);
+        registerTest(event, IMPRINT_TABLET_COPIES_PASTES_AND_CLEARS, environment, structure, 40, 0);
+        registerTest(event, CREATIVE_STYLUS_SELECTS_GOLEM, environment, structure, 40, 0);
+        registerTest(event, STYLUS_UNLINKS_BROKEN_CONTAINER, environment, structure, 40, 0);
+        registerTest(event, NEW_LINK_PRUNES_BROKEN_CONTAINER_LINKS, environment, structure, 40, 0);
+        registerTest(event, PRUNE_KEEPS_LINKS_IT_CANNOT_JUDGE, environment, structure, 40, 0);
+        registerTest(event, LINK_SIDE_FALLS_BACK_TO_EXPOSED_FACE, environment, structure, 40, 0);
+        registerTest(event, TARGETED_AIR_LINK_CYCLES_AND_REMOVES, environment, structure, 40, 0);
+        registerTest(event, TARGETED_CONTAINER_LINKS_ON_CLICKED_FACE, environment, structure, 40, 0);
+        registerTest(event, STYLUS_CLICK_OUTCOMES_AND_ROLE_CYCLE, environment, structure, 40, 0);
+        registerTest(event, LINK_TARGET_PICKS_NEAREST_BOX_AND_YIELDS_TO_BLOCKS, environment, structure, 40, 0);
+        registerTest(event, WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS, environment, structure, 40, 0);
     }
 
     private static void registerMenuTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
-        registerTest(event, JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS, environment, structure, 80, 0);
-        registerTest(event, ZONE_AND_LINK_INDICES_ARE_VALIDATED, environment, structure, 80, 0);
-        registerTest(event, AXIOM_SLOT_INSTALLS_JOB, environment, structure, 80, 0);
-        registerTest(event, AXIOM_SLOT_PICKUP_RETURNS_AXIOM_ONCE, environment, structure, 80, 0);
-        registerTest(event, AXIOM_SLOT_SWAP_RETURNS_PREVIOUS_AXIOM, environment, structure, 80, 0);
-        registerTest(event, AXIOM_SHIFT_CLICK_INSTALLS_JOB, environment, structure, 80, 0);
-        registerTest(event, TOOL_SLOT_ACCEPTS_TOOL_WITHOUT_JOB, environment, structure, 80, 0);
-        registerTest(event, GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB, environment, structure, 80, 0);
-        registerTest(event, SHIFT_CLICK_ON_JOB_TAB_DOES_NOT_ENTER_GOLEM_INVENTORY, environment, structure, 80, 0);
-        registerTest(event, JOB_TAB_NEEDS_AXIOM, environment, structure, 80, 0);
+        registerTest(event, JOB_OPTIONS_ONLY_ACCEPT_DECLARED_KEYS, environment, structure, 40, 0);
+        registerTest(event, ZONE_AND_LINK_INDICES_ARE_VALIDATED, environment, structure, 40, 0);
+        registerTest(event, AXIOM_SLOT_INSTALLS_JOB, environment, structure, 40, 0);
+        registerTest(event, AXIOM_SLOT_PICKUP_RETURNS_AXIOM_ONCE, environment, structure, 40, 0);
+        registerTest(event, AXIOM_SLOT_SWAP_RETURNS_PREVIOUS_AXIOM, environment, structure, 40, 0);
+        registerTest(event, AXIOM_SHIFT_CLICK_INSTALLS_JOB, environment, structure, 40, 0);
+        registerTest(event, TOOL_SLOT_ACCEPTS_TOOL_WITHOUT_JOB, environment, structure, 40, 0);
+        registerTest(event, GOLEM_SIDE_SLOTS_INACTIVE_ON_JOB_TAB, environment, structure, 40, 0);
+        registerTest(event, SHIFT_CLICK_ON_JOB_TAB_DOES_NOT_ENTER_GOLEM_INVENTORY, environment, structure, 40, 0);
+        registerTest(event, JOB_TAB_NEEDS_AXIOM, environment, structure, 40, 0);
+        registerTest(event, CLEAR_LINKS_KEEPS_FOOTPRINTS_AND_REFUSES_EMPTY, environment, structure, 40, 0);
     }
 
     private static void registerAxiomTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {

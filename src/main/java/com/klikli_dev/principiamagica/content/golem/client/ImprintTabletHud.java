@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.golem.client;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.KeyCombo;
+import com.klikli_dev.principiamagica.content.Plurals;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.ImprintTabletItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
@@ -58,7 +59,7 @@ public class ImprintTabletHud {
         Workplace clipboard = tablet.get(DataComponentRegistry.IMPRINT_CLIPBOARD.get());
         Component clipboardText = clipboard == null
                 ? Component.translatable("hud.principiamagica.imprint_tablet.clipboard_empty")
-                : Component.translatable("hud.principiamagica.imprint_tablet.clipboard", clipboard.footprints().size(), clipboard.links().size());
+                : Component.translatable("hud.principiamagica.imprint_tablet.clipboard", Plurals.of(Plurals.FOOTPRINTS, clipboard.footprints().size()), Plurals.of(Plurals.CONTAINER_LINKS, clipboard.links().size()));
         graphics.text(font, clipboardText, x, y, NEUTRAL_COLOR, true);
 
         List<Component> hints = hints(minecraft, player, clipboard != null);

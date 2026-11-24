@@ -15,12 +15,14 @@ import com.klikli_dev.codedefinedgui.api.widget.TooltipAreaWidget;
 import com.klikli_dev.codedefinedgui.api.widget.WrappedTextWidget;
 import com.klikli_dev.codedefinedgui.api.widget.tab.TabIcon;
 import com.klikli_dev.principiamagica.client.gui.GuiStyles;
+import com.klikli_dev.principiamagica.content.Plurals;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.LinkRenderer;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
-import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Networking;
+import com.klikli_dev.principiamagica.network.messages.MessageClearContainerLinks;
 import com.klikli_dev.principiamagica.network.messages.MessageSetJobOption;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
@@ -31,6 +33,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -39,11 +42,12 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
- * The job tab: the axiom and the job's name, the job's options as switches in a scrollable list, and a summary of the workplace.
+ * The job tab: the axiom and the job's name, the job's options as switches in a scrollable list, and a summary strip at the bottom.
  * The tab is only enabled while the golem has an axiom.
  * <p>
- * Each part of the summary has its own hover area. Its tooltip has a gold heading, lists the linked containers with their positions, explains
- * the icon in grey, and ends with the hint to edit them with the Stylus in italic.
+ * The strip shows the work zones, then for deposit and for supply a role icon with the containers of that role next to it, and the button
+ * that unlinked all containers. The role icon's tooltip is the summary of its containers. Each container is its block icon, hovered for its
+ * name, role, position and missing state. With more than four containers, the fourth cell shows a "+" and its tooltip lists the rest.
  */
 final class JobTab extends GolemTab {
 
@@ -55,16 +59,76 @@ final class JobTab extends GolemTab {
     private static final int SWITCH_MARGIN = 2;
     private static final int LABEL_MARGIN = 4;
 
+    /**
+     * The summary strip, relative to the tab, x 8 to 196 and y 99 to 121. Icons sit at y 102, the 2x2 cells of 8px containers next to them.
+     */
+    private static final int STRIP_Y = 99;
+    private static final int STRIP_HEIGHT = 22;
+    private static final int ICON_Y = 102;
+    private static final int ICON_SIZE = 16;
+    private static final int ZONE_X = 12;
+    private static final int ZONE_LABEL_X = 31;
+    private static final int ZONE_LABEL_WIDTH = 40;
+    private static final int DEPOSIT_X = 76;
+    private static final int DEPOSIT_CELLS_X = 94;
+    private static final int SUPPLY_X = 120;
+    private static final int SUPPLY_CELLS_X = 138;
+    private static final int CELL_SIZE = 8;
+    private static final int CELL_STEP = 9;
+    private static final int CELL_COUNT = 4;
+    /**
+     * Single row of cells, vertically centred on the 16px icon (its centre is at y 110). Two rows start at y 102, the second one 9px lower.
+     */
+    private static final int CELL_SINGLE_Y = 106;
+    private static final int CELL_ROW_TOP = 102;
+    private static final int CELL_ROW_STEP = 9;
+    private static final int CLEAR_BUTTON_X = 176;
+    private static final int CLEAR_BUTTON_Y = 102;
+    private static final int CLEAR_BUTTON_SIZE = 17;
+    /**
+     * The unlink icon keeps the proportion it had on the 15px button, 11 to 15, so it is 12px on the 17px button.
+     * Its visible pixels are x 1 to 15 and y 0 to 15 of its 16px canvas, measured from the texture.
+     */
+    private static final int CLEAR_ICON_SIZE = Math.round(CLEAR_BUTTON_SIZE * 11 / 15F);
+    private static final int CLEAR_ICON_INK_LEFT = 1;
+    private static final int CLEAR_ICON_INK_TOP = 0;
+    private static final int CLEAR_ICON_INK_RIGHT = 15;
+    private static final int CLEAR_ICON_INK_BOTTOM = 15;
+
+    /**
+     * The vanilla font's visible rows inside a line, measured from the font texture. Digits and brackets use rows 0 to 6 of their 8px cell,
+     * the "+" uses rows 1 to 5. A text widget draws its line from its top edge.
+     */
+    private static final int TEXT_INK_TOP = 0;
+    private static final int TEXT_INK_HEIGHT = 7;
+    private static final int PLUS_INK_TOP = 1;
+    private static final int PLUS_INK_HEIGHT = 5;
+    /**
+     * The zone label's line top, so its visible digits are centred on the strip.
+     */
+    private static final int ZONE_LABEL_Y = centredTextY(STRIP_Y, STRIP_HEIGHT, TEXT_INK_TOP, TEXT_INK_HEIGHT);
+
+    /**
+     * @return the line top at which the visible pixels of a font text of the given height are centred in the box
+     */
+    private static int centredTextY(int boxY, int boxHeight, int inkTop, int inkHeight) {
+        return boxY + (boxHeight - inkHeight) / 2 - inkTop;
+    }
+
     private static final int HEADING_COLOR = 0xFFEBAC26;
     private static final int LIST_COLOR = 0xFFF6E2B8;
     private static final int EXPLANATION_COLOR = 0xFFB0A89A;
     private static final int HINT_COLOR = 0xFF3FA59A;
+    private static final int MISSING_COLOR = 0xFFFF5555;
 
     private final StyleContext style = GuiStyles.context();
     private ScrollListWidget<JobOption> optionList;
     private TooltipAreaWidget zoneHint;
-    private TooltipAreaWidget depositHint;
-    private TooltipAreaWidget supplyHint;
+    private final ContainerCells deposit = new ContainerCells(ContainerRole::canDeposit, DEPOSIT_X, DEPOSIT_CELLS_X, "icon_deposit",
+            "gui.principiamagica.golem.deposit.title", "gui.principiamagica.golem.deposit.description");
+    private final ContainerCells supply = new ContainerCells(ContainerRole::canSupply, SUPPLY_X, SUPPLY_CELLS_X, "icon_supply",
+            "gui.principiamagica.golem.supply.title", "gui.principiamagica.golem.supply.description");
+    private ScaledIconButtonWidget clearLinksButton;
 
     JobTab(Supplier<GolemView> viewSupplier) {
         super(viewSupplier);
@@ -99,21 +163,22 @@ final class JobTab extends GolemTab {
 
         this.add(new GuiSpriteWidget(bounds.x() + 8, bounds.y() + 95, 188, 3, this.sprite("divider")));
 
-        this.add(new GuiSpriteWidget(bounds.x() + 8, bounds.y() + 99, 188, 22, this.sprite("inset")));
+        this.add(new GuiSpriteWidget(bounds.x() + 8, bounds.y() + STRIP_Y, 188, STRIP_HEIGHT, this.sprite("inset")));
 
-        this.add(new GuiSpriteWidget(bounds.x() + 12, bounds.y() + 102, 16, 16, this.sprite("icon_zone")));
-        this.add(new WrappedTextWidget(bounds.x() + 31, bounds.y() + 105, 40, this::zoneText).withStyle(this.style).withMaxLines(1));
-        this.zoneHint = this.add(new TooltipAreaWidget(bounds.x() + 8, bounds.y() + 99, 60, 22, Component.empty()));
+        this.add(new GuiSpriteWidget(bounds.x() + ZONE_X, bounds.y() + ICON_Y, ICON_SIZE, ICON_SIZE, this.sprite("icon_zone")));
+        this.add(new WrappedTextWidget(bounds.x() + ZONE_LABEL_X, bounds.y() + ZONE_LABEL_Y, ZONE_LABEL_WIDTH, this::zoneText).withStyle(this.style).withMaxLines(1));
+        this.zoneHint = this.add(new TooltipAreaWidget(bounds.x() + 8, bounds.y() + STRIP_Y, 60, STRIP_HEIGHT, Component.empty()));
 
-        this.add(new GuiSpriteWidget(bounds.x() + 80, bounds.y() + 102, 16, 16, this.sprite("icon_deposit")));
-        this.add(new WrappedTextWidget(bounds.x() + 99, bounds.y() + 105, 32, () -> this.linkSummary(ContainerRole::canDeposit, "gui.principiamagica.golem.no_deposit"))
-                .withStyle(this.style).withMaxLines(1));
-        this.depositHint = this.add(new TooltipAreaWidget(bounds.x() + 76, bounds.y() + 99, 60, 22, Component.empty()));
+        this.deposit.build(bounds);
+        this.supply.build(bounds);
 
-        this.add(new GuiSpriteWidget(bounds.x() + 140, bounds.y() + 102, 16, 16, this.sprite("icon_supply")));
-        this.add(new WrappedTextWidget(bounds.x() + 159, bounds.y() + 105, 29, () -> this.linkSummary(ContainerRole::canSupply, "gui.principiamagica.golem.no_supply"))
-                .withStyle(this.style).withMaxLines(1));
-        this.supplyHint = this.add(new TooltipAreaWidget(bounds.x() + 136, bounds.y() + 99, 52, 22, Component.empty()));
+        MutableComponent clearTooltip = Component.empty()
+                .append(Component.translatable("gui.principiamagica.golem.clear_links.title").withStyle(Style.EMPTY.withColor(HEADING_COLOR).withBold(true)))
+                .append(line(Component.translatable("gui.principiamagica.golem.clear_links.description"), Style.EMPTY.withColor(EXPLANATION_COLOR)));
+        this.clearLinksButton = this.add(new ScaledIconButtonWidget(bounds.x() + CLEAR_BUTTON_X, bounds.y() + CLEAR_BUTTON_Y,
+                CLEAR_BUTTON_SIZE, GuiStyles.sprite("icon_unlink"), CLEAR_ICON_SIZE,
+                CLEAR_ICON_INK_LEFT, CLEAR_ICON_INK_TOP, CLEAR_ICON_INK_RIGHT, CLEAR_ICON_INK_BOTTOM, clearTooltip, this::clearLinks));
+        this.clearLinksButton.withStyle(this.style);
     }
 
     @Override
@@ -122,13 +187,15 @@ final class JobTab extends GolemTab {
         this.optionList.setEntries(options);
         this.optionList.tick();
 
+        List<ContainerLink> links = this.view().workplace().links();
+        this.clearLinksButton.active = !links.isEmpty();
+
         int zones = this.view().workplace().footprints().size();
-        this.zoneHint.setText(hint(Component.translatable("gui.principiamagica.golem.zones.title", zones),
+        this.zoneHint.setText(hint(Plurals.of("gui.principiamagica.golem.zones.title", zones),
                 "gui.principiamagica.golem.zones.description", null));
-        this.depositHint.setText(hint(Component.translatable("gui.principiamagica.golem.deposit.title"),
-                "gui.principiamagica.golem.deposit.description", this.linkNames(ContainerRole::canDeposit, true)));
-        this.supplyHint.setText(hint(Component.translatable("gui.principiamagica.golem.supply.title"),
-                "gui.principiamagica.golem.supply.description", this.linkNames(ContainerRole::canSupply, true)));
+
+        this.deposit.tick(links);
+        this.supply.tick(links);
     }
 
     private ItemStack axiomStack() {
@@ -141,6 +208,13 @@ final class JobTab extends GolemTab {
 
     private void toggleOption(JobOption option) {
         Networking.sendToServer(new MessageSetJobOption(this.golemId(), option.key(), !this.isOn(option)));
+    }
+
+    /**
+     * Asks the server to remove all container links. The server syncs the workplace back, which updates the strip.
+     */
+    private void clearLinks() {
+        Networking.sendToServer(new MessageClearContainerLinks(this.golemId()));
     }
 
     /**
@@ -159,58 +233,89 @@ final class JobTab extends GolemTab {
     }
 
     private Component zoneText() {
-        return Component.translatable("gui.principiamagica.golem.zones", this.view().workplace().footprints().size());
+        return Plurals.of("gui.principiamagica.golem.zones", this.view().workplace().footprints().size());
     }
 
     /**
-     * @return the first linked container with the role, followed by how many more there are, or the empty text if there is none
+     * @return how many of the containers of a role get a cell: all of them, or the first three when there are more than the four cells hold
      */
-    private Component linkSummary(Predicate<ContainerRole> role, String emptyKey) {
-        List<Component> names = this.linkNames(role, false);
-        if (names.isEmpty()) {
-            return Component.translatable(emptyKey);
-        }
-
-        if (names.size() == 1) {
-            return names.getFirst();
-        }
-
-        return Component.empty().append(names.getFirst()).append(" +" + (names.size() - 1));
+    private static int shownCount(int count) {
+        return count > CELL_COUNT ? CELL_COUNT - 1 : count;
     }
 
     /**
-     * @param withPositions whether each name is followed by the position of its container
-     * @return the names of all linked containers with the role, in the order they were linked
+     * @return the block icon of the container: its block item, or a barrier if it is missing or has no item
      */
-    private List<Component> linkNames(Predicate<ContainerRole> role, boolean withPositions) {
+    private ItemStack stackOf(ContainerLink link) {
         Level level = Minecraft.getInstance().level;
         if (level == null) {
-            return List.of();
+            return ItemStack.EMPTY;
         }
 
+        if (LinkRenderer.isMissing(level, link.pos())) {
+            return new ItemStack(Items.BARRIER);
+        }
+
+        ItemStack stack = new ItemStack(level.getBlockState(link.pos()).getBlock().asItem());
+        return stack.isEmpty() ? new ItemStack(Items.BARRIER) : stack;
+    }
+
+    /**
+     * @return the tooltip of one container: its block name, role, position, and the Stylus hint. A missing container is named in red.
+     */
+    private Component slotTooltip(ContainerLink link) {
+        Level level = Minecraft.getInstance().level;
+        if (level == null) {
+            return Component.empty();
+        }
+
+        boolean missing = LinkRenderer.isMissing(level, link.pos());
+        Component name = missing
+                ? Component.translatable("gui.principiamagica.golem.missing_container")
+                : level.getBlockState(link.pos()).getBlock().getName();
+        MutableComponent tooltip = Component.empty().append(name.copy().withStyle(Style.EMPTY.withColor(missing ? MISSING_COLOR : HEADING_COLOR).withBold(true)));
+        tooltip.append(line(Component.translatable("golem_role.principiamagica." + link.role().getSerializedName()), Style.EMPTY.withColor(LIST_COLOR)));
+        tooltip.append(line(Component.translatable("gui.principiamagica.golem.task_at", GolemGuiText.formatPos(link.pos())), Style.EMPTY.withColor(EXPLANATION_COLOR)));
+        return tooltip.append(line(Component.translatable("gui.principiamagica.golem.workplace.tooltip"), Style.EMPTY.withColor(HINT_COLOR).withItalic(true)));
+    }
+
+    /**
+     * @return the names of the containers with their positions, a missing container in red
+     */
+    private static List<Component> containerNames(List<ContainerLink> links, Level level) {
         List<Component> names = new ArrayList<>();
-        for (ContainerLink link : this.view().workplace().links()) {
-            if (role.test(link.role())) {
-                Component name = level.getBlockState(link.pos()).getBlock().getName();
-                if (withPositions) {
-                    MutableComponent at = Component.translatable("gui.principiamagica.golem.task_at", GolemGuiText.formatPos(link.pos()));
-                    names.add(name.copy().append(" ").append(at.withStyle(Style.EMPTY.withColor(EXPLANATION_COLOR))));
-                } else {
-                    names.add(name);
-                }
-            }
+        for (ContainerLink link : links) {
+            boolean missing = LinkRenderer.isMissing(level, link.pos());
+            Component name = missing
+                    ? Component.translatable("gui.principiamagica.golem.missing_container").withStyle(Style.EMPTY.withColor(MISSING_COLOR))
+                    : level.getBlockState(link.pos()).getBlock().getName();
+            MutableComponent at = Component.translatable("gui.principiamagica.golem.task_at", GolemGuiText.formatPos(link.pos()));
+            names.add(name.copy().append(" ").append(at.withStyle(Style.EMPTY.withColor(missing ? MISSING_COLOR : EXPLANATION_COLOR))));
         }
 
         return names;
     }
 
     /**
-     * The tooltip of a summary part: a gold heading, the linked containers as a list if the part lists them, a grey line on what the part
+     * The tooltip of the overflow cell: how many more containers there are, and the ones it does not show.
+     */
+    private static Component moreTooltip(List<Component> names) {
+        MutableComponent tooltip = Component.empty().append(Component.translatable("gui.principiamagica.golem.containers.more", names.size())
+                .withStyle(Style.EMPTY.withColor(HEADING_COLOR).withBold(true)));
+        for (Component name : names) {
+            tooltip.append(line(Component.literal("• ").append(name), Style.EMPTY.withColor(LIST_COLOR)));
+        }
+
+        return tooltip.append(line(Component.translatable("gui.principiamagica.golem.workplace.tooltip"), Style.EMPTY.withColor(HINT_COLOR).withItalic(true)));
+    }
+
+    /**
+     * The tooltip of a part of the strip: a gold heading, the containers as a list if the part lists them, a grey line on what the part
      * means, and the Stylus hint in italic.
      *
-     * @param title the heading, e.g. "Deposit" or "Work zones: 2"
+     * @param title the heading, e.g. "Work zones: 2"
      * @param descriptionKey the lang key of what the part means
-     * @param names the linked containers, or null if the part does not list containers
+     * @param names the containers, or null if the part does not list containers
      */
     private static Component hint(Component title, String descriptionKey, List<Component> names) {
         MutableComponent tooltip = Component.empty().append(title.copy().withStyle(Style.EMPTY.withColor(HEADING_COLOR).withBold(true)));
@@ -239,4 +344,118 @@ final class JobTab extends GolemTab {
     private GuiSprite sprite(String name) {
         return this.style.sprite(GuiStyles.part(name), GuiStyles.sprite(name));
     }
+
+    /**
+     * The containers of one role: the role icon with its summary, and a 2x2 grid of block icons next to it. Up to four containers get a cell;
+     * with more, the fourth cell is a "+" that lists the rest. One or two containers sit in a single row, three or four in two rows.
+     */
+    private final class ContainerCells {
+
+        private final Predicate<ContainerRole> role;
+        private final int glyphX;
+        private final int gridX;
+        private final String iconName;
+        private final String titleKey;
+        private final String descriptionKey;
+        private final ItemIconWidget[] icons = new ItemIconWidget[CELL_COUNT];
+        private final TooltipAreaWidget[] hovers = new TooltipAreaWidget[CELL_COUNT];
+        private TooltipAreaWidget glyphHint;
+        private WrappedTextWidget plus;
+        private int originX;
+        private int originY;
+
+        ContainerCells(Predicate<ContainerRole> role, int glyphX, int gridX, String iconName, String titleKey, String descriptionKey) {
+            this.role = role;
+            this.glyphX = glyphX;
+            this.gridX = gridX;
+            this.iconName = iconName;
+            this.titleKey = titleKey;
+            this.descriptionKey = descriptionKey;
+        }
+
+        void build(ContentRect bounds) {
+            this.originX = bounds.x();
+            this.originY = bounds.y();
+
+            JobTab.this.add(new GuiSpriteWidget(this.originX + this.glyphX, this.originY + ICON_Y, ICON_SIZE, ICON_SIZE, JobTab.this.sprite(this.iconName)));
+            this.glyphHint = JobTab.this.add(new TooltipAreaWidget(this.originX + this.glyphX, this.originY + STRIP_Y, ICON_SIZE, STRIP_HEIGHT, Component.empty()));
+
+            for (int i = 0; i < CELL_COUNT; i++) {
+                int index = i;
+                this.icons[i] = JobTab.this.add(new ItemIconWidget(0, 0, CELL_SIZE, () -> this.stackAt(index)));
+                this.hovers[i] = JobTab.this.add(new TooltipAreaWidget(0, 0, CELL_SIZE, CELL_SIZE, Component.empty()));
+            }
+            this.plus = JobTab.this.add(new WrappedTextWidget(0, 0, CELL_SIZE, () -> Component.literal("+")).withStyle(JobTab.this.style).withMaxLines(1));
+
+            this.layout(0);
+        }
+
+        /**
+         * @return the containers of this role, in the order they were linked
+         */
+        private List<ContainerLink> matching(List<ContainerLink> links) {
+            return links.stream().filter(link -> this.role.test(link.role())).toList();
+        }
+
+        private ItemStack stackAt(int index) {
+            List<ContainerLink> matching = this.matching(JobTab.this.view().workplace().links());
+            if (index >= shownCount(matching.size()) || index >= matching.size()) {
+                return ItemStack.EMPTY;
+            }
+
+            return JobTab.this.stackOf(matching.get(index));
+        }
+
+        /**
+         * Places the cells for the given number of containers of this role.
+         */
+        private void layout(int count) {
+            boolean singleRow = count <= 2;
+            for (int i = 0; i < CELL_COUNT; i++) {
+                int x = this.originX + this.gridX + (i % 2) * CELL_STEP;
+                int y = this.originY + (singleRow ? CELL_SINGLE_Y : CELL_ROW_TOP + (i / 2) * CELL_ROW_STEP);
+                this.icons[i].setX(x);
+                this.icons[i].setY(y);
+                this.hovers[i].setX(x);
+                this.hovers[i].setY(y);
+                if (i == CELL_COUNT - 1) {
+                    this.plus.setX(x);
+                    this.plus.setY(centredTextY(y, CELL_SIZE, PLUS_INK_TOP, PLUS_INK_HEIGHT));
+                }
+            }
+        }
+
+        void tick(List<ContainerLink> links) {
+            if (this.level() == null) {
+                return;
+            }
+
+            List<ContainerLink> matching = this.matching(links);
+            int count = matching.size();
+            int shown = shownCount(count);
+            boolean overflowing = count > CELL_COUNT;
+            this.layout(count);
+
+            for (int i = 0; i < CELL_COUNT; i++) {
+                boolean icon = i < shown;
+                boolean more = overflowing && i == CELL_COUNT - 1;
+                this.icons[i].visible = icon;
+                this.hovers[i].visible = icon || more;
+                if (icon) {
+                    this.hovers[i].setText(JobTab.this.slotTooltip(matching.get(i)));
+                } else if (more) {
+                    this.hovers[i].setText(moreTooltip(containerNames(matching.subList(shown, count), this.level())));
+                }
+            }
+            this.plus.visible = overflowing;
+
+            this.glyphHint.setText(hint(Component.translatable(this.titleKey), this.descriptionKey,
+                    containerNames(matching, this.level())));
+        }
+
+        private Level level() {
+            return Minecraft.getInstance().level;
+        }
+    }
+
 }

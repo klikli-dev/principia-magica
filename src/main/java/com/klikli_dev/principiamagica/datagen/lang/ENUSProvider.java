@@ -171,12 +171,20 @@ public class ENUSProvider extends LanguageProvider {
         this.add("gui.principiamagica.golem.back.tooltip", "Back: the golem's tool, stowed while it carries an item");
         this.add("gui.principiamagica.golem.health", "Health: %s / %s");
         this.add("gui.principiamagica.golem.task_at", "at %s");
-        this.add("gui.principiamagica.golem.zones", "%s zones");
+        this.add("gui.principiamagica.golem.zones.zero", "%s zones");
+        this.add("gui.principiamagica.golem.zones.one", "%s zone");
+        this.add("gui.principiamagica.golem.zones.other", "%s zones");
         this.add("gui.principiamagica.golem.no_deposit", "No deposit");
         this.add("gui.principiamagica.golem.no_supply", "No supply");
         this.add("gui.principiamagica.golem.workplace.tooltip", "Edit with the Stylus");
         this.add("gui.principiamagica.golem.none_linked", "None linked");
-        this.add("gui.principiamagica.golem.zones.title", "Work zones: %s");
+        this.add("gui.principiamagica.golem.missing_container", "Missing container");
+        this.add("gui.principiamagica.golem.containers.more", "+%s more");
+        this.add("gui.principiamagica.golem.clear_links.title", "Unlink all containers");
+        this.add("gui.principiamagica.golem.clear_links.description", "Removes every deposit and supply link of this golem");
+        this.add("gui.principiamagica.golem.zones.title.zero", "Work zones: %s");
+        this.add("gui.principiamagica.golem.zones.title.one", "Work zone: %s");
+        this.add("gui.principiamagica.golem.zones.title.other", "Work zones: %s");
         this.add("gui.principiamagica.golem.zones.description", "Areas carved with the Stylus where this golem works");
         this.add("gui.principiamagica.golem.deposit.title", "Deposit");
         this.add("gui.principiamagica.golem.deposit.description", "Containers where the golem stores its output");
@@ -189,6 +197,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.stylus.role.supply", "Supply");
         this.add("hud.principiamagica.stylus.role.deposit", "Deposit");
         this.add("hud.principiamagica.stylus.role.both", "Both");
+        this.add("hud.principiamagica.stylus.not_linked", "Not linked");
         this.add("hud.principiamagica.stylus.pending_corner", "Corner pending");
         this.add("hud.principiamagica.stylus.moving_corner", "Moving corner");
         this.add("hud.principiamagica.stylus.corner_locked", "Corner locked (look away to release)");
@@ -209,11 +218,12 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.stylus.hint.corner_options", "Aim at a corner glyph for more options");
 
         this.add("hud.principiamagica.imprint_tablet.clipboard_empty", "Clipboard: empty");
-        this.add("hud.principiamagica.imprint_tablet.clipboard", "Clipboard: %s footprints, %s container links");
+        this.add("hud.principiamagica.imprint_tablet.clipboard", "Clipboard: %s, %s");
         this.add("hud.principiamagica.imprint_tablet.hint.copy", "%s: copy workplace");
         this.add("hud.principiamagica.imprint_tablet.hint.paste", "%s: paste clipboard");
         this.add("hud.principiamagica.imprint_tablet.hint.clear", "%s: clear clipboard");
-        this.add("hud.principiamagica.stylus.hint.cycle_link", "%s: cycle link");
+        this.add("hud.principiamagica.stylus.hint.set_role", "%s: set to %s");
+        this.add("hud.principiamagica.stylus.hint.link_as", "%s: link as %s");
         this.add("hud.principiamagica.stylus.hint.unlink", "%s: unlink");
         this.add("hud.principiamagica.stylus.hint.select_golem", "%s a golem: select");
         this.add("hud.principiamagica.stylus.hint.select", "%s: select");
@@ -289,6 +299,10 @@ public class ENUSProvider extends LanguageProvider {
         this.add("message.principiamagica.stylus.corner_lifted", "Corner lifted %s");
         this.add("message.principiamagica.stylus.nothing_to_remove", "Nothing to remove here");
         this.add("message.principiamagica.stylus.link_set", "Container link: %s");
+        this.add("message.principiamagica.stylus.link_set_pruned", "Container link: %s, removed %s");
+        this.add("counts.principiamagica.unavailable_links.zero", "%s unavailable container links");
+        this.add("counts.principiamagica.unavailable_links.one", "%s unavailable container link");
+        this.add("counts.principiamagica.unavailable_links.other", "%s unavailable container links");
         this.add("message.principiamagica.stylus.link_removed", "Container link removed");
         this.add("message.principiamagica.stylus.picked_up", "Golem picked up, its workplace is kept");
 
@@ -300,10 +314,16 @@ public class ENUSProvider extends LanguageProvider {
         this.add("tooltip.principiamagica.copper_stylus.hint_pickup", "%s own golem: pick up (keeps workplace)");
 
         this.add("tooltip.principiamagica.imprint_tablet.clipboard_empty", "Clipboard: empty");
-        this.add("tooltip.principiamagica.imprint_tablet.clipboard", "Clipboard: %s footprints, %s container links");
+        this.add("tooltip.principiamagica.imprint_tablet.clipboard", "Clipboard: %s, %s");
         this.add("tooltip.principiamagica.imprint_tablet.hint_copy_paste", "%s golem: copy workplace / paste clipboard");
         this.add("tooltip.principiamagica.imprint_tablet.hint_clear", "%s: clear clipboard");
-        this.add("message.principiamagica.imprint_tablet.copied", "Copied workplace: %s footprints, %s container links");
+        this.add("message.principiamagica.imprint_tablet.copied", "Copied workplace: %s, %s");
+        this.add("counts.principiamagica.footprints.zero", "%s footprints");
+        this.add("counts.principiamagica.footprints.one", "%s footprint");
+        this.add("counts.principiamagica.footprints.other", "%s footprints");
+        this.add("counts.principiamagica.container_links.zero", "%s container links");
+        this.add("counts.principiamagica.container_links.one", "%s container link");
+        this.add("counts.principiamagica.container_links.other", "%s container links");
         this.add("message.principiamagica.imprint_tablet.pasted", "Pasted workplace");
         this.add("message.principiamagica.imprint_tablet.cleared", "Cleared clipboard");
 

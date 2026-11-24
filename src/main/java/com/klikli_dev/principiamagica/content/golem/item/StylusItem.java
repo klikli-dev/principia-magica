@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.golem.item;
 
 import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Networking;
@@ -14,6 +15,7 @@ import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -29,7 +31,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import java.util.Optional;
@@ -208,6 +215,62 @@ public class StylusItem extends Item {
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
         syncWorkplace(player, golem);
+    }
+
+    /**
+     * Cycles (plain) or removes (sneaking) the container at pos, for a container the client targeted, e.g. in the air or with the link
+     * already there. Validates the same things as the other stylus edits: the player owns the golem, holds its selection in range, the
+     * stylus has no pending corner, and the position is in reach of the player's eyes.
+     *
+     * @return whether the container was acted on
+     */
+    public static boolean targetLink(ServerPlayer player, GolemEntity golem, BlockPos pos, Direction face, boolean remove) {
+        if (!player.getUUID().equals(golem.getOwnerUUID()) || !isWithinRange(player, golem) || !holdsSelection(player, golem)) {
+            return false;
+        }
+
+        // A pending corner in another dimension does not block the click, the same as on the client and in StylusBlockInteraction
+        ServerLevel level = (ServerLevel) golem.level();
+        Optional<ItemStack> stylus = heldSelectionStylus(player, golem);
+        PendingGlyph pending = stylus.map(held -> held.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get())).orElse(null);
+        if (stylus.isEmpty() || (pending != null && pending.pos().dimension().equals(level.dimension()))) {
+            return false;
+        }
+
+        if (!GlyphTargeting.isInReach(player.getEyePosition(), pos) || !isLinkVisible(player, level, pos)) {
+            return false;
+        }
+
+        return StylusBlockInteraction.targetLink(level, player, golem, pos, face, remove);
+    }
+
+    private static final double VISIBILITY_EPSILON = 1.0E-3;
+
+    /**
+     * A solid block between the player and the container's box hides it, the same as on the client. The container's own shape lies inside
+     * its box, so it does not hide its own link. Air links are visible through empty space.
+     */
+    private static boolean isLinkVisible(ServerPlayer player, ServerLevel level, BlockPos pos) {
+        Vec3 eye = player.getEyePosition();
+        AABB box = GlyphTargeting.linkHitBox(pos);
+        if (box.contains(eye)) {
+            return true;
+        }
+
+        Optional<Vec3> entry = box.clip(eye, box.getCenter());
+        if (entry.isEmpty()) {
+            return false;
+        }
+
+        double distance = eye.distanceTo(entry.get());
+        if (distance <= VISIBILITY_EPSILON) {
+            return true;
+        }
+
+        // Stop just short of the box, so a block exactly on the box's surface does not count as hiding it
+        Vec3 end = eye.add(entry.get().subtract(eye).scale((distance - VISIBILITY_EPSILON) / distance));
+        BlockHitResult hit = level.clip(new ClipContext(eye, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+        return hit.getType() == HitResult.Type.MISS;
     }
 
     public static boolean isWithinRange(ServerPlayer player, GolemEntity golem) {

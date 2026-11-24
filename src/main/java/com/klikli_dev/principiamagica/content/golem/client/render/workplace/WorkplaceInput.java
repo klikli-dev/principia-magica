@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedContainer;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedZone;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -12,16 +13,21 @@ import com.klikli_dev.principiamagica.network.messages.MessageEraseZone;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftPending;
 import com.klikli_dev.principiamagica.network.messages.MessagePickUpCorner;
 import com.klikli_dev.principiamagica.network.messages.MessageResizeCorner;
+import com.klikli_dev.principiamagica.network.messages.MessageTargetLink;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.client.event.InputEvent;
 
 /**
- * Turns the player's clicks and scrolls on a workplace into server messages:
+ * Turns the player's clicks and scrolls on a workplace into server messages. Right-click follows the same order as the server click
+ * (see {@code StylusClick}): a container under the crosshair acts first, then corners, then zones.
  * <ul>
+ *     <li>Right-click on a container: cycles its link, or links it. Shift+right-click removes its link. A locked corner wins over it</li>
  *     <li>Shift+scroll over a corner: resizes that corner's face up/down and engages a sticky corner lock</li>
  *     <li>Right-click on a corner: picks up that corner so it can be moved and re-placed</li>
  *     <li>Shift+right-click on a corner or zone box: erases the work area (never triggers on golems)</li>
@@ -30,8 +36,8 @@ import net.neoforged.neoforge.client.event.InputEvent;
 public class WorkplaceInput {
 
     /**
-     * Handles plain right-click (pick up corner) and sneak-right-click (erase work area on corner or zone box).
-     * Golems are never intercepted so selection and Shift+right-click copy/paste always work.
+     * Handles right-click and sneak-right-click on containers, corners and zone boxes. Golems are never intercepted so selection and
+     * Shift+right-click copy/paste always work.
      */
     public static void onInteractionKeyMapping(InputEvent.InteractionKeyMappingTriggered event) {
         if (!event.isUseItem()) {
@@ -59,38 +65,44 @@ public class WorkplaceInput {
             return;
         }
 
-        boolean linkedContainer = WorkplaceTargeting.isHoveredLinkedContainer(minecraft, golem.getId());
+        boolean sneaking = player.isShiftKeyDown();
         TargetedCorner corner = WorkplaceTargeting.targetedCorner(minecraft);
+        boolean cornerLocked = corner != null && corner.locked();
 
-        if (player.isShiftKeyDown()) {
-            if (corner != null && (corner.locked() || !linkedContainer)) {
-                event.setCanceled(true);
-                event.setSwingHand(true);
+        TargetedContainer container = WorkplaceTargeting.targetedContainer(minecraft);
+        if (container != null && !cornerLocked) {
+            cancel(event);
+            Networking.sendToServer(new MessageTargetLink(container.golemId(), container.pos(), container.face(), sneaking));
+            return;
+        }
+
+        if (sneaking) {
+            if (corner != null) {
+                cancel(event);
                 WorkplaceTargeting.clearCornerLock();
                 Networking.sendToServer(new MessageEraseZone(corner.golemId(), corner.footprintIndex()));
                 return;
             }
 
-            if (linkedContainer) {
-                return;
-            }
-
             TargetedZone zoneTarget = WorkplaceTargeting.targetedZone(minecraft);
             if (zoneTarget != null) {
-                event.setCanceled(true);
-                event.setSwingHand(true);
+                cancel(event);
                 WorkplaceTargeting.clearCornerLock();
                 Networking.sendToServer(new MessageEraseZone(zoneTarget.golemId(), zoneTarget.hit().index()));
             }
             return;
         }
 
-        if (corner != null && (corner.locked() || !linkedContainer)) {
-            event.setCanceled(true);
-            event.setSwingHand(true);
+        if (corner != null) {
+            cancel(event);
             WorkplaceTargeting.clearCornerLock();
             Networking.sendToServer(new MessagePickUpCorner(corner.golemId(), corner.footprintIndex(), corner.cornerIndex()));
         }
+    }
+
+    private static void cancel(InputEvent.InteractionKeyMappingTriggered event) {
+        event.setCanceled(true);
+        event.setSwingHand(true);
     }
 
     /**
