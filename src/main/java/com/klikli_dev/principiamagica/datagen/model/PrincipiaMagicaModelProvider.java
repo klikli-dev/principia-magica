@@ -22,12 +22,14 @@ import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
-import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
+import net.minecraft.client.renderer.item.properties.select.DisplayContext;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.NotNull;
@@ -64,8 +66,12 @@ public class PrincipiaMagicaModelProvider extends ModelProvider {
 
         // The fired phial is drawn by ClayPhialRenderer, which picks the open or closed body and draws the label and principle.
         // Its base model is a static resource and has no elements, like Theurgy's derivative_base.
+        // Only the GUI shows the principle at full size on shift. Other display contexts keep the normal view.
+        Identifier phialBase = PrincipiaMagica.loc("item/clay_phial_base");
         itemModels.itemModelOutput.accept(ItemRegistry.CLAY_PHIAL.get(),
-                ItemModelUtils.specialModel(PrincipiaMagica.loc("item/clay_phial_base"), new ClayPhialRenderer.Unbaked()));
+                ItemModelUtils.select(new DisplayContext(),
+                        ItemModelUtils.specialModel(phialBase, new ClayPhialRenderer.Unbaked(false)),
+                        ItemModelUtils.when(ItemDisplayContext.GUI, ItemModelUtils.specialModel(phialBase, new ClayPhialRenderer.Unbaked(true)))));
         registerIconItem(itemModels, ItemRegistry.CLAY_PHIAL_OPEN_ICON.get(), "clay_phial");
         registerIconItem(itemModels, ItemRegistry.CLAY_PHIAL_LABELED_ICON.get(), "clay_phial_closed_labeled");
 

@@ -11,7 +11,9 @@ import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
@@ -38,6 +40,15 @@ import java.util.function.Consumer;
  * custom quad with its outline.
  */
 public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderState> {
+
+    /**
+     * Whether holding shift shows the principle at full size. Disabled outside the GUI.
+     */
+    private final boolean shiftView;
+
+    public ClayPhialRenderer(boolean shiftView) {
+        this.shiftView = shiftView;
+    }
 
     private static final float PIXEL = 1f / 16f;
 
@@ -166,7 +177,7 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
 
         PrincipleStack stored = ClayPhialItem.getStored(stack);
         Identifier principle = stored == null ? null : PrincipiaMagicaRegistries.PRINCIPLE.getKey(stored.principle().value());
-        boolean shiftDown = Minecraft.getInstance().hasShiftDown();
+        boolean shiftDown = this.shiftView && Minecraft.getInstance().hasShiftDown();
         return new ClayPhialRenderState(principle, shiftDown);
     }
 
@@ -176,12 +187,18 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
         output.accept(new Vector3f(0.5f, 0.5f, 0.5f));
     }
 
-    public record Unbaked() implements SpecialModelRenderer.Unbaked<ClayPhialRenderState> {
-        public static final MapCodec<Unbaked> MAP_CODEC = MapCodec.unit(new Unbaked());
+    /**
+     * @param shiftView whether holding shift shows the principle at full size. Only the GUI uses this, so the item
+     *                  definition enables it for the GUI display context only.
+     */
+    public record Unbaked(boolean shiftView) implements SpecialModelRenderer.Unbaked<ClayPhialRenderState> {
+        public static final MapCodec<Unbaked> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+                Codec.BOOL.optionalFieldOf("shift_view", false).forGetter(Unbaked::shiftView)
+        ).apply(instance, Unbaked::new));
 
         @Override
         public @Nullable SpecialModelRenderer<ClayPhialRenderState> bake(SpecialModelRenderer.BakingContext context) {
-            return new ClayPhialRenderer();
+            return new ClayPhialRenderer(this.shiftView);
         }
 
         @Override

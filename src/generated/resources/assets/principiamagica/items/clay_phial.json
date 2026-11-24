@@ -1,9 +1,26 @@
 {
   "model": {
-    "type": "minecraft:special",
-    "base": "principiamagica:item/clay_phial_base",
-    "model": {
-      "type": "principiamagica:clay_phial"
-    }
+    "type": "minecraft:select",
+    "cases": [
+      {
+        "model": {
+          "type": "minecraft:special",
+          "base": "principiamagica:item/clay_phial_base",
+          "model": {
+            "type": "principiamagica:clay_phial",
+            "shift_view": true
+          }
+        },
+        "when": "gui"
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:special",
+      "base": "principiamagica:item/clay_phial_base",
+      "model": {
+        "type": "principiamagica:clay_phial"
+      }
+    },
+    "property": "minecraft:display_context"
   }
 }
