@@ -7,6 +7,7 @@ package com.klikli_dev.principiamagica.content.golem.client.gui;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
 import com.klikli_dev.codedefinedgui.api.widget.IconToggleButtonWidget;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -17,6 +18,7 @@ import net.minecraft.network.chat.Component;
 final class ScaledIconButtonWidget extends IconToggleButtonWidget {
 
     private final GuiSprite icon;
+    private final Runnable onPress;
     private final float scale;
     private final float inkCentreX;
     private final float inkCentreY;
@@ -34,9 +36,24 @@ final class ScaledIconButtonWidget extends IconToggleButtonWidget {
             Component tooltip, Runnable onPress) {
         super(x, y, size, icon, tooltip, onPress);
         this.icon = icon;
+        this.onPress = onPress;
         this.scale = (float) iconSize / icon.width();
         this.inkCentreX = (inkLeft + inkRight) / 2.0F * this.scale;
         this.inkCentreY = (inkTop + inkBottom) / 2.0F * this.scale;
+    }
+
+    /**
+     * cdg's icon button only reacts to clicks. Like {@code AbstractButton}, an active button runs its action on Enter, Space or the keypad
+     * Enter, so the unlink action is reachable from the keyboard too.
+     */
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (!this.active || !event.isSelection()) {
+            return false;
+        }
+
+        this.onPress.run();
+        return true;
     }
 
     @Override
