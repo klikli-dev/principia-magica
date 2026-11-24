@@ -4,19 +4,18 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
+import com.klikli_dev.codedefinedgui.api.screen.ContentRect;
 import com.klikli_dev.codedefinedgui.api.style.BuiltinGuiParts;
 import com.klikli_dev.codedefinedgui.api.style.StyleContext;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
-import com.klikli_dev.principiamagica.client.gui.ContentRect;
+import com.klikli_dev.codedefinedgui.api.widget.GuiSpriteWidget;
+import com.klikli_dev.codedefinedgui.api.widget.IconToggleButtonWidget;
+import com.klikli_dev.codedefinedgui.api.widget.ItemIconWidget;
+import com.klikli_dev.codedefinedgui.api.widget.ProgressBarWidget;
+import com.klikli_dev.codedefinedgui.api.widget.TooltipAreaWidget;
+import com.klikli_dev.codedefinedgui.api.widget.WrappedTextWidget;
+import com.klikli_dev.codedefinedgui.api.widget.tab.TabIcon;
 import com.klikli_dev.principiamagica.client.gui.GuiStyles;
-import com.klikli_dev.principiamagica.client.gui.widget.IconToggleButton;
-import com.klikli_dev.principiamagica.client.gui.widget.ItemIcon;
-import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
-import com.klikli_dev.principiamagica.client.gui.widget.ProgressBar;
-import com.klikli_dev.principiamagica.client.gui.widget.SpriteWidget;
-import com.klikli_dev.principiamagica.client.gui.widget.TabIcon;
-import com.klikli_dev.principiamagica.client.gui.widget.TooltipArea;
-import com.klikli_dev.principiamagica.client.gui.widget.WidgetParts;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemMode;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
@@ -68,20 +67,20 @@ final class GolemMainTab extends GolemTab {
 
     private final GolemMenu menu;
     private final ContentRect screen;
-    private final StyleContext style = WidgetParts.defaultStyle();
-    private final Map<GolemMode, IconToggleButton> modes = new EnumMap<>(GolemMode.class);
+    private final StyleContext style = GuiStyles.context();
+    private final Map<GolemMode, IconToggleButtonWidget> modes = new EnumMap<>(GolemMode.class);
     private ContentRect bounds;
-    private ProgressBar health;
-    private SpriteWidget axiomGhost;
-    private TooltipArea axiomHint;
-    private SpriteWidget handGhost;
-    private TooltipArea handHint;
-    private TooltipArea backHint;
-    private SpriteWidget statusIcon;
-    private ItemIcon statusItem;
-    private LabelWidget headlineLabel;
-    private LabelWidget hintLabel;
-    private TooltipArea statusTooltip;
+    private ProgressBarWidget health;
+    private GuiSpriteWidget axiomGhost;
+    private TooltipAreaWidget axiomHint;
+    private GuiSpriteWidget handGhost;
+    private TooltipAreaWidget handHint;
+    private TooltipAreaWidget backHint;
+    private GuiSpriteWidget statusIcon;
+    private ItemIconWidget statusItem;
+    private WrappedTextWidget headlineLabel;
+    private WrappedTextWidget hintLabel;
+    private TooltipAreaWidget statusTooltip;
 
     /**
      * @param viewSupplier the golem view of the screen
@@ -107,12 +106,12 @@ final class GolemMainTab extends GolemTab {
     @Override
     protected void build(ContentRect bounds) {
         this.bounds = bounds;
-        this.add(new SpriteWidget(bounds.x() + PORTRAIT_X, bounds.y() + PORTRAIT_Y, 58, 80, this.sprite("portrait_frame")));
+        this.add(new GuiSpriteWidget(bounds.x() + PORTRAIT_X, bounds.y() + PORTRAIT_Y, 58, 80, this.sprite("portrait_frame")));
         // The niche interior is 4 px in from the frame's left and 10 px down from its top.
         this.add(new GolemPortrait(bounds.x() + PORTRAIT_X + 4, bounds.y() + PORTRAIT_Y + 10, PORTRAIT_WIDTH, PORTRAIT_HEIGHT, PORTRAIT_SCALE,
                 () -> this.view().golem()));
 
-        this.health = this.add(new ProgressBar(bounds.x() + HEALTH_X, bounds.y() + HEALTH_Y, 58, 7, this::healthFraction).withStyle(this.style));
+        this.health = this.add(new ProgressBarWidget(bounds.x() + HEALTH_X, bounds.y() + HEALTH_Y, 58, 7, this::healthFraction).withStyle(this.style));
 
         this.buildGolemSlots(bounds);
         this.buildJobLabels(bounds);
@@ -137,16 +136,16 @@ final class GolemMainTab extends GolemTab {
     }
 
     private void buildJobLabels(ContentRect bounds) {
-        this.add(new LabelWidget(bounds.x() + JOB_X, bounds.y() + JOB_Y, JOB_WIDTH, () -> GolemGuiText.jobName(this.view()))
+        this.add(new WrappedTextWidget(bounds.x() + JOB_X, bounds.y() + JOB_Y, JOB_WIDTH, () -> GolemGuiText.jobName(this.view()))
                 .withStyle(this.style).withMaxLines(1));
-        this.add(new LabelWidget(bounds.x() + JOB_X, bounds.y() + JOB_Y + 11, JOB_WIDTH, this::jobLine)
+        this.add(new WrappedTextWidget(bounds.x() + JOB_X, bounds.y() + JOB_Y + 11, JOB_WIDTH, this::jobLine)
                 .withStyle(this.style).withColor(GuiStyles.TEXT_SECONDARY).withMaxLines(1));
     }
 
     private void buildModes(ContentRect bounds) {
         for (GolemMode mode : GolemMode.values()) {
             int index = this.modes.size();
-            IconToggleButton button = new IconToggleButton(
+            IconToggleButtonWidget button = new IconToggleButtonWidget(
                     bounds.x() + MODE_X + index * MODE_SPACING, bounds.y() + MODE_Y, MODE_SIZE,
                     this.sprite(modeSprite(mode)), Component.empty(),
                     () -> Networking.sendToServer(new MessageSetGolemMode(this.golemId(), mode))
@@ -161,16 +160,16 @@ final class GolemMainTab extends GolemTab {
      * tooltip with the full text, so nothing is lost to the ellipsis.
      */
     private void buildStatusTablet(ContentRect bounds) {
-        this.add(new SpriteWidget(bounds.x() + STATUS_X, bounds.y() + STATUS_Y, STATUS_WIDTH, STATUS_HEIGHT, this.sprite("inset")));
-        this.statusIcon = this.add(new SpriteWidget(bounds.x() + STATUS_X + 3, bounds.y() + STATUS_Y + 3, STATUS_ICON_SIZE, STATUS_ICON_SIZE,
+        this.add(new GuiSpriteWidget(bounds.x() + STATUS_X, bounds.y() + STATUS_Y, STATUS_WIDTH, STATUS_HEIGHT, this.sprite("inset")));
+        this.statusIcon = this.add(new GuiSpriteWidget(bounds.x() + STATUS_X + 3, bounds.y() + STATUS_Y + 3, STATUS_ICON_SIZE, STATUS_ICON_SIZE,
                 () -> this.sprite(GolemGuiText.statusIcon(this.view().status()))));
         // The task's item takes the place of the status icon while the golem works without a problem.
-        this.statusItem = this.add(new ItemIcon(bounds.x() + STATUS_X + 3, bounds.y() + STATUS_Y + 3, STATUS_ICON_SIZE, this::taskDisplay));
-        this.headlineLabel = this.add(new LabelWidget(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 3, 96, this::headline)
+        this.statusItem = this.add(new ItemIconWidget(bounds.x() + STATUS_X + 3, bounds.y() + STATUS_Y + 3, STATUS_ICON_SIZE, this::taskDisplay));
+        this.headlineLabel = this.add(new WrappedTextWidget(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 3, 96, this::headline)
                 .withStyle(this.style).withMaxLines(1));
-        this.hintLabel = this.add(new LabelWidget(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 13, 96, this::hintLine)
+        this.hintLabel = this.add(new WrappedTextWidget(bounds.x() + STATUS_X + STATUS_TEXT_OFFSET, bounds.y() + STATUS_Y + 13, 96, this::hintLine)
                 .withStyle(this.style).withColor(GuiStyles.TEXT_SECONDARY).withMaxLines(2));
-        this.statusTooltip = this.add(new TooltipArea(bounds.x() + STATUS_X, bounds.y() + STATUS_Y, STATUS_WIDTH, STATUS_HEIGHT, Component.empty()));
+        this.statusTooltip = this.add(new TooltipAreaWidget(bounds.x() + STATUS_X, bounds.y() + STATUS_Y, STATUS_WIDTH, STATUS_HEIGHT, Component.empty()));
     }
 
     @Override
@@ -190,8 +189,8 @@ final class GolemMainTab extends GolemTab {
 
         this.backHint.visible = golem == null || golem.getBackItem().isEmpty();
 
-        for (Map.Entry<GolemMode, IconToggleButton> entry : this.modes.entrySet()) {
-            IconToggleButton button = entry.getValue();
+        for (Map.Entry<GolemMode, IconToggleButtonWidget> entry : this.modes.entrySet()) {
+            IconToggleButtonWidget button = entry.getValue();
             button.setSelected(view.mode() == entry.getKey());
             button.active = entry.getKey() != GolemMode.WORK || hasAxiom;
             button.setTooltipText(this.modeTooltip(entry.getKey(), hasAxiom));

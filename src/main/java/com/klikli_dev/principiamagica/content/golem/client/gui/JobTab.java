@@ -4,18 +4,17 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
+import com.klikli_dev.codedefinedgui.api.screen.ContentRect;
 import com.klikli_dev.codedefinedgui.api.style.StyleContext;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
-import com.klikli_dev.principiamagica.client.gui.ContentRect;
+import com.klikli_dev.codedefinedgui.api.widget.GuiSpriteWidget;
+import com.klikli_dev.codedefinedgui.api.widget.ItemIconWidget;
+import com.klikli_dev.codedefinedgui.api.widget.ScrollListWidget;
+import com.klikli_dev.codedefinedgui.api.widget.ToggleSwitch;
+import com.klikli_dev.codedefinedgui.api.widget.TooltipAreaWidget;
+import com.klikli_dev.codedefinedgui.api.widget.WrappedTextWidget;
+import com.klikli_dev.codedefinedgui.api.widget.tab.TabIcon;
 import com.klikli_dev.principiamagica.client.gui.GuiStyles;
-import com.klikli_dev.principiamagica.client.gui.widget.ItemIcon;
-import com.klikli_dev.principiamagica.client.gui.widget.LabelWidget;
-import com.klikli_dev.principiamagica.client.gui.widget.ScrollList;
-import com.klikli_dev.principiamagica.client.gui.widget.SpriteWidget;
-import com.klikli_dev.principiamagica.client.gui.widget.TabIcon;
-import com.klikli_dev.principiamagica.client.gui.widget.TooltipArea;
-import com.klikli_dev.principiamagica.client.gui.widget.ToggleSwitch;
-import com.klikli_dev.principiamagica.client.gui.widget.WidgetParts;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
@@ -61,11 +60,11 @@ final class JobTab extends GolemTab {
     private static final int EXPLANATION_COLOR = 0xFFB0A89A;
     private static final int HINT_COLOR = 0xFF3FA59A;
 
-    private final StyleContext style = WidgetParts.defaultStyle();
-    private ScrollList<JobOption> optionList;
-    private TooltipArea zoneHint;
-    private TooltipArea depositHint;
-    private TooltipArea supplyHint;
+    private final StyleContext style = GuiStyles.context();
+    private ScrollListWidget<JobOption> optionList;
+    private TooltipAreaWidget zoneHint;
+    private TooltipAreaWidget depositHint;
+    private TooltipAreaWidget supplyHint;
 
     JobTab(Supplier<GolemView> viewSupplier) {
         super(viewSupplier);
@@ -86,35 +85,35 @@ final class JobTab extends GolemTab {
 
     @Override
     protected void build(ContentRect bounds) {
-        this.add(new ItemIcon(bounds.x() + 8, bounds.y() + 26, ItemIcon.SIZE, this::axiomStack));
-        this.add(new LabelWidget(bounds.x() + 28, bounds.y() + 30, 160, () -> GolemGuiText.jobName(this.view()))
+        this.add(new ItemIconWidget(bounds.x() + 8, bounds.y() + 26, ItemIconWidget.SIZE, this::axiomStack));
+        this.add(new WrappedTextWidget(bounds.x() + 28, bounds.y() + 30, 160, () -> GolemGuiText.jobName(this.view()))
                 .withStyle(this.style).withMaxLines(1));
 
-        this.add(new SpriteWidget(bounds.x() + 8, bounds.y() + 42, 188, 52, this.sprite("inset")));
-        this.optionList = this.add(new ScrollList<JobOption>(bounds.x() + LIST_X, bounds.y() + LIST_Y, LIST_WIDTH, LIST_HEIGHT, ROW_HEIGHT,
+        this.add(new GuiSpriteWidget(bounds.x() + 8, bounds.y() + 42, 188, 52, this.sprite("inset")));
+        this.optionList = this.add(new ScrollListWidget<JobOption>(bounds.x() + LIST_X, bounds.y() + LIST_Y, LIST_WIDTH, LIST_HEIGHT, ROW_HEIGHT,
                 this::renderOption, this::toggleOption)
                 .withStyle(this.style)
                 .withTooltips(option -> Component.translatable(option.descriptionKey()))
                 .withNarration(option -> CommonComponents.optionNameValue(Component.translatable(option.translationKey()),
                         CommonComponents.optionStatus(this.isOn(option)))));
 
-        this.add(new SpriteWidget(bounds.x() + 8, bounds.y() + 95, 188, 3, this.sprite("divider")));
+        this.add(new GuiSpriteWidget(bounds.x() + 8, bounds.y() + 95, 188, 3, this.sprite("divider")));
 
-        this.add(new SpriteWidget(bounds.x() + 8, bounds.y() + 99, 188, 22, this.sprite("inset")));
+        this.add(new GuiSpriteWidget(bounds.x() + 8, bounds.y() + 99, 188, 22, this.sprite("inset")));
 
-        this.add(new SpriteWidget(bounds.x() + 12, bounds.y() + 102, 16, 16, this.sprite("icon_zone")));
-        this.add(new LabelWidget(bounds.x() + 31, bounds.y() + 105, 40, this::zoneText).withStyle(this.style).withMaxLines(1));
-        this.zoneHint = this.add(new TooltipArea(bounds.x() + 8, bounds.y() + 99, 60, 22, Component.empty()));
+        this.add(new GuiSpriteWidget(bounds.x() + 12, bounds.y() + 102, 16, 16, this.sprite("icon_zone")));
+        this.add(new WrappedTextWidget(bounds.x() + 31, bounds.y() + 105, 40, this::zoneText).withStyle(this.style).withMaxLines(1));
+        this.zoneHint = this.add(new TooltipAreaWidget(bounds.x() + 8, bounds.y() + 99, 60, 22, Component.empty()));
 
-        this.add(new SpriteWidget(bounds.x() + 80, bounds.y() + 102, 16, 16, this.sprite("icon_deposit")));
-        this.add(new LabelWidget(bounds.x() + 99, bounds.y() + 105, 32, () -> this.linkSummary(ContainerRole::canDeposit, "gui.principiamagica.golem.no_deposit"))
+        this.add(new GuiSpriteWidget(bounds.x() + 80, bounds.y() + 102, 16, 16, this.sprite("icon_deposit")));
+        this.add(new WrappedTextWidget(bounds.x() + 99, bounds.y() + 105, 32, () -> this.linkSummary(ContainerRole::canDeposit, "gui.principiamagica.golem.no_deposit"))
                 .withStyle(this.style).withMaxLines(1));
-        this.depositHint = this.add(new TooltipArea(bounds.x() + 76, bounds.y() + 99, 60, 22, Component.empty()));
+        this.depositHint = this.add(new TooltipAreaWidget(bounds.x() + 76, bounds.y() + 99, 60, 22, Component.empty()));
 
-        this.add(new SpriteWidget(bounds.x() + 140, bounds.y() + 102, 16, 16, this.sprite("icon_supply")));
-        this.add(new LabelWidget(bounds.x() + 159, bounds.y() + 105, 29, () -> this.linkSummary(ContainerRole::canSupply, "gui.principiamagica.golem.no_supply"))
+        this.add(new GuiSpriteWidget(bounds.x() + 140, bounds.y() + 102, 16, 16, this.sprite("icon_supply")));
+        this.add(new WrappedTextWidget(bounds.x() + 159, bounds.y() + 105, 29, () -> this.linkSummary(ContainerRole::canSupply, "gui.principiamagica.golem.no_supply"))
                 .withStyle(this.style).withMaxLines(1));
-        this.supplyHint = this.add(new TooltipArea(bounds.x() + 136, bounds.y() + 99, 52, 22, Component.empty()));
+        this.supplyHint = this.add(new TooltipAreaWidget(bounds.x() + 136, bounds.y() + 99, 52, 22, Component.empty()));
     }
 
     @Override
