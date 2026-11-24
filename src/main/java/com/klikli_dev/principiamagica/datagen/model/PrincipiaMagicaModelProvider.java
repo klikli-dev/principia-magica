@@ -67,8 +67,7 @@ public class PrincipiaMagicaModelProvider extends ModelProvider {
         itemModels.itemModelOutput.accept(ItemRegistry.CLAY_PHIAL.get(),
                 ItemModelUtils.specialModel(PrincipiaMagica.loc("item/clay_phial_base"), new ClayPhialRenderer.Unbaked()));
         registerIconItem(itemModels, ItemRegistry.CLAY_PHIAL_OPEN_ICON.get(), "clay_phial");
-        registerIconItem(itemModels, ItemRegistry.CLAY_PHIAL_CLOSED_ICON.get(), "clay_phial_closed");
-        registerIconItem(itemModels, ItemRegistry.PHIAL_LABEL_ICON.get(), "phial_label");
+        registerIconItem(itemModels, ItemRegistry.CLAY_PHIAL_LABELED_ICON.get(), "clay_phial_closed_labeled");
 
         slabBlockState(blockModels, BlockRegistry.LIBATION_SLAB.get());
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(BlockRegistry.CATCH_TROUGH.get(), plainVariant("catch_trough")));
