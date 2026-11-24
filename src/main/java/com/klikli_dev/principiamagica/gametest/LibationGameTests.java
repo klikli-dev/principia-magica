@@ -233,6 +233,28 @@ public class LibationGameTests {
     }
 
     /**
+     * A steeping that yields several items leaves them as they are in the trough. Only a single item steeps, so principles put
+     * in afterwards are not consumed by a recipe that would match the stack.
+     */
+    public static void steepingMultiItemResultWaitsForExtraction(GameTestHelper helper) {
+        int time = steepingTime(helper, "steeping/quickened_clay");
+        BlockPos trough = new BlockPos(3, 1, 3);
+        CatchTroughBlockEntity be = troughWith(helper, trough, new ItemStack(Items.CLAY_BALL), new PrincipleStack(PrincipleRegistry.UNGUENT, 25));
+
+        helper.runAfterDelay(time + 5, () -> {
+            helper.assertTrue(be.getItem().is(ItemRegistry.QUICKENED_CLAY.get()) && be.getItem().getCount() == 2, "The clay should steep into two quickened clay, got " + be.getItem());
+            be.insert(PrincipleContents.of(new PrincipleStack(PrincipleRegistry.UNGUENT, 25)), false);
+            helper.runAfterDelay(time + 5, () -> {
+                helper.assertTrue(be.getItem().is(ItemRegistry.QUICKENED_CLAY.get()) && be.getItem().getCount() == 2,
+                        "The two quickened clay should stay in the trough, got " + be.getItem());
+                helper.assertTrue(be.getPrinciples().get(PrincipleRegistry.UNGUENT) == 25,
+                        "No recipe should consume the principles of a stack of two, holds " + be.getPrinciples().get(PrincipleRegistry.UNGUENT));
+                helper.succeed();
+            });
+        });
+    }
+
+    /**
      * Removing the item resets the steeping, so the item needs the full recipe time once it is put back.
      */
     public static void steepingResetsWhenItemIsRemoved(GameTestHelper helper) {
@@ -813,6 +835,7 @@ public class LibationGameTests {
                 "The trough should hold 300 mB loam and 200 mB silt, holds " + trough.getPrinciples());
         helper.succeed();
     }
+
 
     /**
      * Clay phials hold up to 250 mB, fill/pour like buckets, stack when holding the exact same principle, and top up on crouch-click.

@@ -214,12 +214,13 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
     }
 
     /**
-     * @return the steeping recipe of the held item and the principles, or null. Looked up only when the item or the principles
+     * @return the steeping recipe of the held item and the principles, or null. Only a single item steeps: a steeping that
+     * yields several items leaves them as they are until they are taken out. Looked up only when the item or the principles
      * changed, or the recipes reloaded, see {@link RecipeCache}.
      */
     private @Nullable RecipeHolder<SteepingRecipe> steepingRecipe() {
         ItemStack item = this.getItem();
-        return this.steepingRecipe.get(this.level, () -> item.isEmpty()
+        return this.steepingRecipe.get(this.level, () -> item.getCount() != 1
                 ? Optional.empty()
                 : LibationUtils.steeping(this.level, item, this.principles.contents()));
     }
