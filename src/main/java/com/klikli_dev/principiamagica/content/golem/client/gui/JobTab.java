@@ -17,6 +17,7 @@ import com.klikli_dev.principiamagica.client.gui.widget.TabIcon;
 import com.klikli_dev.principiamagica.client.gui.widget.TooltipArea;
 import com.klikli_dev.principiamagica.client.gui.widget.ToggleSwitch;
 import com.klikli_dev.principiamagica.client.gui.widget.WidgetParts;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.LinkRenderer;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.JobOption;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
@@ -29,7 +30,6 @@ import com.klikli_dev.principiamagica.registry.ItemRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -216,7 +216,7 @@ final class JobTab extends GolemTab {
         List<Component> names = new ArrayList<>();
         for (ContainerLink link : this.view().workplace().links()) {
             if (role.test(link.role())) {
-                boolean missing = isMissing(level, link.pos());
+                boolean missing = LinkRenderer.isMissing(level, link.pos());
                 Component name = missing
                         ? Component.translatable("gui.principiamagica.golem.missing_container").withStyle(Style.EMPTY.withColor(MISSING_COLOR))
                         : level.getBlockState(link.pos()).getBlock().getName();
@@ -233,16 +233,6 @@ final class JobTab extends GolemTab {
         return names;
     }
 
-    /**
-     * The client cannot reliably query item capabilities, so a link counts as missing when its chunk is loaded and there is no block entity
-     * at its position. A broken container leaves air, and whatever replaced it usually has no block entity. Positions in unloaded chunks are
-     * never judged missing. Mods with containers that have no block entity would show as missing here, though the server still uses them.
-     *
-     * @return whether the linked position is loaded and has no block entity
-     */
-    static boolean isMissing(Level level, BlockPos pos) {
-        return level.isLoaded(pos) && level.getBlockEntity(pos) == null;
-    }
 
     /**
      * The tooltip of a summary part: a gold heading, the linked containers as a list if the part lists them, a grey line on what the part

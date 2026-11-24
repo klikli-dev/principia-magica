@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedLink;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedZone;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.network.Networking;
@@ -12,6 +13,7 @@ import com.klikli_dev.principiamagica.network.messages.MessageEraseZone;
 import com.klikli_dev.principiamagica.network.messages.MessageLiftPending;
 import com.klikli_dev.principiamagica.network.messages.MessagePickUpCorner;
 import com.klikli_dev.principiamagica.network.messages.MessageResizeCorner;
+import com.klikli_dev.principiamagica.network.messages.MessageTargetLink;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -24,6 +26,7 @@ import net.neoforged.neoforge.client.event.InputEvent;
  * <ul>
  *     <li>Shift+scroll over a corner: resizes that corner's face up/down and engages a sticky corner lock</li>
  *     <li>Right-click on a corner: picks up that corner so it can be moved and re-placed</li>
+ *     <li>Right-click on a container link: cycles it, also when the container is gone. Shift+right-click removes it</li>
  *     <li>Shift+right-click on a corner or zone box: erases the work area (never triggers on golems)</li>
  * </ul>
  */
@@ -59,7 +62,8 @@ public class WorkplaceInput {
             return;
         }
 
-        boolean linkedContainer = WorkplaceTargeting.isHoveredLinkedContainer(minecraft, golem.getId());
+        TargetedLink link = WorkplaceTargeting.targetedLink(minecraft);
+        boolean linkedContainer = link != null;
         TargetedCorner corner = WorkplaceTargeting.targetedCorner(minecraft);
 
         if (player.isShiftKeyDown()) {
@@ -72,6 +76,9 @@ public class WorkplaceInput {
             }
 
             if (linkedContainer) {
+                event.setCanceled(true);
+                event.setSwingHand(true);
+                Networking.sendToServer(new MessageTargetLink(link.golemId(), link.link().pos(), true));
                 return;
             }
 
@@ -90,6 +97,10 @@ public class WorkplaceInput {
             event.setSwingHand(true);
             WorkplaceTargeting.clearCornerLock();
             Networking.sendToServer(new MessagePickUpCorner(corner.golemId(), corner.footprintIndex(), corner.cornerIndex()));
+        } else if (linkedContainer) {
+            event.setCanceled(true);
+            event.setSwingHand(true);
+            Networking.sendToServer(new MessageTargetLink(link.golemId(), link.link().pos(), false));
         }
     }
 

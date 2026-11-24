@@ -897,6 +897,26 @@ public class StylusGameTests {
     }
 
     /**
+     * Targeting a link in the air is a ray test against its box, like a corner: the nearest link wins, a ray that misses the box does not
+     * pick it, and a block nearer than the link hides it.
+     */
+    public static void linkTargetPicksNearestBoxAndYieldsToBlocks(GameTestHelper helper) {
+        ContainerLink near = new ContainerLink(new BlockPos(0, 0, 10), Direction.UP, ContainerRole.SUPPLY);
+        ContainerLink far = new ContainerLink(new BlockPos(0, 0, 20), Direction.UP, ContainerRole.DEPOSIT);
+        Vec3 from = new Vec3(0.5, 0.5, 0.5);
+        Vec3 along = new Vec3(0.5, 0.5, 40.5);
+
+        var nearest = GlyphTargeting.pickLink(from, along, List.of(far, near), Double.POSITIVE_INFINITY);
+        helper.assertTrue(nearest.isPresent() && nearest.get().link().equals(near), "The nearest link box should be picked");
+        helper.assertTrue(GlyphTargeting.pickLink(from, new Vec3(5.0, 0.5, 5.0), List.of(near), Double.POSITIVE_INFINITY).isEmpty(),
+                "A ray that misses the link box should not pick the link");
+        helper.assertTrue(GlyphTargeting.pickLink(from, along, List.of(near), 3.0).isEmpty(),
+                "A block nearer than the link should hide it");
+
+        helper.succeed();
+    }
+
+    /**
      * A link queries a side, so it must be a side that exposes the item handler. The clicked face is kept when it exposes it, otherwise
      * the link falls back to a face that does. A block exposing no side cannot be linked at all.
      */

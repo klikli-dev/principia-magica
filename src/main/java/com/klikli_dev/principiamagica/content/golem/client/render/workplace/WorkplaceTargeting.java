@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.CornerHit;
+import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting.ZoneHit;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
@@ -281,17 +282,48 @@ public class WorkplaceTargeting {
     }
 
     /**
-     * @return whether the crosshair block is currently linked as a container to the given golem
+     * The container link of the selected golem under the crosshair. Found like a corner: a ray test against the link's box, not the
+     * crosshair block, so a link whose container is gone can be targeted in the air too.
+     *
+     * @param golemId the entity id of the golem the link belongs to
+     * @param link    the targeted link
      */
-    public static boolean isHoveredLinkedContainer(Minecraft minecraft, int golemId) {
-        BlockPos hovered = hoveredBlock(minecraft);
-        if (hovered == null) {
-            return false;
+    public record TargetedLink(int golemId, ContainerLink link) {
+    }
+
+    @Nullable
+    public static TargetedLink targetedLink(Minecraft minecraft) {
+        Player player = minecraft.player;
+        ClientLevel level = minecraft.level;
+        if (player == null || level == null || minecraft.screen != null) {
+            return null;
         }
 
-        return ClientGolemWorkplaceCache.latest(golemId)
-                .map(entry -> entry.workplace().links().stream().anyMatch(link -> link.pos().equals(hovered)))
-                .orElse(false);
+        ItemStack stylus = heldStylus(player);
+        if (stylus == null || pendingGlyph(stylus, level) != null) {
+            return null;
+        }
+
+        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
+        GolemEntity golem = findGolem(level, selected);
+        if (golem == null) {
+            return null;
+        }
+
+        List<ContainerLink> links = ClientGolemWorkplaceCache.latest(golem.getId())
+                .map(entry -> entry.workplace().links())
+                .orElse(List.of());
+        if (links.isEmpty()) {
+            return null;
+        }
+
+        float partialTick = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        Vec3 from = player.getEyePosition(partialTick);
+        Vec3 to = from.add(player.getViewVector(partialTick).scale(GlyphTargeting.MAX_RANGE));
+
+        return GlyphTargeting.pickLink(from, to, links, blockDistance(level, player, from, to))
+                .map(hit -> new TargetedLink(golem.getId(), hit.link()))
+                .orElse(null);
     }
 
     private static double blockDistance(ClientLevel level, Player player, Vec3 from, Vec3 to) {

@@ -191,6 +191,54 @@ public final class GlyphTargeting {
     }
 
     /**
+     * @param link     the container link that was hit
+     * @param distance the distance from the ray origin to the entry point of the link's box (0 when inside)
+     */
+    public record LinkHit(ContainerLink link, double distance) {
+    }
+
+    /**
+     * @return the virtual 1x1x1 block hit box of a container link, like the corner boxes. It is used when the container is not there anymore,
+     * so the link cannot be targeted through its block.
+     */
+    public static AABB linkHitBox(BlockPos pos) {
+        return new AABB(pos).inflate(CORNER_BLOCK_INFLATE);
+    }
+
+    /**
+     * Picks the nearest container link whose box the ray hits, like {@link #pickCorner}. Links behind a solid block are not picked:
+     * only links nearer than the block the ray hits, within a small tolerance, count.
+     *
+     * @param blockDistance the distance to the block the ray hits, or {@link Double#POSITIVE_INFINITY} if it hits none
+     */
+    public static Optional<LinkHit> pickLink(Vec3 from, Vec3 to, Collection<ContainerLink> links, double blockDistance) {
+        LinkHit nearest = null;
+        for (ContainerLink link : links) {
+            AABB box = linkHitBox(link.pos());
+            double distance;
+            if (box.contains(from)) {
+                distance = 0.0;
+            } else {
+                Optional<Vec3> entry = box.clip(from, to);
+                if (entry.isEmpty()) {
+                    continue;
+                }
+                distance = from.distanceTo(entry.get());
+            }
+
+            if (distance > blockDistance + BLOCK_EPSILON) {
+                continue;
+            }
+
+            if (nearest == null || distance < nearest.distance()) {
+                nearest = new LinkHit(link, distance);
+            }
+        }
+
+        return Optional.ofNullable(nearest);
+    }
+
+    /**
      * Picks the nearest of the 8 virtual corner blocks of all footprints hit by the ray. Corners are not occluded by terrain,
      * as their glyphs are drawn through terrain too, so corners below ground can be targeted.
      */

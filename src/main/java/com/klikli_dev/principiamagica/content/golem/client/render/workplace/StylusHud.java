@@ -8,12 +8,12 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedLink;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemStatus;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
-import com.klikli_dev.principiamagica.content.golem.workplace.ContainerLink;
 import com.klikli_dev.principiamagica.content.golem.workplace.ContainerRole;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
@@ -30,8 +30,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,13 +84,12 @@ public class StylusHud {
             return;
         }
 
-        Optional<ContainerRole> role = minecraft.hitResult instanceof BlockHitResult hit && hit.getType() == HitResult.Type.BLOCK
-                ? linkRole(stylus, level, hit.getBlockPos())
-                : Optional.empty();
+        TargetedLink link = WorkplaceTargeting.targetedLink(minecraft);
+        Optional<ContainerRole> role = link == null ? Optional.empty() : Optional.of(link.link().role());
         role.ifPresent(found -> graphics.text(font, roleName(found), x, y, TEXT_COLOR, true));
 
         int hintY = y + (role.isPresent() ? LINE_HEIGHT : 0);
-        List<HintLine> hints = workplaceHints(minecraft, stylus, level, role.isPresent());
+        List<HintLine> hints = workplaceHints(minecraft, stylus, level, link);
         for (int i = 0; i < hints.size(); i++) {
             HintLine line = hints.get(i);
             graphics.text(font, line.text(), x, hintY + i * LINE_HEIGHT, line.color(), true);
@@ -111,8 +110,9 @@ public class StylusHud {
      * Context hints for the crosshair target while the stylus has a golem selected: the pending corner, the targeted glyph,
      * a hovered linked container, or the targeted zone box.
      */
-    private static List<HintLine> workplaceHints(Minecraft minecraft, ItemStack stylus, ClientLevel level, boolean hoveringLinkedContainer) {
+    private static List<HintLine> workplaceHints(Minecraft minecraft, ItemStack stylus, ClientLevel level, @Nullable TargetedLink link) {
         List<HintLine> hints = new ArrayList<>();
+        boolean hoveringLinkedContainer = link != null;
         UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
         GolemEntity golem = WorkplaceTargeting.findGolem(level, selected);
 
@@ -167,6 +167,9 @@ public class StylusHud {
         }
 
         if (hoveringLinkedContainer) {
+            if (LinkRenderer.isMissing(level, link.link().pos())) {
+                hints.add(HintLine.problem(Component.translatable("gui.principiamagica.golem.missing_container")));
+            }
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.cycle_link", KeyCombo.RIGHT_CLICK.component())));
             hints.add(HintLine.neutral(Component.translatable("hud.principiamagica.stylus.hint.unlink", KeyCombo.CROUCH_RIGHT_CLICK.component())));
             return hints;
@@ -200,22 +203,6 @@ public class StylusHud {
         int nextY = y + (status != GolemStatus.OK ? 2 : 1) * LINE_HEIGHT;
         String hintKey = selected ? "hud.principiamagica.stylus.hint.deselect" : "hud.principiamagica.stylus.hint.select";
         graphics.text(font, Component.translatable(hintKey, KeyCombo.RIGHT_CLICK.component()), x + DOT_SIZE + DOT_GAP, nextY, NEUTRAL_COLOR, true);
-    }
-
-    /**
-     * @return the role of the container at the position, if it is linked to the golem selected on the held stylus
-     */
-    private static Optional<ContainerRole> linkRole(ItemStack stylus, ClientLevel level, BlockPos pos) {
-        UUID selected = stylus.get(DataComponentRegistry.STYLUS_SELECTION.get());
-        GolemEntity golem = WorkplaceTargeting.findGolem(level, selected);
-        if (golem == null) {
-            return Optional.empty();
-        }
-
-        return ClientGolemWorkplaceCache.latest(golem.getId()).flatMap(entry -> entry.workplace().links().stream()
-                .filter(link -> link.pos().equals(pos))
-                .map(ContainerLink::role)
-                .findFirst());
     }
 
     private static Component roleName(ContainerRole role) {

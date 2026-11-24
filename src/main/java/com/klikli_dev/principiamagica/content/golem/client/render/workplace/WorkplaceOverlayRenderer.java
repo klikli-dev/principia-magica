@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.golem.client.render.workplace;
 
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedCorner;
+import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedLink;
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceTargeting.TargetedZone;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
@@ -52,6 +53,8 @@ public class WorkplaceOverlayRenderer {
     private TargetedCorner targetedCorner;
     @Nullable
     private TargetedZone targetedZone;
+    @Nullable
+    private TargetedLink targetedLink;
 
     public void onClientTick(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -72,6 +75,7 @@ public class WorkplaceOverlayRenderer {
         this.pending.tick(level, corner, WorkplaceTargeting.hoveredHit(minecraft), workplace);
         this.targetedCorner = WorkplaceTargeting.targetedCorner(minecraft);
         this.targetedZone = WorkplaceTargeting.targetedZone(minecraft);
+        this.targetedLink = WorkplaceTargeting.targetedLink(minecraft);
 
         if (player != null && level != null) {
             this.spawnSparkles(level, player);
@@ -195,7 +199,12 @@ public class WorkplaceOverlayRenderer {
 
             for (ContainerLink link : entry.workplace().links()) {
                 if (WorkplaceGeometry.isWithin(Vec3.atCenterOf(link.pos()), camera, rangeSqr)) {
-                    LinkRenderer.render(geometry, link, alpha, time);
+                    LinkRenderer.render(geometry, link, LinkRenderer.isMissing(level, link.pos()), alpha, time);
+                    boolean targeted = this.targetedLink != null && this.targetedLink.golemId() == golem.getId()
+                            && this.targetedLink.link().pos().equals(link.pos());
+                    if (targeted) {
+                        geometry.boxEdges(new AABB(link.pos()).inflate(0.02), WorkplaceGeometry.argb(HIGHLIGHT_COLOR, alpha * WorkplaceGeometry.pulse(time, 0.25, 0.4F)));
+                    }
                 }
             }
 
