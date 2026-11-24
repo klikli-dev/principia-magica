@@ -77,12 +77,6 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
      */
     private static final float OUTLINE_BEHIND = 0.5f * PIXEL;
 
-    /**
-     * Inset of the texture coordinates, half a texel of the 16x16 icon. Sampling the centres of the edge texels keeps
-     * filtering from reading past the texture edge, so the outline copies show no seams.
-     */
-    private static final float TEXEL_INSET = 0.5f / 16f;
-
     @Override
     public void submit(@Nullable ClayPhialRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay, boolean hasFoil, int outlineColor) {
         if (state == null) return;
@@ -147,12 +141,10 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
      * Adds one square facing the viewer (+Z), centred on (dx, dy) at depth z. The texture's top row is at the top.
      */
     private static void addPrincipleQuad(PoseStack.Pose pose, VertexConsumer buffer, float half, float dx, float dy, float z, int color, int light, int overlay) {
-        float min = TEXEL_INSET;
-        float max = 1f - TEXEL_INSET;
-        addPrincipleVertex(pose, buffer, -half + dx, half + dy, z, min, min, color, light, overlay);
-        addPrincipleVertex(pose, buffer, -half + dx, -half + dy, z, min, max, color, light, overlay);
-        addPrincipleVertex(pose, buffer, half + dx, -half + dy, z, max, max, color, light, overlay);
-        addPrincipleVertex(pose, buffer, half + dx, half + dy, z, max, min, color, light, overlay);
+        addPrincipleVertex(pose, buffer, -half + dx, half + dy, z, 0f, 0f, color, light, overlay);
+        addPrincipleVertex(pose, buffer, -half + dx, -half + dy, z, 0f, 1f, color, light, overlay);
+        addPrincipleVertex(pose, buffer, half + dx, -half + dy, z, 1f, 1f, color, light, overlay);
+        addPrincipleVertex(pose, buffer, half + dx, half + dy, z, 1f, 0f, color, light, overlay);
     }
 
     /**
