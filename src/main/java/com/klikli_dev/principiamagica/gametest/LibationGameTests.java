@@ -5,9 +5,11 @@
 package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
 import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleSelection;
+import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
@@ -33,6 +35,7 @@ import com.klikli_dev.principiamagica.registry.PrincipleRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -836,6 +839,47 @@ public class LibationGameTests {
         helper.succeed();
     }
 
+    /**
+     * Saved principles are placed by their identifier. Loaded in another order, with a principle that no longer exists, the
+     * storage has exactly one slot per current principle, the amounts sit in the slots of their principles, and every principle
+     * can be inserted and extracted.
+     */
+    public static void principleStorageLoadsSavedPrinciplesByIdentity(GameTestHelper helper) {
+        BlockPos troughPos = new BlockPos(3, 2, 3);
+        helper.setBlock(troughPos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity trough = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(troughPos));
+        PrincipleStorage storage = (PrincipleStorage) trough.principleHandler();
+        Identifier silt = PrincipleRegistry.SILT.getId();
+        Identifier loam = PrincipleRegistry.LOAM.getId();
+        Identifier removed = PrincipiaMagica.loc("removed_principle");
+
+        // Not in registry order, and one principle that does not exist any more.
+        storage.load(List.of(new PrincipleStorage.Saved(removed, 40), new PrincipleStorage.Saved(loam, 30), new PrincipleStorage.Saved(silt, 50)));
+
+        helper.assertTrue(storage.size() == PrincipiaMagicaRegistries.PRINCIPLE.size(),
+                "There should be one slot per current principle, got " + storage.size() + " for " + PrincipiaMagicaRegistries.PRINCIPLE.size());
+        helper.assertTrue(storage.getAmountAsInt(PrincipiaMagicaRegistries.PRINCIPLE.getId(PrincipleRegistry.LOAM.get())) == 30,
+                "The 30 mB of loam should sit in the loam slot");
+        helper.assertTrue(storage.getAmountAsInt(PrincipiaMagicaRegistries.PRINCIPLE.getId(PrincipleRegistry.SILT.get())) == 50,
+                "The 50 mB of silt should sit in the silt slot");
+        helper.assertTrue(storage.contents().total() == 80, "The removed principle should be dropped, holds " + storage.contents().total());
+
+        for (int index = 0; index < storage.size(); index++) {
+            FluidResource resource = FluidRegistry.resourceFor(PrincipiaMagicaRegistries.PRINCIPLE.get(index).orElseThrow());
+            try (Transaction tx = Transaction.open(null)) {
+                int inserted = storage.insert(index, resource, 1, tx);
+                helper.assertTrue(inserted == 1, "Every principle should insert into its slot " + index + ", accepted " + inserted);
+                tx.commit();
+            }
+            try (Transaction tx = Transaction.open(null)) {
+                int extracted = storage.extract(index, resource, 1, tx);
+                helper.assertTrue(extracted == 1, "Every principle should extract from its slot " + index + ", extracted " + extracted);
+                tx.commit();
+            }
+        }
+        helper.assertTrue(storage.contents().total() == 80, "Insert and extract should cancel out, holds " + storage.contents().total());
+        helper.succeed();
+    }
 
     /**
      * Clay phials hold up to 250 mB, fill/pour like buckets, stack when holding the exact same principle, and top up on crouch-click.

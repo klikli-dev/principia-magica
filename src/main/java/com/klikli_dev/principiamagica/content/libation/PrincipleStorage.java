@@ -17,10 +17,16 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Principles held by a block entity with a fixed total capacity, exposed as a NeoForge {@link FluidStacksResourceHandler}.
@@ -101,12 +107,68 @@ public class PrincipleStorage extends FluidStacksResourceHandler {
     }
 
     /**
-     * Loads the principles that {@link #serialize} saved. Loading does not sync the owner, the owner loads and syncs itself.
+     * One saved principle, keyed by its identifier rather than its slot, so that the save does not depend on the registry order
+     * or on the principles that existed when it was written.
+     *
+     * @param principle the identifier of the principle.
+     * @param amount    the amount in mB.
+     */
+    public record Saved(Identifier principle, int amount) {
+        public static final Codec<Saved> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                Identifier.CODEC.fieldOf("principle").forGetter(Saved::principle),
+                Codec.intRange(1, Integer.MAX_VALUE).fieldOf("amount").forGetter(Saved::amount)
+        ).apply(instance, Saved::new));
+    }
+
+    private static final Codec<List<Saved>> SAVED_CODEC = Saved.CODEC.listOf();
+
+    /**
+     * Saves the non-empty principles by identifier.
+     */
+    @Override
+    public void serialize(ValueOutput output) {
+        List<Saved> saved = new ArrayList<>();
+        for (int index = 0; index < this.size(); index++) {
+            int amount = this.getAmountAsInt(index);
+            if (amount > 0) {
+                saved.add(new Saved(this.holderAt(index).unwrapKey().orElseThrow().identifier(), amount));
+            }
+        }
+        output.store("stacks", SAVED_CODEC, saved);
+    }
+
+    /**
+     * Loads the principles that {@link #serialize} saved, see {@link #load}. Loading does not sync the owner, the owner loads and
+     * syncs itself.
      */
     @Override
     public void deserialize(ValueInput input) {
-        super.deserialize(input);
-        this.wasEmpty = this.isEmpty();
+        this.load(input.read("stacks", SAVED_CODEC).orElse(List.of()));
+    }
+
+    /**
+     * Replaces the contents with the saved principles. Every current principle gets its own slot, the saved amounts go into the
+     * slot of their principle wherever they were saved. Principles that no longer exist are dropped.
+     *
+     * @param saved the saved principles, in any order.
+     */
+    public void load(List<Saved> saved) {
+        int[] amounts = new int[this.size()];
+        for (Saved entry : saved) {
+            Optional<Holder.Reference<Principle>> holder = PrincipiaMagicaRegistries.PRINCIPLE.get(
+                    ResourceKey.create(PrincipiaMagicaRegistries.Keys.PRINCIPLE, entry.principle()));
+            if (holder.isPresent()) {
+                amounts[PrincipiaMagicaRegistries.PRINCIPLE.getId(holder.get().value())] += entry.amount();
+            }
+        }
+
+        List<PrincipleStack> stacks = new ArrayList<>();
+        for (int index = 0; index < amounts.length; index++) {
+            if (amounts[index] > 0) {
+                stacks.add(new PrincipleStack(this.holderAt(index), amounts[index]));
+            }
+        }
+        this.set(PrincipleContents.of(stacks));
     }
 
     public boolean isEmpty() {
