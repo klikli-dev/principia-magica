@@ -974,6 +974,12 @@ public class StylusGameTests {
         helper.assertTrue(GlyphTargeting.pickLink(from, along, List.of(near), 3.0).isEmpty(),
                 "A block nearer than the link should hide it");
 
+        // A chest is hit on its inset shape, 1/16 inside its block, which is farther than its link box: the chest must not hide its own link
+        ContainerLink chest = new ContainerLink(new BlockPos(0, 0, 10), Direction.UP, ContainerRole.SUPPLY);
+        double chestShape = 10.0 - 0.5 + 0.0625;
+        helper.assertTrue(GlyphTargeting.pickLink(from, along, List.of(chest), chestShape).isPresent(),
+                "A container's own inset shape must not occlude its link");
+
         helper.succeed();
     }
 

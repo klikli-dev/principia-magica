@@ -192,6 +192,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.stylus.role.supply", "Supply");
         this.add("hud.principiamagica.stylus.role.deposit", "Deposit");
         this.add("hud.principiamagica.stylus.role.both", "Both");
+        this.add("hud.principiamagica.stylus.not_linked", "Not linked");
         this.add("hud.principiamagica.stylus.pending_corner", "Corner pending");
         this.add("hud.principiamagica.stylus.moving_corner", "Moving corner");
         this.add("hud.principiamagica.stylus.corner_locked", "Corner locked (look away to release)");
@@ -216,7 +217,8 @@ public class ENUSProvider extends LanguageProvider {
         this.add("hud.principiamagica.imprint_tablet.hint.copy", "%s: copy workplace");
         this.add("hud.principiamagica.imprint_tablet.hint.paste", "%s: paste clipboard");
         this.add("hud.principiamagica.imprint_tablet.hint.clear", "%s: clear clipboard");
-        this.add("hud.principiamagica.stylus.hint.cycle_link", "%s: cycle link");
+        this.add("hud.principiamagica.stylus.hint.set_role", "%s: set to %s");
+        this.add("hud.principiamagica.stylus.hint.link_as", "%s: link as %s");
         this.add("hud.principiamagica.stylus.hint.unlink", "%s: unlink");
         this.add("hud.principiamagica.stylus.hint.select_golem", "%s a golem: select");
         this.add("hud.principiamagica.stylus.hint.select", "%s: select");
