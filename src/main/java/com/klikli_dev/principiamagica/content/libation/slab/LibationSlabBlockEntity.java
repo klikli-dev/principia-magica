@@ -12,7 +12,10 @@ import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
+import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
+import com.klikli_dev.principiamagica.content.libation.item.ClayPhialItem;
+import com.klikli_dev.principiamagica.content.libation.item.NatronSpongeItem;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.content.principle.recipe.LibationRecipe;
@@ -39,9 +42,13 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
+import net.neoforged.neoforge.transfer.resource.ResourceStack;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -65,6 +72,10 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     private final ResourceHandler<ItemResource> itemInput = new InsertOnlyResourceHandler<>(this.items);
     private int dissolveSlot = NO_SLOT;
     private final ProgressTracker dissolve = new ProgressTracker(this.sync);
+    /**
+     * The libation recipe of the stack on the slab.
+     */
+    private final RecipeCache<LibationRecipe> dissolveRecipe = new RecipeCache<>();
     private int dissolveColor = PrincipleContents.DEFAULT_COLOR;
     private final PrincipleStorage stored = new PrincipleStorage(STORAGE_CAPACITY, this.sync);
     private final ResourceHandler<FluidResource> principleOutput = new ExtractOnlyResourceHandler<>(this.stored);
@@ -179,6 +190,10 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
             this.sync.syncNow();
             return InteractionResult.SUCCESS;
         }
+        // Phials and sponges act on the stored principles. They are left to their own use, which runs after this block.
+        if (held.getItem() instanceof ClayPhialItem || held.getItem() instanceof NatronSpongeItem) {
+            return InteractionResult.PASS;
+        }
         if (!FluidUtil.getFirstStackContained(held).isEmpty()) {
             LibationUtils.message(player, this.getWater() >= WATER_CAPACITY
                     ? "message.principiamagica.libation_slab.water_full"
@@ -186,29 +201,29 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
             return InteractionResult.SUCCESS;
         }
 
+        // The same handler that pipes and hoppers insert into decides whether the item is accepted.
+        int moved;
+        try (Transaction transaction = Transaction.open(null)) {
+            ResourceHandler<ItemResource> handHandler = PlayerInventoryWrapper.of(player).getHandSlot(hand);
+            moved = ResourceHandlerUtil.move(handHandler, this.itemInput, resource -> true, held.getCount(), transaction);
+            transaction.commit();
+        }
+        if (moved > 0) {
+            this.level.playSound(null, this.worldPosition, SoundRegistry.LIBATION_SLAB_PLACE_ITEM.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+            return InteractionResult.SUCCESS;
+        }
+
+        // The handler refused the item, explain why. The rules themselves live in the item handler.
         if (LibationUtils.libation(this.level, held).isEmpty()) {
             LibationUtils.message(player, "message.principiamagica.libation_slab.not_washable");
             return InteractionResult.SUCCESS;
         }
-
         ItemStack current = this.getStack();
         if (!current.isEmpty() && !ItemStack.isSameItemSameComponents(current, held)) {
             LibationUtils.message(player, "message.principiamagica.libation_slab.other_item");
             return InteractionResult.SUCCESS;
         }
-
-        int inserted;
-        try (Transaction transaction = Transaction.open(null)) {
-            inserted = this.items.insert(0, ItemResource.of(held), held.getCount(), transaction);
-            transaction.commit();
-        }
-        if (inserted == 0) {
-            LibationUtils.message(player, "message.principiamagica.libation_slab.full");
-            return InteractionResult.SUCCESS;
-        }
-
-        held.shrink(inserted);
-        this.level.playSound(null, this.worldPosition, SoundRegistry.LIBATION_SLAB_PLACE_ITEM.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        LibationUtils.message(player, "message.principiamagica.libation_slab.full");
         return InteractionResult.SUCCESS;
     }
 
@@ -227,14 +242,15 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
             return InteractionResult.SUCCESS;
         }
 
-        ItemStack taken;
+        // Pipes only insert into the slab, see itemInput. Players take the stack back through the item handler.
         try (Transaction transaction = Transaction.open(null)) {
-            ItemResource resource = this.items.getResource(0);
-            int extracted = this.items.extract(0, resource, this.items.getAmountAsInt(0), transaction);
-            taken = resource.toStack(extracted);
+            ResourceStack<ItemResource> taken = ResourceHandlerUtil.extractFirst(this.items, resource -> true, Integer.MAX_VALUE, transaction);
+            if (taken == null) {
+                return InteractionResult.PASS;
+            }
+            PlayerInventoryWrapper.of(player).placeItemBackInInventory(taken.resource(), taken.amount(), transaction);
             transaction.commit();
         }
-        player.getInventory().placeItemBackInInventory(taken);
         return InteractionResult.SUCCESS;
     }
 
@@ -251,18 +267,17 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     }
 
     private void tryStartDissolve() {
-        ItemStack stack = this.getStack();
-        if (stack.isEmpty() || this.getWater() <= 0) {
+        if (this.items.getResource(0).isEmpty() || this.getWater() <= 0) {
             return;
         }
 
-        Optional<RecipeHolder<LibationRecipe>> recipe = LibationUtils.libation(this.level, stack);
-        if (recipe.isEmpty() || !this.canDissolve(recipe.get().value().principles())) {
+        RecipeHolder<LibationRecipe> recipe = this.dissolveRecipe();
+        if (recipe == null || !this.canDissolve(recipe.value().principles())) {
             return;
         }
         this.dissolveSlot = 0;
         this.dissolve.restart();
-        this.dissolveColor = recipe.get().value().principles().blendedColor();
+        this.dissolveColor = recipe.value().principles().blendedColor();
         this.sync.syncNow();
     }
 
@@ -271,17 +286,16 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
      * Runs as the completion of the dissolve progress, which syncs the result afterwards.
      */
     private void finishDissolve() {
-        ItemStack stack = this.getStack();
-        Optional<RecipeHolder<LibationRecipe>> recipe = LibationUtils.libation(this.level, stack);
+        RecipeHolder<LibationRecipe> recipe = this.dissolveRecipe();
 
-        if (stack.isEmpty() || recipe.isEmpty() || !this.canDissolve(recipe.get().value().principles())) {
+        if (this.items.getResource(0).isEmpty() || recipe == null || !this.canDissolve(recipe.value().principles())) {
             this.dissolveSlot = NO_SLOT;
             return;
         }
 
-        PrincipleContents principles = recipe.get().value().principles();
+        PrincipleContents principles = recipe.value().principles();
         try (Transaction transaction = Transaction.open(null)) {
-            this.items.extract(0, ItemResource.of(stack), 1, transaction);
+            this.items.extract(0, this.items.getResource(0), 1, transaction);
             this.water.extract(0, FluidResource.of(Fluids.WATER), waterCost(principles), transaction);
             for (PrincipleStack principleStack : principles.stacks()) {
                 this.stored.insert(FluidRegistry.resourceFor(principleStack.principle()), principleStack.amount(), transaction);
@@ -292,6 +306,17 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         this.dissolveSlot = NO_SLOT;
 
         this.level.playSound(null, this.worldPosition, SoundRegistry.LIBATION_SLAB_DISSOLVE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+    }
+
+    /**
+     * @return the libation recipe of the stack on the slab, or null. Looked up only when the stack changed or the recipes
+     * reloaded, see {@link RecipeCache}.
+     */
+    private @Nullable RecipeHolder<LibationRecipe> dissolveRecipe() {
+        ItemStack stack = this.getStack();
+        return this.dissolveRecipe.get(this.level, () -> stack.isEmpty()
+                ? Optional.empty()
+                : LibationUtils.libation(this.level, stack));
     }
 
     /**
@@ -327,11 +352,12 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.items.deserialize(input.childOrEmpty("items"));
+        this.dissolveRecipe.invalidate();
         this.water.deserialize(input.childOrEmpty("water"));
         this.dissolveSlot = input.getIntOr("dissolve_slot", NO_SLOT);
         this.dissolve.load(input);
         this.dissolveColor = input.getIntOr("dissolve_color", PrincipleContents.DEFAULT_COLOR);
-        input.read("stored", PrincipleContents.CODEC).ifPresent(this.stored::set);
+        this.stored.deserialize(input.childOrEmpty("stored"));
         this.drain.load(input);
     }
 
@@ -343,7 +369,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         output.putInt("dissolve_slot", this.dissolveSlot);
         this.dissolve.save(output, this.level != null ? this.level.getGameTime() : 0L);
         output.putInt("dissolve_color", this.dissolveColor);
-        output.store("stored", PrincipleContents.CODEC, this.stored.contents());
+        this.stored.serialize(output.child("stored"));
         this.drain.save(output);
     }
 
@@ -363,6 +389,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
 
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
+            LibationSlabBlockEntity.this.dissolveRecipe.invalidate();
             LibationSlabBlockEntity.this.sync.syncNow();
         }
     }

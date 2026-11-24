@@ -10,6 +10,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
 import com.klikli_dev.principiamagica.content.libation.ProgressTracker;
+import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
@@ -20,11 +21,6 @@ import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.FluidRegistry;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
@@ -38,14 +34,29 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
+import net.neoforged.neoforge.transfer.resource.ResourceStack;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
 /**
  * Receives principles from the drain target and steeps the single item it holds once the principles are sufficient.
  * <p>
+ * The item lives in an {@link ItemStacksResourceHandler} that only accepts steepable items. Players, hoppers and pipes all
+ * go through the same handler, so they follow the same rules. Taking the item out in any way resets the steeping.
+ * <p>
  * Steeping takes the time of the recipe. The progress advances by one per tick while the item and the principles match a
- * recipe, and resets otherwise. Clients interpolate the progress between syncs, see {@link #getDisplayProgress}.
+ * recipe, and resets otherwise. The matched recipe is cached and only looked up again when the item or the principles change.
+ * Clients interpolate the progress between syncs, see {@link #getDisplayProgress}.
  * Completed steeping is notified to clients via {@link #EVENT_STEEP} through {@code level.blockEvent}, see {@link #triggerEvent}.
  */
 public class CatchTroughBlockEntity extends LibationBlockEntity implements PrincipleContainer {
@@ -53,23 +64,31 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
     public static final int EVENT_STEEP = 1;
 
     private final SyncThrottle sync = new SyncThrottle(this);
-    private final PrincipleStorage principles = new PrincipleStorage(CAPACITY, this.sync);
+    private final PrincipleStorage principles = new PrincipleStorage(CAPACITY, this.sync, this::onPrinciplesChanged);
+    private final ItemStacksResourceHandler items = new ItemHandler();
     /**
-     * The steeping of the held item. Its progress is reset whenever the item or the principles no longer match a recipe.
+     * The steeping of the held item. Its progress is reset whenever the item changes.
      */
     private final ProgressTracker steeping = new ProgressTracker(this.sync);
+    /**
+     * The steeping recipe of the held item and the principles.
+     */
+    private final RecipeCache<SteepingRecipe> steepingRecipe = new RecipeCache<>();
     /**
      * Client-only: the principles shown, eased towards the synced principles, see {@link #getDisplayedPrinciples}.
      */
     private final AmountSmoother displayedPrinciples = new AmountSmoother();
-    private ItemStack item = ItemStack.EMPTY;
 
     public CatchTroughBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityTypeRegistry.CATCH_TROUGH.get(), pos, state);
     }
 
+    /**
+     * @return the item held by the trough, or empty.
+     */
     public ItemStack getItem() {
-        return this.item;
+        ItemResource resource = this.items.getResource(0);
+        return resource.isEmpty() ? ItemStack.EMPTY : resource.toStack(this.items.getAmountAsInt(0));
     }
 
     /**
@@ -101,6 +120,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
 
     public static void onRegisterCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, BlockEntityTypeRegistry.CATCH_TROUGH.get(), (trough, side) -> trough.principles);
+        event.registerBlockEntity(Capabilities.Item.BLOCK, BlockEntityTypeRegistry.CATCH_TROUGH.get(), (trough, side) -> trough.items);
     }
 
     @Override
@@ -113,6 +133,10 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
         return this.principles.insert(offered, simulate);
     }
 
+    /**
+     * Moves one item from the hand into the item handler. The handler decides whether the item is steepable, the same way it
+     * does for pipes.
+     */
     @Override
     public InteractionResult useItemOn(ItemStack held, Player player, InteractionHand hand) {
         if (held.isEmpty()) {
@@ -122,29 +146,35 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
             return InteractionResult.SUCCESS;
         }
 
-        if (this.item.isEmpty() && LibationUtils.isSteepable(this.level, held)) {
-            this.item = held.copyWithCount(1);
-            this.steeping.restart();
-            held.shrink(1);
-            this.sync.syncNow();
-            return InteractionResult.SUCCESS;
+        ResourceHandler<ItemResource> handHandler = PlayerInventoryWrapper.of(player).getHandSlot(hand);
+        int moved;
+        try (Transaction transaction = Transaction.open(null)) {
+            moved = ResourceHandlerUtil.move(handHandler, this.items, resource -> true, 1, transaction);
+            transaction.commit();
         }
-        return InteractionResult.PASS;
+        return moved > 0 ? InteractionResult.SUCCESS : InteractionResult.PASS;
     }
 
+    /**
+     * Takes the held item back into the player's inventory, through the item handler like pipes do.
+     */
     @Override
     public InteractionResult useWithoutItem(Player player) {
-        if (!player.getMainHandItem().isEmpty() || this.item.isEmpty()) {
+        if (!player.getMainHandItem().isEmpty() || this.items.getResource(0).isEmpty()) {
             return InteractionResult.PASS;
         }
         if (this.level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
-        player.getInventory().placeItemBackInInventory(this.item);
-        this.item = ItemStack.EMPTY;
-        this.steeping.restart();
-        this.sync.syncNow();
+        try (Transaction transaction = Transaction.open(null)) {
+            ResourceStack<ItemResource> taken = ResourceHandlerUtil.extractFirst(this.items, resource -> true, Integer.MAX_VALUE, transaction);
+            if (taken == null) {
+                return InteractionResult.PASS;
+            }
+            PlayerInventoryWrapper.of(player).placeItemBackInInventory(taken.resource(), taken.amount(), transaction);
+            transaction.commit();
+        }
         return InteractionResult.SUCCESS;
     }
 
@@ -161,26 +191,42 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
      * by the result and exactly the recipe principles are consumed.
      */
     private void tickSteeping() {
-        Optional<RecipeHolder<SteepingRecipe>> recipe = this.item.getCount() == 1
-                ? LibationUtils.steeping(this.level, this.item, this.principles.contents())
-                : Optional.empty();
-        if (recipe.isEmpty()) {
+        RecipeHolder<SteepingRecipe> recipe = this.steepingRecipe();
+        if (recipe == null) {
             this.steeping.stop();
             return;
         }
 
-        SteepingRecipe steep = recipe.get().value();
+        SteepingRecipe steep = recipe.value();
         this.steeping.advance(1.0F, steep.time(), () -> {
-            this.item = steep.assemble(new SteepingRecipeInput(this.item, this.principles.contents()));
+            ItemStack result = steep.assemble(new SteepingRecipeInput(this.getItem(), this.principles.contents()));
             try (Transaction tx = Transaction.open(null)) {
                 for (PrincipleStack stack : steep.principles().stacks()) {
                     this.principles.extract(FluidRegistry.resourceFor(stack.principle()), stack.amount(), tx);
                 }
                 tx.commit();
             }
+            // The result is usually not steepable, so it cannot go through insert, which would refuse it.
+            this.items.set(0, ItemResource.of(result), result.getCount());
             this.level.playSound(null, this.worldPosition, SoundRegistry.CATCH_TROUGH_STEEP.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             this.level.blockEvent(this.worldPosition, this.getBlockState().getBlock(), EVENT_STEEP, steep.principles().blendedColor());
         });
+    }
+
+    /**
+     * @return the steeping recipe of the held item and the principles, or null. Only a single item steeps: a steeping that
+     * yields several items leaves them as they are until they are taken out. Looked up only when the item or the principles
+     * changed, or the recipes reloaded, see {@link RecipeCache}.
+     */
+    private @Nullable RecipeHolder<SteepingRecipe> steepingRecipe() {
+        ItemStack item = this.getItem();
+        return this.steepingRecipe.get(this.level, () -> item.getCount() != 1
+                ? Optional.empty()
+                : LibationUtils.steeping(this.level, item, this.principles.contents()));
+    }
+
+    private void onPrinciplesChanged() {
+        this.steepingRecipe.invalidate();
     }
 
     @Override
@@ -193,7 +239,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        this.dropItem(this.item);
+        this.dropItem(this.getItem());
     }
 
     @Override
@@ -211,17 +257,44 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        this.item = input.read("item", ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY);
-        input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
+        this.items.deserialize(input.childOrEmpty("items"));
+        this.principles.deserialize(input.childOrEmpty("principles"));
         this.steeping.load(input);
+        this.steepingRecipe.invalidate();
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store("item", ItemStack.OPTIONAL_CODEC, this.item);
-        output.store("principles", PrincipleContents.CODEC, this.principles.contents());
+        this.items.serialize(output.child("items"));
+        this.principles.serialize(output.child("principles"));
         this.steeping.save(output, this.level != null ? this.level.getGameTime() : 0L);
     }
 
+    /**
+     * Holds one steepable item. Its contents change at once, as the item is visible and its progress restarts with it.
+     */
+    private final class ItemHandler extends ItemStacksResourceHandler {
+        private ItemHandler() {
+            super(1);
+        }
+
+        @Override
+        public boolean isValid(int index, ItemResource resource) {
+            return CatchTroughBlockEntity.this.level != null
+                    && LibationUtils.isSteepable(CatchTroughBlockEntity.this.level, resource.toStack());
+        }
+
+        @Override
+        protected int getCapacity(int index, ItemResource resource) {
+            return 1;
+        }
+
+        @Override
+        protected void onContentsChanged(int index, ItemStack previousContents) {
+            CatchTroughBlockEntity.this.steepingRecipe.invalidate();
+            CatchTroughBlockEntity.this.steeping.restart();
+            CatchTroughBlockEntity.this.sync.syncNow();
+        }
+    }
 }

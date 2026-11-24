@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.libation.LibationBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleDrain;
 import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
+import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
@@ -40,8 +41,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Optional;
-
 /**
  * Holds principles and cures them into compound principles. Drains through an open spout into the drain target below the
  * spout, at the rate of {@link LibationFlow}. What the vessel is, is defined by its {@link VesselProperties}.
@@ -64,11 +63,16 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
      * The id of the recipe the progress belongs to. Saved with the progress, so that a reload does not reset it.
      */
     private @Nullable ResourceKey<Recipe<?>> activeRecipe;
+    /**
+     * The curing recipe of the principles in the vessel. The environment is fixed by the vessel, so only the principles can
+     * change the recipe.
+     */
+    private final RecipeCache<CuringRecipe> curingRecipe = new RecipeCache<>();
 
     public CuringVesselBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, VesselProperties vessel) {
         super(type, pos, state);
         this.vessel = vessel;
-        this.principles = new PrincipleStorage(vessel.capacity(), this.sync);
+        this.principles = new PrincipleStorage(vessel.capacity(), this.sync, this::onPrinciplesChanged);
         this.drain = new PrincipleDrain(this.principles, this.sync);
     }
 
@@ -143,13 +147,12 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
             return;
         }
 
-        Optional<RecipeHolder<CuringRecipe>> found = LibationUtils.curing(level, this.principles.contents(), this.vessel.environment());
-        if (found.isEmpty()) {
+        RecipeHolder<CuringRecipe> holder = this.curingRecipe(level);
+        if (holder == null) {
             this.resetCuring();
             return;
         }
 
-        RecipeHolder<CuringRecipe> holder = found.get();
         CuringRecipe recipe = holder.value();
         if (!holder.id().equals(this.activeRecipe)) {
             this.activeRecipe = holder.id();
@@ -177,6 +180,18 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
         } else {
             this.sync.requestSync();
         }
+    }
+
+    /**
+     * @return the curing recipe of the principles, or null. Looked up only when the principles changed or the recipes reloaded,
+     * see {@link RecipeCache}.
+     */
+    private @Nullable RecipeHolder<CuringRecipe> curingRecipe(Level level) {
+        return this.curingRecipe.get(level, () -> LibationUtils.curing(level, this.principles.contents(), this.vessel.environment()));
+    }
+
+    private void onPrinciplesChanged() {
+        this.curingRecipe.invalidate();
     }
 
     /**
@@ -247,7 +262,8 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
+        this.principles.deserialize(input.childOrEmpty("principles"));
+        this.curingRecipe.invalidate();
         this.progress = input.getIntOr("progress", 0);
         this.activeRecipe = input.read("active_recipe", RECIPE_ID_CODEC).orElse(null);
         this.curing = input.getBooleanOr("curing", false);
@@ -257,7 +273,7 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store("principles", PrincipleContents.CODEC, this.principles.contents());
+        this.principles.serialize(output.child("principles"));
         output.putInt("progress", this.progress);
         if (this.activeRecipe != null) {
             output.store("active_recipe", RECIPE_ID_CODEC, this.activeRecipe);
