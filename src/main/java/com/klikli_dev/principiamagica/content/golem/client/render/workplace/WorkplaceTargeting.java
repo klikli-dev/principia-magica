@@ -316,6 +316,20 @@ public class WorkplaceTargeting {
      */
     @Nullable
     public static TargetedContainer targetedContainer(Minecraft minecraft) {
+        return findContainer(minecraft, false);
+    }
+
+    /**
+     * The container under the crosshair while a corner is pending too. The click does not act on it then, but the HUD shows what the
+     * sneak-click does, so it uses this. Clicks use {@link #targetedContainer}.
+     */
+    @Nullable
+    public static TargetedContainer containerAtCrosshair(Minecraft minecraft) {
+        return findContainer(minecraft, true);
+    }
+
+    @Nullable
+    private static TargetedContainer findContainer(Minecraft minecraft, boolean allowPending) {
         Player player = minecraft.player;
         ClientLevel level = minecraft.level;
         if (player == null || level == null || minecraft.screen != null) {
@@ -323,7 +337,7 @@ public class WorkplaceTargeting {
         }
 
         ItemStack stylus = heldStylus(player);
-        if (stylus == null || pendingGlyph(stylus, level) != null) {
+        if (stylus == null || (!allowPending && pendingGlyph(stylus, level) != null)) {
             return null;
         }
 
@@ -333,7 +347,7 @@ public class WorkplaceTargeting {
         }
 
         BlockHitResult hovered = hoveredHit(minecraft);
-        TargetedLink link = targetedLink(minecraft);
+        TargetedLink link = findLink(minecraft, allowPending);
         if (link != null) {
             BlockPos pos = link.link().pos();
             Direction face = hovered != null && hovered.getBlockPos().equals(pos) ? hovered.getDirection() : Direction.UP;
@@ -357,6 +371,11 @@ public class WorkplaceTargeting {
 
     @Nullable
     public static TargetedLink targetedLink(Minecraft minecraft) {
+        return findLink(minecraft, false);
+    }
+
+    @Nullable
+    private static TargetedLink findLink(Minecraft minecraft, boolean allowPending) {
         Player player = minecraft.player;
         ClientLevel level = minecraft.level;
         if (player == null || level == null || minecraft.screen != null) {
@@ -364,7 +383,7 @@ public class WorkplaceTargeting {
         }
 
         ItemStack stylus = heldStylus(player);
-        if (stylus == null || pendingGlyph(stylus, level) != null) {
+        if (stylus == null || (!allowPending && pendingGlyph(stylus, level) != null)) {
             return null;
         }
 

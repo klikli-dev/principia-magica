@@ -84,7 +84,8 @@ public class StylusHud {
             return;
         }
 
-        TargetedContainer container = WorkplaceTargeting.targetedContainer(minecraft);
+        // Also while a corner is pending, so the sneak-click unlink hint of a linked container is shown
+        TargetedContainer container = WorkplaceTargeting.containerAtCrosshair(minecraft);
         if (container != null) {
             Component status = container.role() == null
                     ? Component.translatable("hud.principiamagica.stylus.not_linked")
