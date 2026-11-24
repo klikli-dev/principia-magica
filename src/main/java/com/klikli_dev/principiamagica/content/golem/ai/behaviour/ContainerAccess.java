@@ -37,6 +37,14 @@ public final class ContainerAccess {
     }
 
     /**
+     * Whether a link counts as a usable container for the status checks. An unloaded position is not judged and counts as usable, the same
+     * as the retained-link rule of the stylus pruning. The check never loads a chunk: a loaded position needs an item handler.
+     */
+    public static boolean isUsable(ServerLevel level, ContainerLink link) {
+        return !level.isLoaded(link.pos()) || itemHandler(level, link) != null;
+    }
+
+    /**
      * @return whether the block at pos exposes an item handler on at least one side. A block that was broken or replaced has none.
      * A handler without a side cannot be linked, as links always query a side.
      */

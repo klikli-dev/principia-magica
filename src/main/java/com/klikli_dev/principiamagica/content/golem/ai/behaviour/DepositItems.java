@@ -167,7 +167,7 @@ public class DepositItems extends MoveToAndInteract {
 
     private boolean hasDepositChest(ServerLevel level, GolemEntity golem) {
         return golem.getWorkplace(level).map(workplace -> workplace.links().stream()
-                .anyMatch(link -> link.role().canDeposit() && ContainerAccess.itemHandler(level, link) != null)).orElse(false);
+                .anyMatch(link -> link.role().canDeposit() && ContainerAccess.isUsable(level, link))).orElse(false);
     }
 
     /**

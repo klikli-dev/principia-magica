@@ -158,7 +158,7 @@ public class GolemAi {
         return golem.getSpec().job().isPresent()
                 && DepositItems.carriesExcess(golem)
                 && golem.getWorkplace(level).map(workplace -> workplace.links().stream()
-                .noneMatch(link -> link.role().canDeposit() && ContainerAccess.itemHandler(level, link) != null)).orElse(true);
+                .noneMatch(link -> link.role().canDeposit() && ContainerAccess.isUsable(level, link))).orElse(true);
     }
 
     private static List<ActivityData<GolemEntity>> createActivities(GolemEntity body) {
