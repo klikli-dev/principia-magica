@@ -23,6 +23,9 @@ public class PrincipiaEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
+        this.scribePage("scribe",
+                "In the beginning the gods laboured, and the labour was heavy. They dug the rivers. They bore the baskets. And they wept beneath the weight.");
+
         this.notebookPage("notebook",
                 "The clay by the river bears marks: wedges, rows of them, too regular to be chance. I have started copying them here. If they are words, someone meant them to last.");
 
@@ -32,9 +35,6 @@ public class PrincipiaEntry extends PrincipiaEntryProvider {
         this.stage("book", s -> s
                 .title("The Principia")
                 .obtain(ItemRegistry.PRINCIPIA.get()));
-
-        this.scribePage("scribe",
-                "In the beginning the gods laboured, and the labour was heavy. They dug the rivers. They bore the baskets. And they wept beneath the weight.");
     }
 
     @Override

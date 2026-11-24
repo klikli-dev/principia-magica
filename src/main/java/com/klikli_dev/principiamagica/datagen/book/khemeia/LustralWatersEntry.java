@@ -29,12 +29,12 @@ public class LustralWatersEntry extends PrincipiaEntryProvider {
         this.scribePage("scribe",
                 "Beyond the black and the light the tablets name further waters, eight of them, mixed from what the Primals and the compounds already give. The scribe wrote their names and left the rest of the recipe blank.");
 
+        this.notebookPage("notebook",
+                "I cannot make them yet, and I do not know what they are for. I will write down whatever I learn of them here, and nothing I have not yet seen.");
+
         this.stage("finished_axiom", s -> s
                 .title("A finished axiom")
                 .obtain(AxiomItem.AXIOMS));
-
-        this.notebookPage("notebook",
-                "I cannot make them yet, and I do not know what they are for. I will write down whatever I learn of them here, and nothing I have not yet seen.");
     }
 
     @Override

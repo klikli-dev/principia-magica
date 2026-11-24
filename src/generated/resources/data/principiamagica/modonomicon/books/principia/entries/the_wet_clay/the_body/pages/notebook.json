@@ -1,9 +1,7 @@
 {
   "type": "modonomicon:text",
   "condition": {
-    "type": "modonomicon:research_stage_completed",
-    "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_body",
-    "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_the_body/stages/clay_that_stands"
+    "type": "modonomicon:none"
   },
   "id": "notebook",
   "show_title_separator": true,

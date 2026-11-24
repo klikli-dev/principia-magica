@@ -26,6 +26,9 @@ public class StylusEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
+        this.scribePage("scribe",
+                "The reed is cut, the clay is wet, the word goes in. What is pressed in the clay does not leave it.");
+
         this.notebookPage("notebook",
                 "A cut reed would do, but copper holds its edge. With this I can carve the clay, and, if the tablets are right, command what the clay holds.");
 
@@ -35,9 +38,6 @@ public class StylusEntry extends PrincipiaEntryProvider {
         this.stage("wedge", s -> s
                 .title("A wedge of copper")
                 .craft(ItemRegistry.COPPER_STYLUS.get()));
-
-        this.scribePage("scribe",
-                "The reed is cut, the clay is wet, the word goes in. What is pressed in the clay does not leave it.");
 
         this.page("uses", () -> BookTextPageModel.create()
                 .withTitle(this.context().pageTitle())

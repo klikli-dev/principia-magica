@@ -26,6 +26,14 @@ public class PurposeEntry extends PrincipiaEntryProvider {
         this.scribePage("scribe",
                 "Let him bear the toil of the gods. Let him bear the basket.");
 
+        this.notebookPage("notebook",
+                "I pressed the axiom against its chest and the clay took it like a mouth. It went to the field at once. It has not looked at me since.");
+
+        this.stage("purpose", s -> s
+                .fact(PrincipiaResearch.GOLEM_GIVEN_AXIOM)
+                .title("A law given")
+                .icon(ItemRegistry.AXIOM_OF_HARVEST.get()));
+
         this.page("giving", () -> BookTextPageModel.create()
                 .withTitle(this.context().pageTitle())
                 .withText(this.context().pageText()));
@@ -34,14 +42,6 @@ public class PurposeEntry extends PrincipiaEntryProvider {
                 Hold an axiom and right-click your golem. The axiom sinks into the clay and is spent. A golem that holds an axiom is no longer purposeless: it sets to work at once.
                 """
         );
-
-        this.stage("purpose", s -> s
-                .fact(PrincipiaResearch.GOLEM_GIVEN_AXIOM)
-                .title("A law given")
-                .icon(ItemRegistry.AXIOM_OF_HARVEST.get()));
-
-        this.notebookPage("notebook",
-                "I pressed the axiom against its chest and the clay took it like a mouth. It went to the field at once. It has not looked at me since.");
 
         this.page("modes", () -> BookTextPageModel.create()
                 .withTitle(this.context().pageTitle())

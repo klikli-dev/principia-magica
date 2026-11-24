@@ -24,15 +24,15 @@ public class SomethingRemainsEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
-        this.stage("rotten_flesh", s -> s
-                .title("Rotten flesh")
-                .obtain(Items.ROTTEN_FLESH));
-
         this.scribePage("scribe",
                 "Something of life is left in the flesh of the dead. The tablets do not say it is good. They say only that it remembers, and that the clay will want it.");
 
         this.notebookPage("notebook",
                 "Rotten flesh is no food. But the dead keep something in it, and the tablets speak of flesh and clay in the same breath. I have been wondering whether one needs the other. I will look for it where the light does not reach.");
+
+        this.stage("rotten_flesh", s -> s
+                .title("Rotten flesh")
+                .obtain(Items.ROTTEN_FLESH));
     }
 
     @Override

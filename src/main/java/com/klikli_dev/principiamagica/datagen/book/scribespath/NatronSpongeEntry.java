@@ -23,6 +23,9 @@ public class NatronSpongeEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
+        this.scribePage("scribe",
+                "The salt of the valley is dried out of the ground. Press the sponge to the water and the water gives up what it carries. The tablets give no more instruction than that.");
+
         this.notebookPage("notebook",
                 "Natron draws the wet out of things. I can soak up one Principle at a time from a vessel, or clear a vessel of everything it holds. It is reusable, so one sponge serves many vessels.");
 
@@ -32,9 +35,6 @@ public class NatronSpongeEntry extends PrincipiaEntryProvider {
 
         this.recipeTab("recipe", "Natron Sponge", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("natron_sponge")));
-
-        this.scribePage("scribe",
-                "The salt of the valley is dried out of the ground. Press the sponge to the water and the water gives up what it carries. The tablets give no more instruction than that.");
 
         this.infoPage("using", "Using the Sponge", """
                 Right-click a Principle container to blot out the Principle selected on the HUD. Crouch-right-click it to purge every Principle it holds.

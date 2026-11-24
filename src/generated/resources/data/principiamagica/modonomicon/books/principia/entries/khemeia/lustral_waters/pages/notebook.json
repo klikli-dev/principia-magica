@@ -1,9 +1,7 @@
 {
   "type": "modonomicon:text",
   "condition": {
-    "type": "modonomicon:research_stage_completed",
-    "node_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_lustral_waters",
-    "stage_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_lustral_waters/stages/finished_axiom"
+    "type": "modonomicon:none"
   },
   "id": "notebook",
   "show_title_separator": true,

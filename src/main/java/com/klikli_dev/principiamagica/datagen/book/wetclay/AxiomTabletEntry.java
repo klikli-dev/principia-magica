@@ -23,6 +23,9 @@ public class AxiomTabletEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
+        this.scribePage("scribe",
+                "The tablet is pressed flat and left wet. Its law is not yet written, and the clay will keep whatever is carved into it.");
+
         this.notebookPage("notebook",
                 "A blank tablet, pressed from quickened clay and held together with a stylus. The scribe treats wet clay as something that *listens*.");
 
@@ -32,9 +35,6 @@ public class AxiomTabletEntry extends PrincipiaEntryProvider {
 
         this.recipeTab("recipe", "Axiom Tablet", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("axiom_tablet")));
-
-        this.scribePage("scribe",
-                "The tablet is pressed flat and left wet. Its law is not yet written, and the clay will keep whatever is carved into it.");
     }
 
     @Override

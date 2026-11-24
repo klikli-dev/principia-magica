@@ -28,6 +28,9 @@ public class TheBodyEntry extends PrincipiaEntryProvider {
         this.scribePage("scribe",
                 "Fourteen pieces of clay she pinched off. Seven on the right, seven on the left. Between them she set the brick.");
 
+        this.notebookPage("notebook",
+                "Wood for the bones, quickened clay for the sinews. When I set it down it turned its head toward me. Nothing more. It does not know what it is for. It only knows that I am here.");
+
         this.recipeTab("recipe", "Wooden Golem", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("golem/wood")));
 
@@ -35,9 +38,6 @@ public class TheBodyEntry extends PrincipiaEntryProvider {
                 .fact(PrincipiaResearch.GOLEM_PLACED)
                 .title("Clay that stands")
                 .icon(ItemRegistry.GOLEM.get()));
-
-        this.notebookPage("notebook",
-                "Wood for the bones, quickened clay for the sinews. When I set it down it turned its head toward me. Nothing more. It does not know what it is for. It only knows that I am here.");
 
         this.page("placing", () -> BookTextPageModel.create()
                 .withTitle(this.context().pageTitle())

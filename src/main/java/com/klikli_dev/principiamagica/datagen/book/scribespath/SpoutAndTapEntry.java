@@ -23,6 +23,9 @@ public class SpoutAndTapEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
+        this.scribePage("scribe",
+                "The water runs down the carved lip and into the cup below. Whatever the water took from the offering, it carries on to the vessel.");
+
         this.notebookPage("notebook",
                 "A spout carries the water off the slab, and a tap lets a vessel drain. Both are small blocks that sit beside the block they serve, and they both open and close with an empty hand.");
 
@@ -35,9 +38,6 @@ public class SpoutAndTapEntry extends PrincipiaEntryProvider {
 
         this.recipeTab("tap_recipe", "Vessel Tap", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("vessel_tap")));
-
-        this.scribePage("scribe",
-                "The water runs down the carved lip and into the cup below. Whatever the water took from the offering, it carries on to the vessel.");
 
         this.infoPage("spout", "The Libation Spout", """
                 Place the spout on a side of the slab. It faces away from the slab. An empty-hand click opens or closes it, and so does a redstone signal.

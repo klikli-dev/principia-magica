@@ -25,6 +25,9 @@ public class CatchTroughEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
+        this.scribePage("scribe",
+                "The trough takes the run-off, and in the run-off the clay listens. Let it hold one thing at a time, and let that thing be changed.");
+
         this.notebookPage("notebook",
                 "A clay trough set in front of the spout, where the run-off collects. It is where the water's Principles meet what I put in it.");
 
@@ -34,9 +37,6 @@ public class CatchTroughEntry extends PrincipiaEntryProvider {
 
         this.recipeTab("recipe", "Catch Trough", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("catch_trough")));
-
-        this.scribePage("scribe",
-                "The trough takes the run-off, and in the run-off the clay listens. Let it hold one thing at a time, and let that thing be changed.");
 
         this.infoPage("holding", "Holding and Steeping",
                 "The trough holds one item and up to 500 mB of Principles. It takes only items that a steeping recipe uses, and an empty hand takes the item back out.\n"

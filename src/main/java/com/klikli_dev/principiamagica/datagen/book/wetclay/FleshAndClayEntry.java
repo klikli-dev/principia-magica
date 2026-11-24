@@ -23,6 +23,9 @@ public class FleshAndClayEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
+        this.scribePage("scribe",
+                "They slew We-ila, the god who had reason. In his flesh and blood they mixed the clay. From his flesh came the ghost, and the ghost remembered. So man was made, to bear the basket in the gods' place.");
+
         this.notebookPage("notebook",
                 "Clay holds a law, but law alone does not move. The old makers mixed in flesh: a god's, if the tablet is to be believed. I have only what the dead leave behind. It will have to do. I would rather not think about what the clay remembers of it.");
 
@@ -32,9 +35,6 @@ public class FleshAndClayEntry extends PrincipiaEntryProvider {
 
         this.infoPage("steeping", "Quickened Clay", "The flesh is given to the clay by steeping. Clay balls and unguent are steeped together in a Catch Trough, see "
                 + this.entryLink("Quickened Clay", KhemeiaCategoryProvider.CATEGORY_ID, QuickenedClayEntry.ENTRY_ID) + ".");
-
-        this.scribePage("scribe",
-                "They slew We-ila, the god who had reason. In his flesh and blood they mixed the clay. From his flesh came the ghost, and the ghost remembered. So man was made, to bear the basket in the gods' place.");
     }
 
     @Override

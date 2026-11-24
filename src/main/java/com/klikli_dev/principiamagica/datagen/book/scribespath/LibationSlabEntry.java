@@ -23,6 +23,9 @@ public class LibationSlabEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
+        this.scribePage("scribe",
+                "They set the bread and the beer on the stone, and the priest poured the water after them. The gods took the essence of the offering, and the stone kept the rest.");
+
         this.notebookPage("notebook",
                 "An offering table with a carved spout, like the ones in the temples. I set things on it and pour water over them, and what the water takes from them is what I am after.");
 
@@ -32,9 +35,6 @@ public class LibationSlabEntry extends PrincipiaEntryProvider {
 
         this.recipeTab("recipe", "Libation Slab", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("libation_slab")));
-
-        this.scribePage("scribe",
-                "They set the bread and the beer on the stone, and the priest poured the water after them. The gods took the essence of the offering, and the stone kept the rest.");
 
         this.infoPage("washing", "Washing Offerings", """
                 Right-click the slab with an item that can be washed to put it on the slab, as much as fits. An empty hand takes the stack back, unless an item is already dissolving.
