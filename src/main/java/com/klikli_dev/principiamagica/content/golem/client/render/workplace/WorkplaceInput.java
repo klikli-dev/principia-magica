@@ -17,8 +17,10 @@ import com.klikli_dev.principiamagica.network.messages.MessageTargetLink;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.client.event.InputEvent;
 
 /**
@@ -78,7 +80,7 @@ public class WorkplaceInput {
             if (linkedContainer) {
                 event.setCanceled(true);
                 event.setSwingHand(true);
-                Networking.sendToServer(new MessageTargetLink(link.golemId(), link.link().pos(), true));
+                Networking.sendToServer(new MessageTargetLink(link.golemId(), link.link().pos(), clickedFace(minecraft), true));
                 return;
             }
 
@@ -100,8 +102,16 @@ public class WorkplaceInput {
         } else if (linkedContainer) {
             event.setCanceled(true);
             event.setSwingHand(true);
-            Networking.sendToServer(new MessageTargetLink(link.golemId(), link.link().pos(), false));
+            Networking.sendToServer(new MessageTargetLink(link.golemId(), link.link().pos(), clickedFace(minecraft), false));
         }
+    }
+
+    /**
+     * @return the face of the crosshair block, or up when aiming at air
+     */
+    private static Direction clickedFace(Minecraft minecraft) {
+        BlockHitResult hovered = WorkplaceTargeting.hoveredHit(minecraft);
+        return hovered == null ? Direction.UP : hovered.getDirection();
     }
 
     /**

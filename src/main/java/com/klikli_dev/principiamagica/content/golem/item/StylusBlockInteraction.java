@@ -51,34 +51,38 @@ final class StylusBlockInteraction {
         boolean container = linked || ContainerAccess.hasItemCapability(level, pos);
         boolean sneaking = player.isShiftKeyDown();
 
-        if (hasPending && !sneaking) {
-            placeCorner(level, player, stack, golem, workplace, pos, face);
-        } else if (container && sneaking) {
-            removeLink(level, player, golem, workplace, pos);
-        } else if (container) {
-            cycleLink(level, player, golem, workplace, pos, face);
-        } else if (sneaking) {
-            eraseFootprint(level, player, golem, workplace, pos);
-        } else {
-            placeCorner(level, player, stack, golem, workplace, pos, face);
+        switch (StylusClick.blockOutcome(hasPending, sneaking, container)) {
+            case PLACE_CORNER -> placeCorner(level, player, stack, golem, workplace, pos, face);
+            case REMOVE_LINK -> removeLink(level, player, golem, workplace, pos);
+            case CYCLE_LINK -> cycleLink(level, player, golem, workplace, pos, face);
+            case ERASE_FOOTPRINT -> eraseFootprint(level, player, golem, workplace, pos);
         }
 
         StylusItem.syncWorkplace(player, golem);
     }
 
     /**
-     * Acts on a link the player targeted without a block hit, e.g. a container that is gone. Plain cycles the link, sneaking removes it,
-     * exactly like clicking the linked position. The caller has validated the golem, the stylus and the reach.
+     * Acts on a container the player targeted, e.g. a container in the air or a block the client resolved. Exactly the click on that
+     * position: plain cycles the container link, sneaking removes it. Positions that are neither a container nor linked are refused, as
+     * the click would place a corner or erase a footprint instead. The caller has validated the golem, the stylus and the reach.
+     *
+     * @return whether the click acted on a container
      */
-    static void targetLink(ServerLevel level, ServerPlayer player, GolemEntity golem, BlockPos pos, boolean remove) {
+    static boolean targetLink(ServerLevel level, ServerPlayer player, GolemEntity golem, BlockPos pos, Direction face, boolean remove) {
         Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
-        if (remove) {
+        boolean linked = workplace.links().stream().anyMatch(link -> link.pos().equals(pos));
+        boolean container = linked || ContainerAccess.hasItemCapability(level, pos);
+        StylusClick.Outcome outcome = StylusClick.blockOutcome(false, remove, container);
+        if (outcome == StylusClick.Outcome.REMOVE_LINK) {
             removeLink(level, player, golem, workplace, pos);
+        } else if (outcome == StylusClick.Outcome.CYCLE_LINK) {
+            cycleLink(level, player, golem, workplace, pos, face);
         } else {
-            cycleLink(level, player, golem, workplace, pos, null);
+            return false;
         }
 
         StylusItem.syncWorkplace(player, golem);
+        return true;
     }
 
     private static void eraseFootprint(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos) {

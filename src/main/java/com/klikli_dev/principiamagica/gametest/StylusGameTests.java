@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions;
+import com.klikli_dev.principiamagica.content.golem.item.StylusClick;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditFailure;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.EditResult;
 import com.klikli_dev.principiamagica.content.golem.item.StylusActions.PickUpResult;
@@ -861,6 +862,66 @@ public class StylusGameTests {
     }
 
     /**
+     * The click outcome table of the stylus, and that the role a plain click sets next is the one the link cycle actually stores.
+     */
+    public static void stylusClickOutcomesAndRoleCycle(GameTestHelper helper) {
+        assertOutcome(helper, StylusClick.blockOutcome(true, false, true), StylusClick.Outcome.PLACE_CORNER, "A pending corner places the corner on a plain click, even on a container");
+        assertOutcome(helper, StylusClick.blockOutcome(true, true, true), StylusClick.Outcome.REMOVE_LINK, "A sneak click on a container removes its link, even with a pending corner");
+        assertOutcome(helper, StylusClick.blockOutcome(false, false, true), StylusClick.Outcome.CYCLE_LINK, "A plain click on a container cycles its link");
+        assertOutcome(helper, StylusClick.blockOutcome(false, true, true), StylusClick.Outcome.REMOVE_LINK, "A sneak click on a container removes its link");
+        assertOutcome(helper, StylusClick.blockOutcome(false, true, false), StylusClick.Outcome.ERASE_FOOTPRINT, "A sneak click elsewhere erases the footprint");
+        assertOutcome(helper, StylusClick.blockOutcome(false, false, false), StylusClick.Outcome.PLACE_CORNER, "A plain click elsewhere places a corner");
+
+        // The role a plain click sets next must be the one StylusActions.cycleLink stores, through the whole cycle back to removed
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Workplace workplace = Workplace.EMPTY;
+        ContainerRole expected = null;
+        for (int step = 0; step < 4; step++) {
+            ContainerRole next = StylusClick.nextRole(expected);
+            workplace = StylusActions.cycleLink(workplace, pos, Direction.UP);
+            ContainerRole stored = workplace.links().isEmpty() ? null : workplace.links().get(0).role();
+            helper.assertTrue(stored == next, "Step " + step + " should store " + next + ", got " + stored);
+            expected = next;
+        }
+
+        helper.succeed();
+    }
+
+    private static void assertOutcome(GameTestHelper helper, StylusClick.Outcome actual, StylusClick.Outcome expected, String message) {
+        helper.assertTrue(actual == expected, message + ", got " + actual);
+    }
+
+    /**
+     * Targeting an unlinked container links it like clicking it: plain click links it on the clicked face, sneaking on an unlinked container
+     * has nothing to remove, and a position that is neither a container nor linked is refused.
+     */
+    public static void targetedContainerLinksOnClickedFace(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        player.setPos(Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2))));
+
+        BlockPos chest = helper.absolutePos(new BlockPos(5, 2, 3));
+        helper.setBlock(new BlockPos(5, 2, 3), Blocks.CHEST);
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+
+        helper.assertTrue(StylusItem.targetLink(player, golem, chest, Direction.EAST, false), "Targeting a chest should act on it");
+        List<ContainerLink> links = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(links.size() == 1 && links.get(0).side() == Direction.EAST && links.get(0).role() == ContainerRole.SUPPLY,
+                "A plain target on a chest should link it as supply on the clicked face, got " + links);
+
+        helper.assertTrue(StylusItem.targetLink(player, golem, chest, Direction.EAST, true), "Sneak-targeting a linked chest should act on it");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().isEmpty(), "Sneak-targeting should unlink the chest");
+
+        helper.assertTrue(!StylusItem.targetLink(player, golem, helper.absolutePos(new BlockPos(9, 2, 9)), Direction.UP, false),
+                "A position that is neither a container nor linked should be refused");
+
+        helper.succeed();
+    }
+
+    /**
      * A link on a position without a container can be cycled and removed when the client targets it in the air. Only linked positions
      * are accepted, and only from a player who holds the selection, owns the golem, and is in range.
      */
@@ -879,17 +940,17 @@ public class StylusGameTests {
         stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
         player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
 
-        helper.assertTrue(!StylusItem.targetLink(player, golem, helper.absolutePos(new BlockPos(9, 2, 9)), false),
+        helper.assertTrue(!StylusItem.targetLink(player, golem, helper.absolutePos(new BlockPos(9, 2, 9)), Direction.UP, false),
                 "A position that is not a link should be refused");
-        helper.assertTrue(StylusItem.targetLink(player, golem, air, false), "A linked air position should be targetable");
+        helper.assertTrue(StylusItem.targetLink(player, golem, air, Direction.UP, false), "A linked air position should be targetable");
         List<ContainerLink> cycled = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
         helper.assertTrue(cycled.size() == 1 && cycled.get(0).role() == ContainerRole.DEPOSIT, "Targeting should cycle the link, got " + cycled);
-        helper.assertTrue(StylusItem.targetLink(player, golem, air, true), "A sneak-targeted air link should be removable");
+        helper.assertTrue(StylusItem.targetLink(player, golem, air, Direction.UP, true), "A sneak-targeted air link should be removable");
         helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().isEmpty(), "Removing should drop the link");
 
         golem.updateWorkplace(current -> Workplace.EMPTY.withLinks(List.of(new ContainerLink(air, Direction.UP, ContainerRole.SUPPLY))).markInitialized());
         player.setPos(near.add(100.0, 0.0, 0.0));
-        helper.assertTrue(!StylusItem.targetLink(player, golem, air, false), "A player out of stylus range should be refused");
+        helper.assertTrue(!StylusItem.targetLink(player, golem, air, Direction.UP, false), "A player out of stylus range should be refused");
         helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().get(0).role() == ContainerRole.SUPPLY,
                 "A refused target should not change the link");
 

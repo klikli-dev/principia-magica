@@ -15,6 +15,7 @@ import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -212,14 +213,19 @@ public class StylusItem extends Item {
     }
 
     /**
-     * Cycles (plain) or removes (sneaking) the container link at pos, for a link the client targeted without a block hit. Validates the same
-     * things as the other stylus edits: the player owns the golem, holds its selection in range, the position is one of the golem's links,
-     * and the position is in reach of the player's eyes.
+     * Cycles (plain) or removes (sneaking) the container at pos, for a container the client targeted, e.g. in the air or with the link
+     * already there. Validates the same things as the other stylus edits: the player owns the golem, holds its selection in range, the
+     * stylus has no pending corner, and the position is in reach of the player's eyes.
      *
-     * @return whether the link was acted on
+     * @return whether the container was acted on
      */
-    public static boolean targetLink(ServerPlayer player, GolemEntity golem, BlockPos pos, boolean remove) {
+    public static boolean targetLink(ServerPlayer player, GolemEntity golem, BlockPos pos, Direction face, boolean remove) {
         if (!player.getUUID().equals(golem.getOwnerUUID()) || !isWithinRange(player, golem) || !holdsSelection(player, golem)) {
+            return false;
+        }
+
+        Optional<ItemStack> stylus = heldSelectionStylus(player, golem);
+        if (stylus.isEmpty() || stylus.get().has(DataComponentRegistry.STYLUS_PENDING_GLYPH.get())) {
             return false;
         }
 
@@ -227,14 +233,7 @@ public class StylusItem extends Item {
             return false;
         }
 
-        ServerLevel level = (ServerLevel) golem.level();
-        boolean linked = golem.getWorkplace(level).orElse(Workplace.EMPTY).links().stream().anyMatch(link -> link.pos().equals(pos));
-        if (!linked) {
-            return false;
-        }
-
-        StylusBlockInteraction.targetLink(level, player, golem, pos, remove);
-        return true;
+        return StylusBlockInteraction.targetLink((ServerLevel) golem.level(), player, golem, pos, face, remove);
     }
 
     public static boolean isWithinRange(ServerPlayer player, GolemEntity golem) {

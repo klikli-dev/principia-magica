@@ -200,6 +200,12 @@ RIGHT_CLICK_BLOCK_SUPPRESSES_BLOCK_USE_WHEN_GOLEM_SELECTED =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LINK_TARGET_PICKS_NEAREST_BOX_AND_YIELDS_TO_BLOCKS =
             TEST_FUNCTIONS.register("link_target_picks_nearest_box_and_yields_to_blocks", () -> StylusGameTests::linkTargetPicksNearestBoxAndYieldsToBlocks);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> TARGETED_CONTAINER_LINKS_ON_CLICKED_FACE =
+            TEST_FUNCTIONS.register("targeted_container_links_on_clicked_face", () -> StylusGameTests::targetedContainerLinksOnClickedFace);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STYLUS_CLICK_OUTCOMES_AND_ROLE_CYCLE =
+            TEST_FUNCTIONS.register("stylus_click_outcomes_and_role_cycle", () -> StylusGameTests::stylusClickOutcomesAndRoleCycle);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> TARGETED_AIR_LINK_CYCLES_AND_REMOVES =
             TEST_FUNCTIONS.register("targeted_air_link_cycles_and_removes", () -> StylusGameTests::targetedAirLinkCyclesAndRemoves);
 
@@ -621,6 +627,8 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, PRUNE_KEEPS_LINKS_IT_CANNOT_JUDGE, environment, structure, 40, 0);
         registerTest(event, LINK_SIDE_FALLS_BACK_TO_EXPOSED_FACE, environment, structure, 40, 0);
         registerTest(event, TARGETED_AIR_LINK_CYCLES_AND_REMOVES, environment, structure, 40, 0);
+        registerTest(event, TARGETED_CONTAINER_LINKS_ON_CLICKED_FACE, environment, structure, 40, 0);
+        registerTest(event, STYLUS_CLICK_OUTCOMES_AND_ROLE_CYCLE, environment, structure, 40, 0);
         registerTest(event, LINK_TARGET_PICKS_NEAREST_BOX_AND_YIELDS_TO_BLOCKS, environment, structure, 40, 0);
         registerTest(event, WORK_AREA_DIMENSION_PREVENTS_CROSS_DIMENSION_WEIRDNESS, environment, structure, 40, 0);
     }

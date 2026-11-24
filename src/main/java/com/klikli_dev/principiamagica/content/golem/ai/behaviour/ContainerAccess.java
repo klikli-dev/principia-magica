@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
@@ -39,7 +40,7 @@ public final class ContainerAccess {
      * @return whether the block at pos exposes an item handler on at least one side. A block that was broken or replaced has none.
      * A handler without a side cannot be linked, as links always query a side.
      */
-    public static boolean hasItemCapability(ServerLevel level, BlockPos pos) {
+    public static boolean hasItemCapability(Level level, BlockPos pos) {
         return usableSide(level, pos, null) != null;
     }
 
@@ -47,7 +48,7 @@ public final class ContainerAccess {
      * @return the side a container link should query: the preferred side if it exposes an item handler, otherwise the first side that does
      * @see #resolveSide(Direction, Predicate)
      */
-    public static @Nullable Direction usableSide(ServerLevel level, BlockPos pos, @Nullable Direction preferred) {
+    public static @Nullable Direction usableSide(Level level, BlockPos pos, @Nullable Direction preferred) {
         return resolveSide(preferred, side -> level.getCapability(Capabilities.Item.BLOCK, pos, side) != null);
     }
 
