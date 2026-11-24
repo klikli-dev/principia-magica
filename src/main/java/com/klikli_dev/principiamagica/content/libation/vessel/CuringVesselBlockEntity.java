@@ -262,7 +262,7 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
+        this.principles.deserialize(input.childOrEmpty("principles"));
         this.curingRecipe.invalidate();
         this.progress = input.getIntOr("progress", 0);
         this.activeRecipe = input.read("active_recipe", RECIPE_ID_CODEC).orElse(null);
@@ -273,7 +273,7 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.store("principles", PrincipleContents.CODEC, this.principles.contents());
+        this.principles.serialize(output.child("principles"));
         output.putInt("progress", this.progress);
         if (this.activeRecipe != null) {
             output.store("active_recipe", RECIPE_ID_CODEC, this.activeRecipe);

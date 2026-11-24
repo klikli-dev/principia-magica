@@ -357,7 +357,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         this.dissolveSlot = input.getIntOr("dissolve_slot", NO_SLOT);
         this.dissolve.load(input);
         this.dissolveColor = input.getIntOr("dissolve_color", PrincipleContents.DEFAULT_COLOR);
-        input.read("stored", PrincipleContents.CODEC).ifPresent(this.stored::set);
+        this.stored.deserialize(input.childOrEmpty("stored"));
         this.drain.load(input);
     }
 
@@ -369,7 +369,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
         output.putInt("dissolve_slot", this.dissolveSlot);
         this.dissolve.save(output, this.level != null ? this.level.getGameTime() : 0L);
         output.putInt("dissolve_color", this.dissolveColor);
-        output.store("stored", PrincipleContents.CODEC, this.stored.contents());
+        this.stored.serialize(output.child("stored"));
         this.drain.save(output);
     }
 

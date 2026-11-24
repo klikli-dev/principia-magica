@@ -257,7 +257,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.items.deserialize(input.childOrEmpty("items"));
-        input.read("principles", PrincipleContents.CODEC).ifPresent(this.principles::set);
+        this.principles.deserialize(input.childOrEmpty("principles"));
         this.steeping.load(input);
         this.steepingRecipe.invalidate();
     }
@@ -266,7 +266,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         this.items.serialize(output.child("items"));
-        output.store("principles", PrincipleContents.CODEC, this.principles.contents());
+        this.principles.serialize(output.child("principles"));
         this.steeping.save(output, this.level != null ? this.level.getGameTime() : 0L);
     }
 
