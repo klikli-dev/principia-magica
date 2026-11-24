@@ -5,8 +5,12 @@
 package com.klikli_dev.principiamagica.gametest;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
+import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
 import com.klikli_dev.principiamagica.content.libation.AmountSmoother;
+import com.klikli_dev.principiamagica.content.libation.LibationUtils;
 import com.klikli_dev.principiamagica.content.libation.PrincipleSelection;
+import com.klikli_dev.principiamagica.content.libation.PrincipleStorage;
+import com.klikli_dev.principiamagica.content.libation.RecipeCache;
 import com.klikli_dev.principiamagica.content.libation.SyncThrottle;
 import com.klikli_dev.principiamagica.content.libation.drying.DryingSlabBlockEntity;
 import com.klikli_dev.principiamagica.content.libation.item.ClayPhialItem;
@@ -31,6 +35,7 @@ import com.klikli_dev.principiamagica.registry.PrincipleRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -43,6 +48,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
@@ -53,7 +60,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class LibationGameTests {
 
@@ -227,6 +236,28 @@ public class LibationGameTests {
     }
 
     /**
+     * A steeping that yields several items leaves them as they are in the trough. Only a single item steeps, so principles put
+     * in afterwards are not consumed by a recipe that would match the stack.
+     */
+    public static void steepingMultiItemResultWaitsForExtraction(GameTestHelper helper) {
+        int time = steepingTime(helper, "steeping/quickened_clay");
+        BlockPos trough = new BlockPos(3, 1, 3);
+        CatchTroughBlockEntity be = troughWith(helper, trough, new ItemStack(Items.CLAY_BALL), new PrincipleStack(PrincipleRegistry.UNGUENT, 25));
+
+        helper.runAfterDelay(time + 5, () -> {
+            helper.assertTrue(be.getItem().is(ItemRegistry.QUICKENED_CLAY.get()) && be.getItem().getCount() == 2, "The clay should steep into two quickened clay, got " + be.getItem());
+            be.insert(PrincipleContents.of(new PrincipleStack(PrincipleRegistry.UNGUENT, 25)), false);
+            helper.runAfterDelay(time + 5, () -> {
+                helper.assertTrue(be.getItem().is(ItemRegistry.QUICKENED_CLAY.get()) && be.getItem().getCount() == 2,
+                        "The two quickened clay should stay in the trough, got " + be.getItem());
+                helper.assertTrue(be.getPrinciples().get(PrincipleRegistry.UNGUENT) == 25,
+                        "No recipe should consume the principles of a stack of two, holds " + be.getPrinciples().get(PrincipleRegistry.UNGUENT));
+                helper.succeed();
+            });
+        });
+    }
+
+    /**
      * Removing the item resets the steeping, so the item needs the full recipe time once it is put back.
      */
     public static void steepingResetsWhenItemIsRemoved(GameTestHelper helper) {
@@ -238,7 +269,8 @@ public class LibationGameTests {
         helper.runAfterDelay(time / 2, () -> {
             be.useWithoutItem(player);
             helper.assertTrue(be.getItem().isEmpty(), "Taking the item out should empty the trough, holds " + be.getItem());
-            be.useItemOn(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get()), player, InteractionHand.MAIN_HAND);
+            player.getInventory().clearContent();
+            holdAndUse(player, new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get()), be);
 
             // Without the reset the first steeping would have completed at the full recipe time.
             helper.runAfterDelay(time / 2 + 10, () -> {
@@ -321,7 +353,7 @@ public class LibationGameTests {
 
         helper.runAfterDelay(time + 10, () -> {
             helper.assertTrue(be.getOutput().is(ItemRegistry.AXIOM_OF_HARVEST.get()) && be.getOutput().getCount() == 1, "The first item should be dried into one axiom, output is " + be.getOutput());
-            be.useItemOn(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()), helper.makeMockServerPlayerInLevel(), InteractionHand.MAIN_HAND);
+            holdAndUse(helper.makeMockServerPlayerInLevel(), new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()), be);
 
             helper.runAfterDelay(time + 10, () -> {
                 helper.assertTrue(be.getInput().getCount() == 1, "The second item should not be consumed while the output is full, input is " + be.getInput());
@@ -332,8 +364,8 @@ public class LibationGameTests {
     }
 
     /**
-     * A hopper inserts a drying input into the empty input of the drying slab, and only extracts the dried output. Once the output
-     * holds the result, the input cannot be extracted and a second input is refused while the first one dries.
+     * A hopper inserts a drying input into the empty input of the drying slab, and only extracts the dried output. The input
+     * cannot be extracted from outside, and a second input of the same item stacks onto the input while the first one dries.
      */
     public static void dryingSlabHopperInsertsInputAndExtractsOutput(GameTestHelper helper) {
         int time = dryingTime(helper);
@@ -362,12 +394,13 @@ public class LibationGameTests {
         helper.assertTrue(extractedInput == 0, "The input should not be extractable from outside, extracted " + extractedInput);
         helper.assertTrue(be.getInput().is(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()), "The input should hold the inserted item, got " + be.getInput());
 
-        int secondInput;
+        int topUp;
         try (Transaction transaction = Transaction.open(null)) {
-            secondInput = handler.insert(ItemResource.of(steeped), 1, transaction);
+            topUp = handler.insert(ItemResource.of(steeped), 1, transaction);
             transaction.commit();
         }
-        helper.assertTrue(secondInput == 0, "The slab should refuse a second input while the input is not empty, accepted " + secondInput);
+        helper.assertTrue(topUp == 1 && be.getInput().getCount() == 2,
+                "The slab should stack the same input on the one that dries, accepted " + topUp + ", input is " + be.getInput());
 
         helper.runAfterDelay(time + 10, () -> {
             helper.assertTrue(be.getOutput().is(ItemRegistry.AXIOM_OF_HARVEST.get()), "The input should dry into the output, got " + be.getOutput());
@@ -379,6 +412,49 @@ public class LibationGameTests {
             helper.assertTrue(extractedOutput == 1, "A hopper should extract the finished axiom, extracted " + extractedOutput);
             helper.assertTrue(be.getOutput().isEmpty(), "The output should be empty after the extraction, got " + be.getOutput());
             helper.succeed();
+        });
+    }
+
+    /**
+     * Topping up a drying input with the same item, by a player and by a hopper, keeps the progress of the item that dries:
+     * the first item still finishes at the drying time, and the stacked items wait behind it.
+     */
+    public static void dryingSlabTopUpKeepsProgress(GameTestHelper helper) {
+        int time = dryingTime(helper);
+        BlockPos slab = new BlockPos(3, 2, 3);
+        helper.setBlock(slab, BlockRegistry.DRYING_SLAB.get().defaultBlockState());
+        helper.setBlock(slab.above(), Blocks.GLOWSTONE);
+        DryingSlabBlockEntity be = (DryingSlabBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(slab));
+        Player player = helper.makeMockServerPlayerInLevel();
+        ItemResource steeped = ItemResource.of(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()));
+        ResourceHandler<ItemResource> handler = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(slab), Direction.UP);
+        helper.assertTrue(handler != null, "The drying slab should expose an item capability");
+        holdAndUse(player, new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()), be);
+
+        helper.runAfterDelay(time / 2, () -> {
+            float before = be.getProgress();
+            helper.assertTrue(before > 0, "The first item should be drying, progress is " + before);
+
+            holdAndUse(player, new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get(), 2), be);
+            helper.assertTrue(be.getInput().getCount() == 3, "A player should top up the input, input is " + be.getInput());
+            helper.assertTrue(be.getProgress() >= before, "Topping up should not reset the progress, was " + before + " is " + be.getProgress());
+
+            int hopperTopUp;
+            try (Transaction transaction = Transaction.open(null)) {
+                hopperTopUp = handler.insert(steeped, 1, transaction);
+                transaction.commit();
+            }
+            helper.assertTrue(hopperTopUp == 1 && be.getInput().getCount() == 4,
+                    "A hopper should top up the input, accepted " + hopperTopUp + ", input is " + be.getInput());
+            helper.assertTrue(be.getProgress() >= before, "A hopper top-up should not reset the progress, is " + be.getProgress());
+
+            helper.runAfterDelay(time / 2 + 10, () -> {
+                // The first item finishes at the drying time as if nothing was stacked, the others wait behind it.
+                helper.assertTrue(be.getOutput().is(ItemRegistry.AXIOM_OF_HARVEST.get()) && be.getOutput().getCount() == 1,
+                        "The first item should dry at its own time, output is " + be.getOutput());
+                helper.assertTrue(be.getInput().getCount() == 3, "Three items should wait in the input, input is " + be.getInput());
+                helper.succeed();
+            });
         });
     }
 
@@ -451,6 +527,118 @@ public class LibationGameTests {
     }
 
     /**
+     * A hopper fills the catch trough through its block capabilities, with principles and a steepable item and no player. The
+     * trough steeps the item, and a hopper then takes the finished item out of it.
+     */
+    public static void catchTroughHopperSteepsAndReleasesItemWithoutPlayer(GameTestHelper helper) {
+        int time = steepingTime(helper, "steeping/axiom_of_harvest_unfired");
+        BlockPos trough = new BlockPos(3, 1, 3);
+        helper.setBlock(trough, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity be = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(trough));
+        ResourceHandler<ItemResource> items = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(trough), Direction.UP);
+        ResourceHandler<FluidResource> fluids = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(trough), Direction.UP);
+        helper.assertTrue(items != null && fluids != null, "The trough should expose item and fluid capabilities");
+
+        try (Transaction tx = Transaction.open(null)) {
+            int inserted = fluids.insert(FluidRegistry.resourceFor(PrincipleRegistry.LOAM), STEEPING_PRINCIPLES, tx);
+            helper.assertTrue(inserted == STEEPING_PRINCIPLES, "The trough should accept the principles from a pipe, accepted " + inserted);
+            tx.commit();
+        }
+        try (Transaction tx = Transaction.open(null)) {
+            int inserted = items.insert(ItemResource.of(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get())), 1, tx);
+            helper.assertTrue(inserted == 1, "The trough should accept a steepable item from a hopper, accepted " + inserted);
+            tx.commit();
+        }
+
+        helper.runAfterDelay(time + 5, () -> {
+            helper.assertTrue(be.getItem().is(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()),
+                    "The trough should steep the item without a player, got " + be.getItem());
+            helper.assertTrue(be.getPrinciples().total() == 0, "The recipe principles should be consumed, holds " + be.getPrinciples().total());
+
+            int extracted;
+            try (Transaction tx = Transaction.open(null)) {
+                extracted = items.extract(ItemResource.of(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get())), 1, tx);
+                tx.commit();
+            }
+            helper.assertTrue(extracted == 1, "A hopper should take the steeped item out, extracted " + extracted);
+            helper.assertTrue(be.getItem().isEmpty(), "The trough should be empty after the extraction, holds " + be.getItem());
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A player and a hopper follow the same rules for the catch trough: an unsteepable item is refused by both, and a steepable
+     * item fits only once, while the trough holds one.
+     */
+    public static void catchTroughRefusesUnsteepableAndHoldsOneForPlayerAndHopper(GameTestHelper helper) {
+        BlockPos trough = new BlockPos(3, 1, 3);
+        helper.setBlock(trough, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity be = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(trough));
+        ResourceHandler<ItemResource> items = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(trough), Direction.UP);
+        helper.assertTrue(items != null, "The trough should expose an item capability");
+        Player player = helper.makeMockServerPlayerInLevel();
+
+        int refused;
+        try (Transaction tx = Transaction.open(null)) {
+            refused = items.insert(ItemResource.of(new ItemStack(Items.DIAMOND)), 1, tx);
+        }
+        helper.assertTrue(refused == 0, "A hopper should be refused an unsteepable item, accepted " + refused);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND));
+        InteractionResult refusedByHand = be.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(refusedByHand == InteractionResult.PASS && player.getMainHandItem().is(Items.DIAMOND),
+                "A player should be refused an unsteepable item and keep it, got " + refusedByHand);
+        helper.assertTrue(be.getItem().isEmpty(), "The trough should stay empty, holds " + be.getItem());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get(), 2));
+        InteractionResult accepted = be.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(accepted.consumesAction() && be.getItem().is(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get()) && be.getItem().getCount() == 1,
+                "A player should put one steepable item into the trough, holds " + be.getItem());
+        helper.assertTrue(player.getMainHandItem().getCount() == 1, "The rest of the stack should stay in hand, holds " + player.getMainHandItem());
+
+        InteractionResult full = be.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(full == InteractionResult.PASS, "The trough should refuse a second item while it holds one, got " + full);
+        helper.succeed();
+    }
+
+    /**
+     * The libation slab takes washable items from pipes but never gives them back to them. Players take the stack back, and
+     * the slab refuses items that are not washable.
+     */
+    public static void libationSlabHopperInsertsWashableItemOnly(GameTestHelper helper) {
+        BlockPos slab = new BlockPos(3, 2, 3);
+        helper.setBlock(slab, BlockRegistry.LIBATION_SLAB.get().defaultBlockState());
+        LibationSlabBlockEntity be = (LibationSlabBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(slab));
+        ResourceHandler<ItemResource> items = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(slab), Direction.UP);
+        helper.assertTrue(items != null, "The slab should expose an item capability");
+
+        int refused;
+        try (Transaction tx = Transaction.open(null)) {
+            refused = items.insert(ItemResource.of(new ItemStack(Items.DIAMOND)), 1, tx);
+        }
+        helper.assertTrue(refused == 0, "The slab should refuse an item that is not washable, accepted " + refused);
+
+        int accepted;
+        try (Transaction tx = Transaction.open(null)) {
+            accepted = items.insert(ItemResource.of(new ItemStack(Items.BONE)), 1, tx);
+            tx.commit();
+        }
+        helper.assertTrue(accepted == 1, "A hopper should insert a washable item into the slab, accepted " + accepted);
+
+        int extracted;
+        try (Transaction tx = Transaction.open(null)) {
+            extracted = items.extract(ItemResource.of(new ItemStack(Items.BONE)), 1, tx);
+        }
+        helper.assertTrue(extracted == 0, "A hopper should not take the washable item back out, extracted " + extracted);
+
+        Player player = helper.makeMockServerPlayerInLevel();
+        InteractionResult taken = be.useWithoutItem(player);
+        helper.assertTrue(taken.consumesAction() && be.getStack().isEmpty(), "A player should take the stack back out of the slab");
+        helper.assertTrue(player.getInventory().countItem(Items.BONE) == 1, "The taken stack should land in the player's inventory");
+        helper.succeed();
+    }
+
+    /**
      * Places a catch trough with the given amount of loam and an unfired axiom of harvest, which steeps with the loam.
      */
     private static CatchTroughBlockEntity troughWithUnfiredAxiom(GameTestHelper helper, BlockPos pos, int loam) {
@@ -464,8 +652,16 @@ public class LibationGameTests {
         helper.setBlock(pos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
         CatchTroughBlockEntity trough = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(pos));
         trough.insert(PrincipleContents.of(principle), false);
-        trough.useItemOn(item, helper.makeMockServerPlayerInLevel(), InteractionHand.MAIN_HAND);
+        holdAndUse(helper.makeMockServerPlayerInLevel(), item, trough);
         return trough;
+    }
+
+    /**
+     * Puts the stack into the main hand of the player and uses the trough with it, the way a click does.
+     */
+    private static void holdAndUse(Player player, ItemStack stack, CatchTroughBlockEntity trough) {
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack.copy());
+        trough.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
     }
 
     /**
@@ -475,8 +671,16 @@ public class LibationGameTests {
         helper.setBlock(pos, BlockRegistry.DRYING_SLAB.get().defaultBlockState());
         helper.setBlock(pos.above(), Blocks.GLOWSTONE);
         DryingSlabBlockEntity slab = (DryingSlabBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(pos));
-        slab.useItemOn(input, helper.makeMockServerPlayerInLevel(), InteractionHand.MAIN_HAND);
+        holdAndUse(helper.makeMockServerPlayerInLevel(), input, slab);
         return slab;
+    }
+
+    /**
+     * Puts the stack into the main hand of the player and uses the drying slab with it, the way a click does.
+     */
+    private static void holdAndUse(Player player, ItemStack stack, DryingSlabBlockEntity slab) {
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack.copy());
+        slab.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
     }
 
     /**
@@ -516,7 +720,8 @@ public class LibationGameTests {
         ItemStack bucket = new ItemStack(Items.WATER_BUCKET);
         player.setItemInHand(InteractionHand.MAIN_HAND, bucket);
         slab.useItemOn(bucket, player, InteractionHand.MAIN_HAND);
-        slab.useItemOn(new ItemStack(Items.BONE), player, InteractionHand.MAIN_HAND);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.BONE));
+        slab.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
         helper.assertTrue(slab.getWater() == LibationSlabBlockEntity.WATER_CAPACITY, "A water bucket should fill the slab, got " + slab.getWater());
         return slab;
     }
@@ -591,6 +796,89 @@ public class LibationGameTests {
             helper.assertTrue(slabBe.getStored().isEmpty(), "Slab should be empty after extraction");
             helper.succeed();
         });
+    }
+
+    /**
+     * The principle slots of a principle block share one capacity: a second principle only fits into what the first one leaves,
+     * a rolled back insert leaves nothing behind, and extracting inside a transaction frees room for the same transaction.
+     */
+    public static void principleStorageSharesCapacityBetweenPrinciples(GameTestHelper helper) {
+        BlockPos troughPos = new BlockPos(3, 2, 3);
+        helper.setBlock(troughPos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity trough = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(troughPos));
+        ResourceHandler<FluidResource> handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(troughPos), Direction.UP);
+        helper.assertTrue(handler != null, "The trough should expose a fluid capability");
+        FluidResource loam = FluidRegistry.resourceFor(PrincipleRegistry.LOAM);
+        FluidResource silt = FluidRegistry.resourceFor(PrincipleRegistry.SILT);
+
+        try (Transaction tx = Transaction.open(null)) {
+            helper.assertTrue(handler.insert(loam, 400, tx) == 400, "The trough should take 400 mB of loam");
+            tx.commit();
+        }
+        try (Transaction tx = Transaction.open(null)) {
+            int accepted = handler.insert(silt, 200, tx);
+            helper.assertTrue(accepted == 100, "Silt should only fit into the 100 mB the loam leaves, accepted " + accepted);
+            tx.commit();
+        }
+        helper.assertTrue(trough.getPrinciples().total() == CatchTroughBlockEntity.CAPACITY, "The trough should be full, holds " + trough.getPrinciples().total());
+
+        try (Transaction tx = Transaction.open(null)) {
+            helper.assertTrue(handler.insert(silt, 100, tx) == 0, "A full trough should refuse more principles");
+            // Not committed: the insert must leave nothing behind.
+        }
+        helper.assertTrue(trough.getPrinciples().total() == CatchTroughBlockEntity.CAPACITY, "A rolled back insert should not change the trough, holds " + trough.getPrinciples().total());
+
+        try (Transaction tx = Transaction.open(null)) {
+            helper.assertTrue(handler.extract(loam, 100, tx) == 100, "Loam should come out of the trough");
+            int accepted = handler.insert(silt, 150, tx);
+            helper.assertTrue(accepted == 100, "The room extracted in the same transaction should be usable, accepted " + accepted);
+            tx.commit();
+        }
+        helper.assertTrue(trough.getPrinciples().get(PrincipleRegistry.LOAM) == 300 && trough.getPrinciples().get(PrincipleRegistry.SILT) == 200,
+                "The trough should hold 300 mB loam and 200 mB silt, holds " + trough.getPrinciples());
+        helper.succeed();
+    }
+
+    /**
+     * Saved principles are placed by their identifier. Loaded in another order, with a principle that no longer exists, the
+     * storage has exactly one slot per current principle, the amounts sit in the slots of their principles, and every principle
+     * can be inserted and extracted.
+     */
+    public static void principleStorageLoadsSavedPrinciplesByIdentity(GameTestHelper helper) {
+        BlockPos troughPos = new BlockPos(3, 2, 3);
+        helper.setBlock(troughPos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity trough = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(troughPos));
+        PrincipleStorage storage = (PrincipleStorage) trough.principleHandler();
+        Identifier silt = PrincipleRegistry.SILT.getId();
+        Identifier loam = PrincipleRegistry.LOAM.getId();
+        Identifier removed = PrincipiaMagica.loc("removed_principle");
+
+        // Not in registry order, and one principle that does not exist any more.
+        storage.load(List.of(new PrincipleStorage.Saved(removed, 40), new PrincipleStorage.Saved(loam, 30), new PrincipleStorage.Saved(silt, 50)));
+
+        helper.assertTrue(storage.size() == PrincipiaMagicaRegistries.PRINCIPLE.size(),
+                "There should be one slot per current principle, got " + storage.size() + " for " + PrincipiaMagicaRegistries.PRINCIPLE.size());
+        helper.assertTrue(storage.getAmountAsInt(PrincipiaMagicaRegistries.PRINCIPLE.getId(PrincipleRegistry.LOAM.get())) == 30,
+                "The 30 mB of loam should sit in the loam slot");
+        helper.assertTrue(storage.getAmountAsInt(PrincipiaMagicaRegistries.PRINCIPLE.getId(PrincipleRegistry.SILT.get())) == 50,
+                "The 50 mB of silt should sit in the silt slot");
+        helper.assertTrue(storage.contents().total() == 80, "The removed principle should be dropped, holds " + storage.contents().total());
+
+        for (int index = 0; index < storage.size(); index++) {
+            FluidResource resource = FluidRegistry.resourceFor(PrincipiaMagicaRegistries.PRINCIPLE.get(index).orElseThrow());
+            try (Transaction tx = Transaction.open(null)) {
+                int inserted = storage.insert(index, resource, 1, tx);
+                helper.assertTrue(inserted == 1, "Every principle should insert into its slot " + index + ", accepted " + inserted);
+                tx.commit();
+            }
+            try (Transaction tx = Transaction.open(null)) {
+                int extracted = storage.extract(index, resource, 1, tx);
+                helper.assertTrue(extracted == 1, "Every principle should extract from its slot " + index + ", extracted " + extracted);
+                tx.commit();
+            }
+        }
+        helper.assertTrue(storage.contents().total() == 80, "Insert and extract should cancel out, holds " + storage.contents().total());
+        helper.succeed();
     }
 
     /**
@@ -732,6 +1020,66 @@ public class LibationGameTests {
         ItemStack output = recipe.get().value().assemble(input);
         helper.assertTrue(output.is(ItemRegistry.NATRON_SPONGE.get()) && output.getCount() == 8,
                 "Expected 8 natron sponges, got " + output);
+        helper.succeed();
+    }
+
+    /**
+     * The slab leaves clay phials to their own use, so an empty phial draws the principles stored in the slab. The slab itself
+     * does not consume the click.
+     */
+    public static void libationSlabLetsPhialsDrawStoredPrinciples(GameTestHelper helper) {
+        BlockPos slab = new BlockPos(3, 2, 3);
+        helper.setBlock(slab, BlockRegistry.LIBATION_SLAB.get().defaultBlockState());
+        LibationSlabBlockEntity be = stockSlab(helper, slab);
+
+        helper.runAfterDelay(120, () -> {
+            helper.assertTrue(be.getStored().total() == 50, "The slab should store 50 mB of ash, stored " + be.getStored().total());
+            Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.CLAY_PHIAL.get()));
+
+            InteractionResult slabResult = be.useItemOn(player.getMainHandItem(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(slabResult == InteractionResult.PASS, "The slab should leave the phial to its own use, got " + slabResult);
+
+            InteractionResult drawn = useHeldOn(helper, player, slab);
+            PrincipleStack stored = ClayPhialItem.getStored(player.getMainHandItem());
+            helper.assertTrue(drawn.consumesAction() && stored != null && stored.amount() == 50,
+                    "An empty phial should draw the 50 mB of ash from the slab, holds " + stored);
+            helper.assertTrue(be.getStored().isEmpty(), "The slab should give up the drawn principles, stored " + be.getStored().total());
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A recipe cache reuses its recipe for the recipe manager it was looked up with, and looks it up again for another one, as
+     * a datapack reload brings. Missing recipes are cached the same way.
+     */
+    public static void recipeCacheLooksUpAgainAfterRecipeReload(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        RecipeManager current = level.getServer().getRecipeManager();
+        RecipeManager reloaded = new RecipeManager(level.registryAccess());
+        ItemStack stack = new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED.get());
+        PrincipleContents principles = PrincipleContents.of(new PrincipleStack(PrincipleRegistry.LOAM, STEEPING_PRINCIPLES));
+        int[] lookups = {0};
+        Supplier<Optional<RecipeHolder<SteepingRecipe>>> lookup = () -> {
+            lookups[0]++;
+            return LibationUtils.steeping(level, stack, principles);
+        };
+
+        RecipeCache<SteepingRecipe> cache = new RecipeCache<>();
+        helper.assertTrue(cache.get(current, lookup) != null, "The steeping recipe should be found");
+        helper.assertTrue(lookups[0] == 1, "The first lookup should ask the recipe manager once, asked " + lookups[0]);
+        cache.get(current, lookup);
+        helper.assertTrue(lookups[0] == 1, "The same recipe manager should reuse the recipe, asked " + lookups[0]);
+        cache.get(reloaded, lookup);
+        helper.assertTrue(lookups[0] == 2, "A reloaded recipe manager should look the recipe up again, asked " + lookups[0]);
+        cache.invalidate();
+        cache.get(reloaded, lookup);
+        helper.assertTrue(lookups[0] == 3, "Invalidated contents should look the recipe up again, asked " + lookups[0]);
+
+        RecipeCache<SteepingRecipe> missing = new RecipeCache<>();
+        helper.assertTrue(missing.get(current, Optional::empty) == null, "A missing recipe should be reported as missing");
+        helper.assertTrue(missing.get(reloaded, lookup) != null && lookups[0] == 4,
+                "A missing recipe should be looked up again after a reload, asked " + lookups[0]);
         helper.succeed();
     }
 
