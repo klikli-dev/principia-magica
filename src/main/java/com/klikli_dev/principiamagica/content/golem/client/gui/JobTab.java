@@ -85,7 +85,35 @@ final class JobTab extends GolemTab {
     private static final int CLEAR_BUTTON_X = 176;
     private static final int CLEAR_BUTTON_Y = 102;
     private static final int CLEAR_BUTTON_SIZE = 15;
-    private static final int CLEAR_ICON_SIZE = 12;
+    /**
+     * The unlink icon is drawn 11px, which leaves 2px of the button free on each side, like the 20px buttons leave 2px around their 16px icon.
+     * Its visible pixels are x 1 to 15 and y 0 to 15 of its 16px canvas, measured from the texture.
+     */
+    private static final int CLEAR_ICON_SIZE = 11;
+    private static final int CLEAR_ICON_INK_LEFT = 1;
+    private static final int CLEAR_ICON_INK_TOP = 0;
+    private static final int CLEAR_ICON_INK_RIGHT = 15;
+    private static final int CLEAR_ICON_INK_BOTTOM = 15;
+
+    /**
+     * The vanilla font's visible rows inside a line, measured from the font texture. Digits and brackets use rows 0 to 6 of their 8px cell,
+     * the "+" uses rows 1 to 5. A text widget draws its line from its top edge.
+     */
+    private static final int TEXT_INK_TOP = 0;
+    private static final int TEXT_INK_HEIGHT = 7;
+    private static final int PLUS_INK_TOP = 1;
+    private static final int PLUS_INK_HEIGHT = 5;
+    /**
+     * The zone label's line top, so its visible digits are centred on the strip.
+     */
+    private static final int ZONE_LABEL_Y = centredTextY(STRIP_Y, STRIP_HEIGHT, TEXT_INK_TOP, TEXT_INK_HEIGHT);
+
+    /**
+     * @return the line top at which the visible pixels of a font text of the given height are centred in the box
+     */
+    private static int centredTextY(int boxY, int boxHeight, int inkTop, int inkHeight) {
+        return boxY + (boxHeight - inkHeight) / 2 - inkTop;
+    }
 
     private static final int HEADING_COLOR = 0xFFEBAC26;
     private static final int LIST_COLOR = 0xFFF6E2B8;
@@ -138,7 +166,7 @@ final class JobTab extends GolemTab {
         this.add(new GuiSpriteWidget(bounds.x() + 8, bounds.y() + STRIP_Y, 188, STRIP_HEIGHT, this.sprite("inset")));
 
         this.add(new GuiSpriteWidget(bounds.x() + ZONE_X, bounds.y() + ICON_Y, ICON_SIZE, ICON_SIZE, this.sprite("icon_zone")));
-        this.add(new WrappedTextWidget(bounds.x() + ZONE_LABEL_X, bounds.y() + 105, ZONE_LABEL_WIDTH, this::zoneText).withStyle(this.style).withMaxLines(1));
+        this.add(new WrappedTextWidget(bounds.x() + ZONE_LABEL_X, bounds.y() + ZONE_LABEL_Y, ZONE_LABEL_WIDTH, this::zoneText).withStyle(this.style).withMaxLines(1));
         this.zoneHint = this.add(new TooltipAreaWidget(bounds.x() + 8, bounds.y() + STRIP_Y, 60, STRIP_HEIGHT, Component.empty()));
 
         this.deposit.build(bounds);
@@ -148,7 +176,8 @@ final class JobTab extends GolemTab {
                 .append(Component.translatable("gui.principiamagica.golem.clear_links.title").withStyle(Style.EMPTY.withColor(HEADING_COLOR).withBold(true)))
                 .append(line(Component.translatable("gui.principiamagica.golem.clear_links.description"), Style.EMPTY.withColor(EXPLANATION_COLOR)));
         this.clearLinksButton = this.add(new ScaledIconButtonWidget(bounds.x() + CLEAR_BUTTON_X, bounds.y() + CLEAR_BUTTON_Y,
-                CLEAR_BUTTON_SIZE, GuiStyles.sprite("icon_unlink"), CLEAR_ICON_SIZE, clearTooltip, this::clearLinks));
+                CLEAR_BUTTON_SIZE, GuiStyles.sprite("icon_unlink"), CLEAR_ICON_SIZE,
+                CLEAR_ICON_INK_LEFT, CLEAR_ICON_INK_TOP, CLEAR_ICON_INK_RIGHT, CLEAR_ICON_INK_BOTTOM, clearTooltip, this::clearLinks));
         this.clearLinksButton.withStyle(this.style);
     }
 
@@ -391,7 +420,7 @@ final class JobTab extends GolemTab {
                 this.hovers[i].setY(y);
                 if (i == CELL_COUNT - 1) {
                     this.plus.setX(x);
-                    this.plus.setY(y);
+                    this.plus.setY(centredTextY(y, CELL_SIZE, PLUS_INK_TOP, PLUS_INK_HEIGHT));
                 }
             }
         }
