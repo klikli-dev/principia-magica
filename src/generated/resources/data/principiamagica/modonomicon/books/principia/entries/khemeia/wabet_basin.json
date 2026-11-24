@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:khemeia",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_wabet_basin",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.khemeia.wabet_basin.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.khemeia.wabet_basin.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:wabet_basin"
+  },
+  "id": "principiamagica:khemeia/wabet_basin",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.khemeia.wabet_basin.name",
+  "parents": [
+    {
+      "entry": "principiamagica:khemeia/quickened_clay"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/khemeia_wabet_basin"
+  },
+  "sort_number": 4,
+  "x": 3,
+  "y": 1
+}

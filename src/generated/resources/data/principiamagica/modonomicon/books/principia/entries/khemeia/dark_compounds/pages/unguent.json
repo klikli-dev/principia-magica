@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "unguent",
+  "recipe_id_1": "principiamagica:curing/dark/unguent",
+  "sort_number": 4,
+  "title1": "book.principiamagica.principia.khemeia.dark_compounds.unguent.title"
+}

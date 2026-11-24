@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "processes",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.principiamagica.principia.khemeia.khemeia_intro.processes.text",
+  "title": "book.principiamagica.principia.khemeia.khemeia_intro.processes.title"
+}

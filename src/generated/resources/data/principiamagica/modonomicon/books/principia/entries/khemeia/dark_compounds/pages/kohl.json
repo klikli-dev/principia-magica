@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "kohl",
+  "recipe_id_1": "principiamagica:curing/dark/kohl",
+  "sort_number": 5,
+  "title1": "book.principiamagica.principia.khemeia.dark_compounds.kohl.title"
+}

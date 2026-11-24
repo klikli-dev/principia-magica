@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "bitumen",
+  "recipe_id_1": "principiamagica:curing/dark/bitumen",
+  "sort_number": 3,
+  "title1": "book.principiamagica.principia.khemeia.dark_compounds.bitumen.title"
+}

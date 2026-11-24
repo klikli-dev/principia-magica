@@ -9,6 +9,8 @@ import com.klikli_dev.modonomicon.api.datagen.EntryProvider;
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryTabModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
+import com.klikli_dev.modonomicon.api.datagen.book.page.BookViewerRecipePageModel;
+import net.minecraft.resources.Identifier;
 
 /**
  * Base for entries of the Principia book. Every entry consists of a notebook passage (the player's own observations)
@@ -35,6 +37,24 @@ public abstract class PrincipiaEntryProvider extends EntryProvider {
      */
     protected void scribePage(String pageId, String text) {
         this.textPage(pageId, SCRIBE_TITLE, "*" + text + "*");
+    }
+
+    /**
+     * Adds a plain text page with the given id, title and text, e.g. for practical notes on a mechanic.
+     */
+    protected void infoPage(String pageId, String title, String text) {
+        this.textPage(pageId, title, text);
+    }
+
+    /**
+     * Adds a page that shows a single recipe with the given title. The recipe is drawn by the recipe viewer,
+     * so it also works for the principle recipes (curing, steeping, drying), which have no vanilla page type.
+     */
+    protected void recipePage(String pageId, String title, Identifier recipeId) {
+        this.page(pageId, () -> BookViewerRecipePageModel.create()
+                .withTitle1(this.context().pageTitle())
+                .withRecipeId1(recipeId));
+        this.pageTitle(title);
     }
 
     private void textPage(String pageId, String title, String text) {

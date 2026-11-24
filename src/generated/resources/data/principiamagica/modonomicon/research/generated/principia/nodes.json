@@ -24,6 +24,81 @@
     ]
   },
   {
+    "id": "principiamagica:generated/principia/nodes/item_acquired/principiamagica/quickened_clay",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/item_acquired/tag_principiamagica/axioms",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/item_acquired/tag_principiamagica/axioms"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/khemeia_steeping_jar",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_jar"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "minecraft:rotten_flesh"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.khemeia.steeping_jar.stage.rotten_flesh.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/khemeia_steeping_jar/stages/rotten_flesh",
+        "required_facts": [
+          "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/khemeia_wabet_basin",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_wabet_basin"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "principiamagica:quickened_clay"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.khemeia.wabet_basin.stage.quickened_clay.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/khemeia_wabet_basin/stages/quickened_clay",
+        "required_facts": [
+          "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/khemeia_lustral_waters",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_lustral_waters"
+    ],
+    "stages": [
+      {
+        "display": {
+          "title": {
+            "translate": "book.principiamagica.principia.khemeia.lustral_waters.stage.finished_axiom.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/khemeia_lustral_waters/stages/finished_axiom",
+        "required_facts": [
+          "principiamagica:generated/principia/facts/item_acquired/tag_principiamagica/axioms"
+        ]
+      }
+    ]
+  },
+  {
     "id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_principia",
     "required_facts": [
       "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia"
@@ -153,6 +228,60 @@
           "principiamagica:golem_given_axiom"
         ]
       }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_steeping_jar",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_khemeia_intro"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_dark_compounds",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_steeping_jar",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_steeping_jar/stages/rotten_flesh"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_quickened_clay",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_dark_compounds"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_wabet_basin",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_quickened_clay"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_light_compounds",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_wabet_basin",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_wabet_basin/stages/quickened_clay"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_steeping_axioms",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_light_compounds"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_drying_slab",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_axioms"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_lustral_waters",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_drying_slab"
     ]
   },
   {

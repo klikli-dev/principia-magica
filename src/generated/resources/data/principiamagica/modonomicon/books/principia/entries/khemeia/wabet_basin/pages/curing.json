@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_wabet_basin",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_wabet_basin/stages/quickened_clay"
+  },
+  "id": "curing",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.principiamagica.principia.khemeia.wabet_basin.curing.text",
+  "title": "book.principiamagica.principia.khemeia.wabet_basin.curing.title"
+}

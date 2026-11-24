@@ -12,6 +12,21 @@
     "id": "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh"
   },
   {
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/item_acquired/tag_principiamagica/axioms"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_jar"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_wabet_basin"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_lustral_waters"
+  },
+  {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia"
   },
   {
@@ -28,5 +43,23 @@
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_khemeia_intro"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_dark_compounds"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_quickened_clay"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_light_compounds"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_axioms"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_drying_slab"
   }
 ]

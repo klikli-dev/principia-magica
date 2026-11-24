@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "myrrh",
+  "recipe_id_1": "principiamagica:curing/light/myrrh",
+  "sort_number": 4,
+  "title1": "book.principiamagica.principia.khemeia.light_compounds.myrrh.title"
+}

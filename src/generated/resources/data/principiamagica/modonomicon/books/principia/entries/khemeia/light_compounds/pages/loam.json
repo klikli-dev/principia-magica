@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "loam",
+  "recipe_id_1": "principiamagica:curing/light/loam",
+  "sort_number": 2,
+  "title1": "book.principiamagica.principia.khemeia.light_compounds.loam.title"
+}

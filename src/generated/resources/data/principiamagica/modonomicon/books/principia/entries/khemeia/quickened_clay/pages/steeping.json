@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "steeping",
+  "recipe_id_1": "principiamagica:steeping/quickened_clay",
+  "sort_number": 2,
+  "title1": "book.principiamagica.principia.khemeia.quickened_clay.steeping.title"
+}

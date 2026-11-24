@@ -32,6 +32,40 @@
     "trigger_type": "modonomicon:item_acquired"
   },
   {
+    "fact_id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay",
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay_hook",
+    "trigger_target": {
+      "id": "principiamagica:quickened_clay"
+    },
+    "trigger_type": "modonomicon:item_acquired"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/item_acquired/tag_principiamagica/axioms",
+    "id": "principiamagica:generated/principia/facts/item_acquired/tag_principiamagica/axioms_hook",
+    "trigger_target": {
+      "tag": "principiamagica:axioms"
+    },
+    "trigger_type": "modonomicon:item_acquired"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_jar",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_jar_hook",
+    "trigger_target": "principiamagica:khemeia/steeping_jar",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_wabet_basin",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_wabet_basin_hook",
+    "trigger_target": "principiamagica:khemeia/wabet_basin",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_lustral_waters",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_lustral_waters_hook",
+    "trigger_target": "principiamagica:khemeia/lustral_waters",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
     "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia",
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia_hook",
     "trigger_target": "principiamagica:the_wet_clay/principia",
@@ -65,6 +99,42 @@
     "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose",
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose_hook",
     "trigger_target": "principiamagica:the_wet_clay/purpose",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_khemeia_intro",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_khemeia_intro_hook",
+    "trigger_target": "principiamagica:khemeia/khemeia_intro",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_dark_compounds",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_dark_compounds_hook",
+    "trigger_target": "principiamagica:khemeia/dark_compounds",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_quickened_clay",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_quickened_clay_hook",
+    "trigger_target": "principiamagica:khemeia/quickened_clay",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_light_compounds",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_light_compounds_hook",
+    "trigger_target": "principiamagica:khemeia/light_compounds",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_axioms",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_axioms_hook",
+    "trigger_target": "principiamagica:khemeia/steeping_axioms",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_drying_slab",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_drying_slab_hook",
+    "trigger_target": "principiamagica:khemeia/drying_slab",
     "trigger_type": "modonomicon:entry_viewed_once"
   }
 ]

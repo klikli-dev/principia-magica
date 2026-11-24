@@ -1,0 +1,39 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:khemeia",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_dark_compounds",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.khemeia.dark_compounds.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.khemeia.dark_compounds.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "minecraft:black_dye"
+  },
+  "id": "principiamagica:khemeia/dark_compounds",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.khemeia.dark_compounds.name",
+  "parents": [
+    {
+      "entry": "principiamagica:khemeia/steeping_jar"
+    }
+  ],
+  "sort_number": 2,
+  "x": 2,
+  "y": 0
+}

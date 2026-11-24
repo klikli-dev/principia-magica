@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "shard",
+  "recipe_id_1": "principiamagica:curing/light/shard",
+  "sort_number": 3,
+  "title1": "book.principiamagica.principia.khemeia.light_compounds.shard.title"
+}

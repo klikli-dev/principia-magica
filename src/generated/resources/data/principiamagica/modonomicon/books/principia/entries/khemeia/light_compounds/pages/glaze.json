@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "glaze",
+  "recipe_id_1": "principiamagica:curing/light/glaze",
+  "sort_number": 5,
+  "title1": "book.principiamagica.principia.khemeia.light_compounds.glaze.title"
+}

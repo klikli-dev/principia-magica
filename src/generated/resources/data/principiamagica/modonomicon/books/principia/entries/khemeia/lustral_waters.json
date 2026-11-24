@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:khemeia",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_lustral_waters",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.khemeia.lustral_waters.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.khemeia.lustral_waters.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "minecraft:water_bucket"
+  },
+  "id": "principiamagica:khemeia/lustral_waters",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.khemeia.lustral_waters.name",
+  "parents": [
+    {
+      "entry": "principiamagica:khemeia/drying_slab"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/khemeia_lustral_waters"
+  },
+  "sort_number": 8,
+  "x": 7,
+  "y": 1
+}

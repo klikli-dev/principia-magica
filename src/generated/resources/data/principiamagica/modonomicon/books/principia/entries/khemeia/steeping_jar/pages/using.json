@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_steeping_jar",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/khemeia_steeping_jar/stages/rotten_flesh"
+  },
+  "id": "using",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.principiamagica.principia.khemeia.steeping_jar.using.text",
+  "title": "book.principiamagica.principia.khemeia.steeping_jar.using.title"
+}

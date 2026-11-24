@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:khemeia",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_steeping_jar",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.khemeia.steeping_jar.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.khemeia.steeping_jar.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:steeping_jar"
+  },
+  "id": "principiamagica:khemeia/steeping_jar",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.khemeia.steeping_jar.name",
+  "parents": [
+    {
+      "entry": "principiamagica:khemeia/khemeia_intro"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/khemeia_steeping_jar"
+  },
+  "sort_number": 1,
+  "x": 1,
+  "y": 0
+}

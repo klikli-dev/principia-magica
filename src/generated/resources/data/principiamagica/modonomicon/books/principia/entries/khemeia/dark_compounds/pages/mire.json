@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "mire",
+  "recipe_id_1": "principiamagica:curing/dark/mire",
+  "sort_number": 2,
+  "title1": "book.principiamagica.principia.khemeia.dark_compounds.mire.title"
+}

@@ -1,0 +1,10 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "harvest",
+  "recipe_id_1": "principiamagica:drying/axiom_of_harvest",
+  "sort_number": 3,
+  "title1": "book.principiamagica.principia.khemeia.drying_slab.harvest.title"
+}

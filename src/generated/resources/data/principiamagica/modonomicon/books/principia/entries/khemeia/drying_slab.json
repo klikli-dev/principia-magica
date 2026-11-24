@@ -1,0 +1,39 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:khemeia",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_drying_slab",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.khemeia.drying_slab.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.khemeia.drying_slab.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:drying_slab"
+  },
+  "id": "principiamagica:khemeia/drying_slab",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.khemeia.drying_slab.name",
+  "parents": [
+    {
+      "entry": "principiamagica:khemeia/steeping_axioms"
+    }
+  ],
+  "sort_number": 7,
+  "x": 6,
+  "y": 1
+}
