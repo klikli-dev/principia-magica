@@ -64,14 +64,33 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
     private static final float ICON_SCALE = 0.252f;
 
     /**
-     * Pushes the principle icon in front of the body. The body's front face is at 0.5 px.
+     * Front face of the body, in block units from the item centre. An item/generated body is extruded over z 7.5 to 8.5
+     * of 16 model units. The item centre is at 8, so the front face is 0.5 px in front of it. The body is drawn with
+     * {@code ItemDisplayContext.NONE}, which uses {@code ItemTransform.NO_TRANSFORM}, and that adds a
+     * {@code translate(-0.5)} that cancels our {@code translate(0.5)} in {@link #submit}.
      */
-    private static final float ICON_Z = 1.5f * PIXEL;
+    private static final float BODY_FRONT_Z = 0.5f * PIXEL;
 
     /**
-     * Principle icon shown at full size while shift is held.
+     * Outline sits 0.001 block in front of the body face, which avoids z-fighting.
+     */
+    private static final float OUTLINE_Z = BODY_FRONT_Z + 0.001f;
+
+    /**
+     * Icon sits 0.002 block in front of the body face, which is 0.001 block in front of the outline.
+     */
+    private static final float ICON_Z = BODY_FRONT_Z + 0.002f;
+
+    /**
+     * Principle icon shown at full size while shift is held. Nothing else is drawn there, so it sits at the origin.
      */
     private static final float FULL_ICON_SCALE = 1f;
+
+    /**
+     * Full-size view: the icon at the origin, and the outline 0.001 block behind it.
+     */
+    private static final float FULL_ICON_Z = 0f;
+    private static final float FULL_OUTLINE_Z = FULL_ICON_Z - 0.001f;
 
     /**
      * Colour of the outline. It multiplies the principle texture, so it is a dark silhouette.
@@ -82,11 +101,6 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
      * Colour of the icon itself. White leaves the texture unchanged.
      */
     private static final int ICON_COLOR = 0xFFFFFFFF;
-
-    /**
-     * The outline sits this far behind the icon, so the icon always draws over it.
-     */
-    private static final float OUTLINE_BEHIND = 0.5f * PIXEL;
 
     @Override
     public void submit(@Nullable ClayPhialRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay, boolean hasFoil, int outlineColor) {
@@ -99,7 +113,7 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
         // Shift in the GUI shows only the principle at full size.
         Identifier principle = state.principle();
         if (state.shiftDown() && principle != null) {
-            this.submitPrinciple(principle, FULL_ICON_SCALE, 0f, 0f, poseStack, submitNodeCollector, light, overlay);
+            this.submitPrinciple(principle, FULL_ICON_SCALE, 0f, FULL_OUTLINE_Z, FULL_ICON_Z, poseStack, submitNodeCollector, light, overlay);
             return;
         }
 
@@ -109,7 +123,7 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
 
         if (principle == null) return;
 
-        this.submitPrinciple(principle, ICON_SCALE, BELLY_OFFSET_Y, ICON_Z, poseStack, submitNodeCollector, light, overlay);
+        this.submitPrinciple(principle, ICON_SCALE, BELLY_OFFSET_Y, OUTLINE_Z, ICON_Z, poseStack, submitNodeCollector, light, overlay);
     }
 
     private void submitItem(ItemStack itemStack, ItemDisplayContext displayContext, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay, int outlineColor) {
@@ -126,13 +140,13 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
      * <p>
      * The icon uses the item cutout render type, like item quads, so it uses the item light and overlay.
      *
-     * @param iconZ the z of the icon. The outline is placed {@link #OUTLINE_BEHIND} further away.
+     * @param outlineZ the z of the outline quads, in block units from the item centre
+     * @param iconZ    the z of the icon quad, in block units from the item centre
      */
-    private void submitPrinciple(Identifier principle, float size, float offsetY, float iconZ, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay) {
+    private void submitPrinciple(Identifier principle, float size, float offsetY, float outlineZ, float iconZ, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay) {
         RenderType renderType = RenderTypes.itemCutout(Principle.texture(principle));
         float half = size / 2f;
         float texel = size / 16f;
-        float outlineZ = iconZ - OUTLINE_BEHIND;
 
         poseStack.pushPose();
         poseStack.translate(0f, offsetY, 0f);
