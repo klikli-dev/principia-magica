@@ -42,15 +42,15 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
     private static final float PIXEL = 1f / 16f;
 
     /**
-     * The belly label is centred at canvas y 11.0 in the art. The icon sits half a pixel lower, at 11.5, which is 3.5 px
-     * below the item centre at 8.
+     * The belly label is centred at canvas y 11.0 in the art. The icon sits 3.25 px below the item centre at 8, which is
+     * canvas y 11.25, a quarter pixel above the old 11.5.
      */
-    private static final float BELLY_OFFSET_Y = -3.5f * PIXEL;
+    private static final float BELLY_OFFSET_Y = -3.25f * PIXEL;
 
     /**
-     * Principle icon at 0.28 of the canvas, which is about 4.5 px.
+     * Principle icon at 0.252 of the canvas, which is about 4 px. The outline is one texel of the icon, so it follows.
      */
-    private static final float ICON_SCALE = 0.28f;
+    private static final float ICON_SCALE = 0.252f;
 
     /**
      * Pushes the principle icon in front of the body. The body's front face is at 0.5 px.
