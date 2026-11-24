@@ -4,10 +4,6 @@
 
 package com.klikli_dev.principiamagica.content.golem.job.lumberjack.behaviour;
 
-import net.minecraft.world.entity.item.ItemEntity;
-
-import net.minecraft.world.item.Items;
-
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.MoveToAndInteract;
@@ -22,6 +18,7 @@ import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
@@ -108,7 +105,10 @@ public class ClearTreeAccess extends JobTargetBehaviour {
             return;
         }
 
+        // Keep the axe in hand while carving access to the trunk; drops land on the ground for stray pickup once felling finishes, matching FellTree.
         List<ItemStack> drops = GolemDrops.breakBlock(level, golem, leaf, state);
-        GolemDrops.collect(level, golem, leaf, drops);
+        for (ItemStack drop : drops) {
+            Block.popResource(level, leaf, drop);
+        }
     }
 }

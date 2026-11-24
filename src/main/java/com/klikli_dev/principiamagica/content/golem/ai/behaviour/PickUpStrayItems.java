@@ -4,8 +4,6 @@
 
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
-import net.minecraft.world.item.Items;
-
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
@@ -50,6 +48,10 @@ public class PickUpStrayItems extends MoveToAndInteract {
 
     @Override
     protected Optional<BlockPos> findTarget(ServerLevel level, GolemEntity golem) {
+        if (golem.isTool(golem.getHandItem()) && !canStowTool(level, golem, this.job)) {
+            return Optional.empty();
+        }
+
         return golem.getWorkplace(level)
                 .filter(workplace -> this.isEnabled(level, workplace))
                 .flatMap(workplace -> workplace.zones(level.dimension(), this.job.below(), this.job.above()).stream()
@@ -61,6 +63,10 @@ public class PickUpStrayItems extends MoveToAndInteract {
 
     @Override
     protected boolean isTargetValid(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        if (golem.isTool(golem.getHandItem()) && !canStowTool(level, golem, this.job)) {
+            return false;
+        }
+
         return golem.getWorkplace(level)
                 .filter(workplace -> this.isEnabled(level, workplace) && workplace.containsInZone(level.dimension(), this.job.below(), this.job.above(), pos))
                 .map(workplace -> !level.getEntitiesOfClass(ItemEntity.class, pickupArea(pos), item -> canPickUp(golem, item.getItem())).isEmpty())
@@ -69,7 +75,9 @@ public class PickUpStrayItems extends MoveToAndInteract {
 
     @Override
     protected void onNoTarget(ServerLevel level, GolemEntity golem) {
-        golem.getBrain().setMemory(MemoryModuleTypeRegistry.PICKUP_COOLDOWN.value(), COOLDOWN_TICKS);
+        if (!golem.isTool(golem.getHandItem()) || canStowTool(level, golem, this.job)) {
+            golem.getBrain().setMemory(MemoryModuleTypeRegistry.PICKUP_COOLDOWN.value(), COOLDOWN_TICKS);
+        }
     }
 
     @Override

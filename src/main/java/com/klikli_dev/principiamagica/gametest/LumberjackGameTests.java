@@ -39,12 +39,14 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.SaplingBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -736,6 +738,39 @@ public class LumberjackGameTests {
         helper.assertTrue(taken.is(ItemRegistry.AXIOM_OF_FELLING.get()), "Removing the job should return the axiom of felling, got " + taken);
         helper.assertTrue(golem.getSpec().job().isEmpty(), "Golem should have no job after the axiom is removed");
         helper.succeed();
+    }
+
+    /**
+     * Carving leaves with Silk Touch deterministically drops leaf items. Without a deposit chest, those drops must land
+     * on the ground instead of displacing the axe and stalling the golem in NO_DEPOSIT wait.
+     */
+    public static void carvingLeafDropsDoNotStallFelling(GameTestHelper helper) {
+        buildGround(helper);
+        buildTree(helper, List.of(TREE), 5, Blocks.OAK_LOG, naturalLeaves(Blocks.OAK_LEAVES));
+        buildLowLeafRing(helper, naturalLeaves(Blocks.OAK_LEAVES));
+        GolemEntity golem = spawnLumberjack(helper, List.of(), false);
+        ItemStack axe = new ItemStack(Items.IRON_AXE);
+        axe.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH), 1);
+        golem.setItemSlot(EquipmentSlot.MAINHAND, axe);
+
+        helper.succeedWhen(() -> helper.assertTrue(logsGone(helper, 5), "Leaf drops while carving should not stall tree felling"));
+    }
+
+    /**
+     * A stray excess item lying inside the work zone must not cause the golem to stow its axe before felling completes.
+     */
+    public static void strayItemsDoNotInterruptFelling(GameTestHelper helper) {
+        buildGround(helper);
+        buildTree(helper, List.of(TREE), 5, Blocks.OAK_LOG, naturalLeaves(Blocks.OAK_LEAVES));
+        buildBushMound(helper, naturalLeaves(Blocks.OAK_LEAVES));
+        ServerLevel level = helper.getLevel();
+        BlockPos stickPos = helper.absolutePos(new BlockPos(1, 2, 0));
+        ItemEntity stick = new ItemEntity(level, stickPos.getX() + 0.5, stickPos.getY() + 0.5, stickPos.getZ() + 0.5, new ItemStack(Items.STICK));
+        stick.setDeltaMovement(Vec3.ZERO);
+        level.addFreshEntity(stick);
+        spawnLumberjack(helper, List.of(), true);
+
+        helper.succeedWhen(() -> helper.assertTrue(logsGone(helper, 5), "A stray stick in the zone should not interrupt felling"));
     }
 
     /**
