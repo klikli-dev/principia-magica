@@ -4,7 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
-import com.klikli_dev.principiamagica.client.gui.Tab;
+import com.klikli_dev.codedefinedgui.api.screen.page.Tab;
 
 import java.util.function.Supplier;
 

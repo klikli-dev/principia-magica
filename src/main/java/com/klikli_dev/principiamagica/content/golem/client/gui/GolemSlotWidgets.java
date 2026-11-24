@@ -4,10 +4,10 @@
 
 package com.klikli_dev.principiamagica.content.golem.client.gui;
 
+import com.klikli_dev.codedefinedgui.api.screen.ContentRect;
 import com.klikli_dev.codedefinedgui.api.texture.GuiSprite;
-import com.klikli_dev.principiamagica.client.gui.ContentRect;
-import com.klikli_dev.principiamagica.client.gui.widget.SpriteWidget;
-import com.klikli_dev.principiamagica.client.gui.widget.TooltipArea;
+import com.klikli_dev.codedefinedgui.api.widget.GuiSpriteWidget;
+import com.klikli_dev.codedefinedgui.api.widget.TooltipAreaWidget;
 import com.klikli_dev.principiamagica.content.golem.menu.GolemMenuLayout;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
@@ -29,21 +29,21 @@ final class GolemSlotWidgets {
      * @param dy vertical offset of the sprite from the item position
      * @return a widget that draws the slot sprite
      */
-    static SpriteWidget background(ContentRect screen, Slot slot, GuiSprite sprite, int dx, int dy) {
-        return new SpriteWidget(screen.x() + slot.x + dx, screen.y() + slot.y + dy, sprite.width(), sprite.height(), sprite);
+    static GuiSpriteWidget background(ContentRect screen, Slot slot, GuiSprite sprite, int dx, int dy) {
+        return new GuiSpriteWidget(screen.x() + slot.x + dx, screen.y() + slot.y + dy, sprite.width(), sprite.height(), sprite);
     }
 
     /**
      * @return a 16x16 sprite drawn on the item position of the slot, e.g. the ghost icon of an empty slot
      */
-    static SpriteWidget itemSprite(ContentRect screen, Slot slot, GuiSprite sprite) {
-        return new SpriteWidget(screen.x() + slot.x, screen.y() + slot.y, sprite.width(), sprite.height(), sprite);
+    static GuiSpriteWidget itemSprite(ContentRect screen, Slot slot, GuiSprite sprite) {
+        return new GuiSpriteWidget(screen.x() + slot.x, screen.y() + slot.y, sprite.width(), sprite.height(), sprite);
     }
 
     /**
      * @return an invisible tooltip area covering the 16x16 item position of the slot and its 1 pixel border
      */
-    static TooltipArea hint(ContentRect screen, Slot slot, Component tooltip) {
-        return new TooltipArea(screen.x() + slot.x - 1, screen.y() + slot.y - 1, GolemMenuLayout.SLOT_SIZE, GolemMenuLayout.SLOT_SIZE, tooltip);
+    static TooltipAreaWidget hint(ContentRect screen, Slot slot, Component tooltip) {
+        return new TooltipAreaWidget(screen.x() + slot.x - 1, screen.y() + slot.y - 1, GolemMenuLayout.SLOT_SIZE, GolemMenuLayout.SLOT_SIZE, tooltip);
     }
 }
