@@ -24,7 +24,7 @@ public class AxiomEntry extends PrincipiaEntryProvider {
     @Override
     protected void generatePages() {
         this.notebookPage("notebook",
-                "The scribe calls them *me*. I call them axioms: laws that need no proof, only obedience. Carve the purpose while the clay is wet, with something of that purpose pressed in: grain for the harvest, a sapling for the felling. Then fire it. Wet clay can still be persuaded. Fired clay cannot.");
+                "The scribe calls them *me*. I call them axioms: laws that need no proof, only obedience. Carve the purpose while the clay is wet, with something of that purpose pressed in: grain for the harvest, a sapling for the felling. Then dry it in the light. Wet clay can still be persuaded. Dried clay keeps its law.");
 
         this.recipeTab("recipe_harvest", "Unfired Axiom of Harvest", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("axiom_of_harvest_unfired")));

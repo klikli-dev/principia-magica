@@ -31,7 +31,7 @@ public class PurposeEntry extends PrincipiaEntryProvider {
                 .withText(this.context().pageText()));
         this.pageTitle("Giving an Axiom");
         this.pageText("""
-                Hold a fired axiom and right-click your golem. The axiom sinks into the clay and is spent. A golem that holds an axiom is no longer purposeless: it sets to work at once.
+                Hold an axiom and right-click your golem. The axiom sinks into the clay and is spent. A golem that holds an axiom is no longer purposeless: it sets to work at once.
                 """
         );
 

@@ -37,7 +37,7 @@ public class PrincipiaResearch extends SingleResearchSubProvider {
                 .on(ResearchTriggerTypeRegistry.GOLEM_GIVEN_AXIOM)
                 .declareFact(GOLEM_GIVEN_AXIOM.id().getPath());
         this.factDisplay(golemGivenAxiomFact, ItemRegistry.AXIOM_OF_HARVEST.get(), "Give a golem an axiom",
-                "Hold a fired axiom and right-click the golem with it.");
+                "Hold an axiom and right-click the golem with it.");
     }
 
     /**
