@@ -87,7 +87,7 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
         // Shift in the GUI shows only the principle at full size.
         Identifier principle = state.principle();
         if (state.shiftDown() && principle != null) {
-            this.submitPrinciple(principle, FULL_ICON_SCALE, 0f, 0f, poseStack, submitNodeCollector, light);
+            this.submitPrinciple(principle, FULL_ICON_SCALE, 0f, 0f, poseStack, submitNodeCollector, light, overlay);
             return;
         }
 
@@ -105,7 +105,7 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
         poseStack.popPose();
 
         // Principle icon on the label, slightly further in front.
-        this.submitPrinciple(principle, ICON_SCALE, BELLY_OFFSET_Y, ICON_OFFSET_Z, poseStack, submitNodeCollector, light);
+        this.submitPrinciple(principle, ICON_SCALE, BELLY_OFFSET_Y, ICON_OFFSET_Z, poseStack, submitNodeCollector, light, overlay);
     }
 
     private void submitItem(ItemStack itemStack, ItemDisplayContext displayContext, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay, int outlineColor) {
@@ -117,9 +117,9 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
 
     /**
      * Draws the 16x16 icon of the principle as a square of the given size, centred on the given offset, facing the viewer.
-     * The icon uses the item cutout render type, like item quads, so it is lit and drawn with the item light.
+     * The icon uses the item cutout render type, like item quads, so it is lit and drawn with the item light and overlay.
      */
-    private void submitPrinciple(Identifier principle, float size, float offsetY, float offsetZ, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light) {
+    private void submitPrinciple(Identifier principle, float size, float offsetY, float offsetZ, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, int overlay) {
         RenderType renderType = RenderTypes.itemCutout(Principle.texture(principle));
         float half = size / 2f;
 
@@ -127,18 +127,23 @@ public class ClayPhialRenderer implements SpecialModelRenderer<ClayPhialRenderSt
         poseStack.translate(0f, offsetY, offsetZ);
         submitNodeCollector.submitCustomGeometry(poseStack, renderType, (pose, buffer) -> {
             // Counter-clockwise when seen from +Z, the front of item quads. The texture's top row is at the top.
-            addPrincipleVertex(pose, buffer, -half, half, 0f, 0f, light);
-            addPrincipleVertex(pose, buffer, -half, -half, 0f, 1f, light);
-            addPrincipleVertex(pose, buffer, half, -half, 1f, 1f, light);
-            addPrincipleVertex(pose, buffer, half, half, 1f, 0f, light);
+            addPrincipleVertex(pose, buffer, -half, half, 0f, 0f, light, overlay);
+            addPrincipleVertex(pose, buffer, -half, -half, 0f, 1f, light, overlay);
+            addPrincipleVertex(pose, buffer, half, -half, 1f, 1f, light, overlay);
+            addPrincipleVertex(pose, buffer, half, half, 1f, 0f, light, overlay);
         });
         poseStack.popPose();
     }
 
-    private static void addPrincipleVertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float y, float u, float v, int light) {
+    /**
+     * Supplies every element of the item cutout vertex format (position, colour, UV0, UV1 overlay, UV2 light, normal).
+     * Missing elements make the buffer fail when the vertex is ended.
+     */
+    private static void addPrincipleVertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float y, float u, float v, int light, int overlay) {
         buffer.addVertex(pose, x, y, 0f)
                 .setColor(-1)
                 .setUv(u, v)
+                .setOverlay(overlay)
                 .setLight(light)
                 .setNormal(pose, 0f, 0f, 1f);
     }
