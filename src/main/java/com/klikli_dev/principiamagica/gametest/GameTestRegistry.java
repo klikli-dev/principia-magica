@@ -523,6 +523,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_CLAY_PHIAL_RECIPE_PRODUCES_EIGHT =
             TEST_FUNCTIONS.register("libation_clay_phial_recipe_produces_eight", () -> LibationGameTests::clayPhialRecipeProducesEight);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_CLAY_PHIAL_FIRES_INTO_PHIAL =
+            TEST_FUNCTIONS.register("libation_clay_phial_fires_into_phial", () -> LibationGameTests::clayPhialFiresIntoPhial);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_NATRON_SPONGE_RECIPE_PRODUCES_EIGHT =
             TEST_FUNCTIONS.register("libation_natron_sponge_recipe_produces_eight", () -> LibationGameTests::natronSpongeRecipeProducesEight);
 
@@ -801,6 +804,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LIBATION_CLAY_PHIAL_SEPARATES_MIXED_PRINCIPLES, environment, structure, 40, 0);
         registerTest(event, LIBATION_NATRON_SPONGE_BLOTS_AND_PURGES, environment, structure, 40, 0);
         registerTest(event, LIBATION_CLAY_PHIAL_RECIPE_PRODUCES_EIGHT, environment, structure, 40, 0);
+        registerTest(event, LIBATION_CLAY_PHIAL_FIRES_INTO_PHIAL, environment, structure, 40, 0);
         registerTest(event, LIBATION_NATRON_SPONGE_RECIPE_PRODUCES_EIGHT, environment, structure, 40, 0);
     }
 

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": "principiamagica:unfired_clay_phial",
+  "result": {
+    "id": "principiamagica:clay_phial"
+  }
+}

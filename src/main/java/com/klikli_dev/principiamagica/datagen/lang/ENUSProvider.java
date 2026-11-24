@@ -84,6 +84,7 @@ public class ENUSProvider extends LanguageProvider {
         this.add("item.principiamagica.axiom_of_felling_unfired_steeped", "Steeped Unfired Axiom of Felling");
         this.add("item.principiamagica.axiom_of_harvest", "Axiom of Harvest");
         this.add("item.principiamagica.axiom_of_felling", "Axiom of Felling");
+        this.add("item.principiamagica.unfired_clay_phial", "Unfired Clay Phial");
         this.add("item.principiamagica.clay_phial", "Clay Phial");
         this.add("item.principiamagica.clay_phial.filled", "Clay Phial of %s");
         this.add("item.principiamagica.natron_sponge", "Natron Sponge");

@@ -51,6 +51,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -984,7 +985,7 @@ public class LibationGameTests {
     }
 
     /**
-     * Crafting three clay balls around quickened clay yields eight clay phials.
+     * Crafting three clay balls around quickened clay yields eight unfired clay phials.
      */
     public static void clayPhialRecipeProducesEight(GameTestHelper helper) {
         CraftingInput input = CraftingInput.of(3, 2, List.of(
@@ -999,8 +1000,28 @@ public class LibationGameTests {
                 .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
         helper.assertTrue(recipe.isPresent(), "Clay phial crafting recipe should match 3 clay balls + 1 quickened clay");
         ItemStack output = recipe.get().value().assemble(input);
-        helper.assertTrue(output.is(ItemRegistry.CLAY_PHIAL.get()) && output.getCount() == 8,
-                "Expected 8 clay phials, got " + output);
+        helper.assertTrue(output.is(ItemRegistry.UNFIRED_CLAY_PHIAL.get()) && output.getCount() == 8,
+                "Expected 8 unfired clay phials, got " + output);
+        helper.succeed();
+    }
+
+    /**
+     * Unfired clay phials fire into clay phials, both in a furnace and on a campfire.
+     */
+    public static void clayPhialFiresIntoPhial(GameTestHelper helper) {
+        SingleRecipeInput input = new SingleRecipeInput(new ItemStack(ItemRegistry.UNFIRED_CLAY_PHIAL.get()));
+
+        var smelting = helper.getLevel().getServer().getRecipeManager()
+                .getRecipeFor(RecipeType.SMELTING, input, helper.getLevel());
+        helper.assertTrue(smelting.isPresent(), "Smelting recipe should match an unfired clay phial");
+        helper.assertTrue(smelting.get().value().assemble(input).is(ItemRegistry.CLAY_PHIAL.get()),
+                "Smelting an unfired clay phial should yield a clay phial");
+
+        var campfire = helper.getLevel().getServer().getRecipeManager()
+                .getRecipeFor(RecipeType.CAMPFIRE_COOKING, input, helper.getLevel());
+        helper.assertTrue(campfire.isPresent(), "Campfire recipe should match an unfired clay phial");
+        helper.assertTrue(campfire.get().value().assemble(input).is(ItemRegistry.CLAY_PHIAL.get()),
+                "Cooking an unfired clay phial on a campfire should yield a clay phial");
         helper.succeed();
     }
 

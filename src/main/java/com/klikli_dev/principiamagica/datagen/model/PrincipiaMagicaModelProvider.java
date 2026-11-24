@@ -62,6 +62,7 @@ public class PrincipiaMagicaModelProvider extends ModelProvider {
         itemModels.generateFlatItem(ItemRegistry.AXIOM_OF_HARVEST.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.AXIOM_OF_FELLING.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.NATRON_SPONGE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ItemRegistry.UNFIRED_CLAY_PHIAL.get(), ModelTemplates.FLAT_ITEM);
 
         Identifier emptyPhialModel = ModelTemplates.FLAT_ITEM.create(
                 ModelLocationUtils.getModelLocation(ItemRegistry.CLAY_PHIAL.get()),

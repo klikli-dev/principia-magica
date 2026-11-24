@@ -58,6 +58,8 @@ public class ItemRegistry {
     public static final DeferredItem<ClayPhialItem> CLAY_PHIAL = ITEMS.registerItem("clay_phial",
             p -> new ClayPhialItem(p.stacksTo(ClayPhialItem.STACK_SIZE)));
 
+    public static final DeferredItem<Item> UNFIRED_CLAY_PHIAL = registerStackable("unfired_clay_phial", ClayPhialItem.STACK_SIZE);
+
     public static final DeferredItem<NatronSpongeItem> NATRON_SPONGE = ITEMS.registerItem("natron_sponge",
             p -> new NatronSpongeItem(p.stacksTo(16)));
 
