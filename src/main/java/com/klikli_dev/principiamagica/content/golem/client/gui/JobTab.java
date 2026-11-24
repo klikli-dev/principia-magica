@@ -84,12 +84,12 @@ final class JobTab extends GolemTab {
     private static final int CELL_ROW_STEP = 9;
     private static final int CLEAR_BUTTON_X = 176;
     private static final int CLEAR_BUTTON_Y = 102;
-    private static final int CLEAR_BUTTON_SIZE = 15;
+    private static final int CLEAR_BUTTON_SIZE = 17;
     /**
-     * The unlink icon is drawn 11px, which leaves 2px of the button free on each side, like the 20px buttons leave 2px around their 16px icon.
+     * The unlink icon keeps the proportion it had on the 15px button, 11 to 15, so it is 12px on the 17px button.
      * Its visible pixels are x 1 to 15 and y 0 to 15 of its 16px canvas, measured from the texture.
      */
-    private static final int CLEAR_ICON_SIZE = 11;
+    private static final int CLEAR_ICON_SIZE = Math.round(CLEAR_BUTTON_SIZE * 11 / 15F);
     private static final int CLEAR_ICON_INK_LEFT = 1;
     private static final int CLEAR_ICON_INK_TOP = 0;
     private static final int CLEAR_ICON_INK_RIGHT = 15;
