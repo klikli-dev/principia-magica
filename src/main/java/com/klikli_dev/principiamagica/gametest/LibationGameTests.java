@@ -774,6 +774,47 @@ public class LibationGameTests {
     }
 
     /**
+     * The principle slots of a principle block share one capacity: a second principle only fits into what the first one leaves,
+     * a rolled back insert leaves nothing behind, and extracting inside a transaction frees room for the same transaction.
+     */
+    public static void principleStorageSharesCapacityBetweenPrinciples(GameTestHelper helper) {
+        BlockPos troughPos = new BlockPos(3, 2, 3);
+        helper.setBlock(troughPos, BlockRegistry.CATCH_TROUGH.get().defaultBlockState());
+        CatchTroughBlockEntity trough = (CatchTroughBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(troughPos));
+        ResourceHandler<FluidResource> handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(troughPos), Direction.UP);
+        helper.assertTrue(handler != null, "The trough should expose a fluid capability");
+        FluidResource loam = FluidRegistry.resourceFor(PrincipleRegistry.LOAM);
+        FluidResource silt = FluidRegistry.resourceFor(PrincipleRegistry.SILT);
+
+        try (Transaction tx = Transaction.open(null)) {
+            helper.assertTrue(handler.insert(loam, 400, tx) == 400, "The trough should take 400 mB of loam");
+            tx.commit();
+        }
+        try (Transaction tx = Transaction.open(null)) {
+            int accepted = handler.insert(silt, 200, tx);
+            helper.assertTrue(accepted == 100, "Silt should only fit into the 100 mB the loam leaves, accepted " + accepted);
+            tx.commit();
+        }
+        helper.assertTrue(trough.getPrinciples().total() == CatchTroughBlockEntity.CAPACITY, "The trough should be full, holds " + trough.getPrinciples().total());
+
+        try (Transaction tx = Transaction.open(null)) {
+            helper.assertTrue(handler.insert(silt, 100, tx) == 0, "A full trough should refuse more principles");
+            // Not committed: the insert must leave nothing behind.
+        }
+        helper.assertTrue(trough.getPrinciples().total() == CatchTroughBlockEntity.CAPACITY, "A rolled back insert should not change the trough, holds " + trough.getPrinciples().total());
+
+        try (Transaction tx = Transaction.open(null)) {
+            helper.assertTrue(handler.extract(loam, 100, tx) == 100, "Loam should come out of the trough");
+            int accepted = handler.insert(silt, 150, tx);
+            helper.assertTrue(accepted == 100, "The room extracted in the same transaction should be usable, accepted " + accepted);
+            tx.commit();
+        }
+        helper.assertTrue(trough.getPrinciples().get(PrincipleRegistry.LOAM) == 300 && trough.getPrinciples().get(PrincipleRegistry.SILT) == 200,
+                "The trough should hold 300 mB loam and 200 mB silt, holds " + trough.getPrinciples());
+        helper.succeed();
+    }
+
+    /**
      * Clay phials hold up to 250 mB, fill/pour like buckets, stack when holding the exact same principle, and top up on crouch-click.
      */
     public static void clayPhialFillsPoursAndStacks(GameTestHelper helper) {

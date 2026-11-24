@@ -460,6 +460,9 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_DRYING_SLAB_TOP_UP_KEEPS_PROGRESS =
             TEST_FUNCTIONS.register("libation_drying_slab_top_up_keeps_progress", () -> LibationGameTests::dryingSlabTopUpKeepsProgress);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_PRINCIPLE_STORAGE_SHARES_CAPACITY =
+            TEST_FUNCTIONS.register("libation_principle_storage_shares_capacity", () -> LibationGameTests::principleStorageSharesCapacityBetweenPrinciples);
+
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_PRINCIPLE_BLOCK_CAPABILITIES =
             TEST_FUNCTIONS.register("libation_principle_block_capabilities", () -> LibationGameTests::principleBlockCapabilitiesInsertAndExtract);
 
@@ -732,6 +735,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LIBATION_SLAB_LETS_PHIALS_DRAW_STORED_PRINCIPLES, environment, structure, 600, 0);
         registerTest(event, LIBATION_RECIPE_CACHE_LOOKS_UP_AGAIN_AFTER_RELOAD, environment, structure, 80, 0);
         registerTest(event, LIBATION_DRYING_SLAB_TOP_UP_KEEPS_PROGRESS, environment, structure, 1200, 0);
+        registerTest(event, LIBATION_PRINCIPLE_STORAGE_SHARES_CAPACITY, environment, structure, 80, 0);
         registerTest(event, LIBATION_PRINCIPLE_BLOCK_CAPABILITIES, environment, structure, 600, 0);
         registerTest(event, LIBATION_CLAY_PHIAL_FILLS_POURS_AND_STACKS, environment, structure, 80, 0);
         registerTest(event, LIBATION_CLAY_PHIAL_SEPARATES_MIXED_PRINCIPLES, environment, structure, 80, 0);
