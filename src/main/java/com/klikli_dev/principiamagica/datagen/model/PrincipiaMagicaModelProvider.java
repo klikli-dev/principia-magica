@@ -5,15 +5,12 @@
 package com.klikli_dev.principiamagica.datagen.model;
 
 import com.klikli_dev.principiamagica.PrincipiaMagica;
-import com.klikli_dev.principiamagica.client.principle.PrincipleTintSource;
+import com.klikli_dev.principiamagica.content.libation.client.ClayPhialRenderer;
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlock;
 import com.klikli_dev.principiamagica.content.libation.slab.SpoutSide;
 import com.klikli_dev.principiamagica.content.libation.vessel.SteepingJarBlock;
-import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.registry.BlockRegistry;
-import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
-import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
@@ -25,11 +22,14 @@ import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
-import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
+import net.minecraft.client.renderer.item.properties.select.DisplayContext;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.NotNull;
@@ -62,22 +62,18 @@ public class PrincipiaMagicaModelProvider extends ModelProvider {
         itemModels.generateFlatItem(ItemRegistry.AXIOM_OF_HARVEST.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.AXIOM_OF_FELLING.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ItemRegistry.NATRON_SPONGE.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ItemRegistry.UNFIRED_CLAY_PHIAL.get(), ModelTemplates.FLAT_ITEM);
 
-        Identifier emptyPhialModel = ModelTemplates.FLAT_ITEM.create(
-                ModelLocationUtils.getModelLocation(ItemRegistry.CLAY_PHIAL.get()),
-                TextureMapping.layer0(ItemRegistry.CLAY_PHIAL.get()),
-                itemModels.modelOutput);
-        Identifier filledPhialModel = ModelTemplates.TWO_LAYERED_ITEM.create(
-                ModelLocationUtils.getModelLocation(ItemRegistry.CLAY_PHIAL.get(), "_filled"),
-                TextureMapping.layered(
-                        new Material(PrincipiaMagica.loc("item/clay_phial_filled")),
-                        new Material(PrincipiaMagica.loc("item/clay_phial_overlay"))),
-                itemModels.modelOutput);
+        // The fired phial is drawn by ClayPhialRenderer, which picks the open or closed body and draws the label and principle.
+        // Its base model is a static resource and has no elements, like Theurgy's derivative_base.
+        // Only the GUI shows the principle at full size on shift. Other display contexts keep the normal view.
+        Identifier phialBase = PrincipiaMagica.loc("item/clay_phial_base");
         itemModels.itemModelOutput.accept(ItemRegistry.CLAY_PHIAL.get(),
-                ItemModelUtils.conditional(
-                        ItemModelUtils.hasComponent(DataComponentRegistry.STORED_PRINCIPLES.get()),
-                        ItemModelUtils.tintedModel(filledPhialModel, new Constant(-1), new PrincipleTintSource(PrincipleContents.DEFAULT_COLOR)),
-                        ItemModelUtils.plainModel(emptyPhialModel)));
+                ItemModelUtils.select(new DisplayContext(),
+                        ItemModelUtils.specialModel(phialBase, new ClayPhialRenderer.Unbaked(false)),
+                        ItemModelUtils.when(ItemDisplayContext.GUI, ItemModelUtils.specialModel(phialBase, new ClayPhialRenderer.Unbaked(true)))));
+        registerIconItem(itemModels, ItemRegistry.CLAY_PHIAL_OPEN_ICON.get(), "clay_phial");
+        registerIconItem(itemModels, ItemRegistry.CLAY_PHIAL_LABELED_ICON.get(), "clay_phial_closed_labeled");
 
         slabBlockState(blockModels, BlockRegistry.LIBATION_SLAB.get());
         blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(BlockRegistry.CATCH_TROUGH.get(), plainVariant("catch_trough")));
@@ -88,6 +84,15 @@ public class PrincipiaMagicaModelProvider extends ModelProvider {
 
         openableBlockState(blockModels, BlockRegistry.LIBATION_SPOUT.get(), "libation_spout_off", "libation_spout_on");
         openableBlockState(blockModels, BlockRegistry.VESSEL_TAP.get(), "vessel_tap_closed", "vessel_tap_open");
+    }
+
+    /**
+     * A flat item with the given texture. Used for the dummy items that the phial renderer draws.
+     */
+    private static void registerIconItem(ItemModelGenerators itemModels, Item item, String texture) {
+        Identifier model = ModelTemplates.FLAT_ITEM.create(ModelLocationUtils.getModelLocation(item),
+                TextureMapping.layer0(new Material(PrincipiaMagica.loc("item/" + texture))), itemModels.modelOutput);
+        itemModels.itemModelOutput.accept(item, ItemModelUtils.plainModel(model));
     }
 
     /**

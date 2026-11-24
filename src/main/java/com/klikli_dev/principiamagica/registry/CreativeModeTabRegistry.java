@@ -31,6 +31,7 @@ public class CreativeModeTabRegistry {
                 output.accept(ItemRegistry.STEEPING_JAR.get());
                 output.accept(ItemRegistry.VESSEL_TAP.get());
                 output.accept(ItemRegistry.DRYING_SLAB.get());
+                output.accept(ItemRegistry.UNFIRED_CLAY_PHIAL.get());
                 output.accept(ItemRegistry.CLAY_PHIAL.get());
                 output.accept(ItemRegistry.NATRON_SPONGE.get());
                 output.accept(ItemRegistry.COPPER_STYLUS.get());

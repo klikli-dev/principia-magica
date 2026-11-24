@@ -17,6 +17,7 @@ import com.klikli_dev.principiamagica.datagen.loot.PrincipiaMagicaBlockLootSubPr
 import com.klikli_dev.principiamagica.datagen.model.PrincipiaMagicaModelProvider;
 import com.klikli_dev.principiamagica.datagen.particle.PrincipiaMagicaParticleDescriptionProvider;
 import com.klikli_dev.principiamagica.datagen.research.PrincipiaResearch;
+import com.klikli_dev.principiamagica.datagen.recipe.CookingRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.recipe.ShapedRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.recipe.ShapelessRecipeProvider;
 import com.klikli_dev.principiamagica.datagen.recipe.PrincipleRecipeProvider;
@@ -59,6 +60,7 @@ public class PrincipiaMagicaDataGenerators {
         generator.addProvider(true, new PrincipiaMagicaModelProvider(generator.getPackOutput()));
         generator.addProvider(true, new ShapedRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new ShapelessRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
+        generator.addProvider(true, new CookingRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new PrincipleRecipeProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new PrincipiaMagicaDataMapProvider(generator.getPackOutput(), event.getLookupProvider()));
         generator.addProvider(true, new AdvancementProvider(generator.getPackOutput(), event.getLookupProvider(), List.of(

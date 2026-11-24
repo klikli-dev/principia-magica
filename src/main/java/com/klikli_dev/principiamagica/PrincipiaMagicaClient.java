@@ -14,6 +14,7 @@ import com.klikli_dev.principiamagica.content.golem.client.render.workplace.Work
 import com.klikli_dev.principiamagica.content.golem.client.render.workplace.WorkplaceRenderTypes;
 import com.klikli_dev.principiamagica.content.libation.LibationClientEffects;
 import com.klikli_dev.principiamagica.content.libation.client.CatchTroughRenderer;
+import com.klikli_dev.principiamagica.content.libation.client.ClayPhialRenderer;
 import com.klikli_dev.principiamagica.content.libation.client.CuringVesselRenderer;
 import com.klikli_dev.principiamagica.content.libation.client.DryingSlabRenderer;
 import com.klikli_dev.principiamagica.content.libation.client.LibationEffects;
@@ -23,7 +24,6 @@ import com.klikli_dev.principiamagica.content.libation.client.LibationSlabRender
 import com.klikli_dev.principiamagica.content.libation.client.LibationSpoutRenderer;
 import com.klikli_dev.principiamagica.content.libation.client.PrincipleDripParticle;
 import com.klikli_dev.principiamagica.content.libation.client.PrincipleSplashParticle;
-import com.klikli_dev.principiamagica.client.principle.PrincipleTintSource;
 import com.klikli_dev.principiamagica.client.principle.PrincipleTooltips;
 import com.klikli_dev.principiamagica.client.recipe.ClientRecipes;
 import com.klikli_dev.principiamagica.content.principle.PrincipleFluid;
@@ -43,8 +43,8 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import com.klikli_dev.principiamagica.client.gui.GuiStyles;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterFluidModelsEvent;
+import net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.fluid.FluidTintSources;
@@ -62,7 +62,7 @@ public class PrincipiaMagicaClient {
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterEntityRenderers);
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterMenuScreens);
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterParticleProviders);
-        modEventBus.addListener(PrincipiaMagicaClient::onRegisterItemTintSources);
+        modEventBus.addListener(PrincipiaMagicaClient::onRegisterSpecialModelRenderers);
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterFluidModels);
         modEventBus.addListener(WorkplaceRenderTypes::onRegisterRenderPipelines);
         LibationClientEffects.install(new LibationEffects());
@@ -106,8 +106,8 @@ public class PrincipiaMagicaClient {
         event.registerSpriteSet(ParticleTypeRegistry.PRINCIPLE_SPLASH.get(), PrincipleSplashParticle.Provider::new);
     }
 
-    public static void onRegisterItemTintSources(RegisterColorHandlersEvent.ItemTintSources event) {
-        event.register(PrincipiaMagica.loc("principle"), PrincipleTintSource.MAP_CODEC);
+    public static void onRegisterSpecialModelRenderers(RegisterSpecialModelRendererEvent event) {
+        event.register(PrincipiaMagica.loc("clay_phial"), ClayPhialRenderer.Unbaked.MAP_CODEC);
     }
 
     public static void onRegisterFluidModels(RegisterFluidModelsEvent event) {

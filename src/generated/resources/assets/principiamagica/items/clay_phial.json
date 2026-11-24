@@ -1,25 +1,26 @@
 {
   "model": {
-    "type": "minecraft:condition",
-    "component": "principiamagica:stored_principles",
-    "on_false": {
-      "type": "minecraft:model",
-      "model": "principiamagica:item/clay_phial"
-    },
-    "on_true": {
-      "type": "minecraft:model",
-      "model": "principiamagica:item/clay_phial_filled",
-      "tints": [
-        {
-          "type": "minecraft:constant",
-          "value": -1
+    "type": "minecraft:select",
+    "cases": [
+      {
+        "model": {
+          "type": "minecraft:special",
+          "base": "principiamagica:item/clay_phial_base",
+          "model": {
+            "type": "principiamagica:clay_phial",
+            "shift_view": true
+          }
         },
-        {
-          "type": "principiamagica:principle",
-          "default": 16777215
-        }
-      ]
+        "when": "gui"
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:special",
+      "base": "principiamagica:item/clay_phial_base",
+      "model": {
+        "type": "principiamagica:clay_phial"
+      }
     },
-    "property": "minecraft:has_component"
+    "property": "minecraft:display_context"
   }
 }

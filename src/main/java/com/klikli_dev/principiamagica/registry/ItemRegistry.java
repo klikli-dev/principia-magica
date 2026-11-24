@@ -58,6 +58,15 @@ public class ItemRegistry {
     public static final DeferredItem<ClayPhialItem> CLAY_PHIAL = ITEMS.registerItem("clay_phial",
             p -> new ClayPhialItem(p.stacksTo(ClayPhialItem.STACK_SIZE)));
 
+    public static final DeferredItem<Item> UNFIRED_CLAY_PHIAL = registerStackable("unfired_clay_phial", ClayPhialItem.STACK_SIZE);
+
+    /**
+     * Dummy items that only exist to be drawn by the clay phial renderer. They are not in any creative tab.
+     */
+    public static final DeferredItem<Item> CLAY_PHIAL_OPEN_ICON = ITEMS.registerItem("clay_phial_open_icon", Item::new);
+
+    public static final DeferredItem<Item> CLAY_PHIAL_LABELED_ICON = ITEMS.registerItem("clay_phial_labeled_icon", Item::new);
+
     public static final DeferredItem<NatronSpongeItem> NATRON_SPONGE = ITEMS.registerItem("natron_sponge",
             p -> new NatronSpongeItem(p.stacksTo(16)));
 
