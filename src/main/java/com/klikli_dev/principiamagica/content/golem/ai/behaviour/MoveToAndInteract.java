@@ -4,8 +4,10 @@
 
 package com.klikli_dev.principiamagica.content.golem.ai.behaviour;
 
+import com.klikli_dev.principiamagica.content.golem.ai.sensor.WorkTargetSensor;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemTask;
+import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkReservations;
 import com.klikli_dev.principiamagica.registry.AttributeRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
@@ -164,6 +166,24 @@ public abstract class MoveToAndInteract extends Behavior<GolemEntity> {
     public static boolean isAvailable(ServerLevel level, GolemEntity golem, BlockPos pos) {
         Set<BlockPos> unreachable = golem.getBrain().getMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value()).orElse(Set.of());
         return !unreachable.contains(pos) && !WorkReservations.isReservedByOther(level, pos, golem.getUUID());
+    }
+
+    /**
+     * A golem holding its job tool can stow it on an empty back once the sensor has had a chance to scan and no immediate
+     * work candidate is waiting for the tool, so it finishes tilling/harvesting/felling before switching to restocking or
+     * stray item pickup. Note that Brain erases empty lists, so an absent WORK_CANDIDATES memory means no candidates.
+     */
+    protected static boolean canStowTool(ServerLevel level, GolemEntity golem, GolemJob job) {
+        if (golem.tickCount < WorkTargetSensor.SCAN_RATE
+                || !golem.isTool(golem.getHandItem())
+                || !golem.getBackItem().isEmpty()) {
+            return false;
+        }
+
+        return golem.getBrain().getMemory(MemoryModuleTypeRegistry.WORK_CANDIDATES.value())
+                .map(candidates -> candidates.stream()
+                        .noneMatch(pos -> isAvailable(level, golem, pos) && job.targetFinder().isTarget(level, golem, pos)))
+                .orElse(true);
     }
 
     protected static void markUnreachable(GolemEntity golem, BlockPos pos) {
