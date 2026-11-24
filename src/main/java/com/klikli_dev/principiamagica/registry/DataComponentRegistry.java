@@ -28,7 +28,7 @@ public class DataComponentRegistry {
     );
 
     /**
-     * Relative workplace (positions relative to the golem's anchor) of a golem picked up with the stylus.
+     * Absolute workplace (world positions with dimension-stamped footprints) of a golem picked up with the stylus.
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Workplace>> GOLEM_WORKPLACE = DATA_COMPONENTS.registerComponentType("golem_workplace", builder -> builder
             .persistent(Workplace.CODEC)

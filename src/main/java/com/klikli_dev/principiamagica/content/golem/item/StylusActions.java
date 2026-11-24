@@ -412,11 +412,17 @@ public final class StylusActions {
     }
 
     public static Workplace toRelative(Workplace workplace, BlockPos anchor, ResourceKey<Level> dimension) {
-        Workplace shifted = shift(workplace, -anchor.getX(), -anchor.getY(), -anchor.getZ(), true);
-        List<WorkFootprint> stamped = shifted.footprints().stream()
+        return stampDimension(shift(workplace, -anchor.getX(), -anchor.getY(), -anchor.getZ(), true), dimension);
+    }
+
+    /**
+     * Stamps any dimension-less footprints with {@code dimension} without shifting any coordinates.
+     */
+    public static Workplace stampDimension(Workplace workplace, ResourceKey<Level> dimension) {
+        List<WorkFootprint> stamped = workplace.footprints().stream()
                 .map(footprint -> footprint.dimension().isEmpty() ? footprint.withDimension(dimension) : footprint)
                 .toList();
-        return shifted.withFootprints(stamped);
+        return workplace.withFootprints(stamped);
     }
 
     /**
@@ -432,21 +438,27 @@ public final class StylusActions {
      * {@code initialized} is reset when no footprints remain, preventing cross-dimension weirdness.
      */
     public static Workplace toAbsoluteForDimension(Workplace relative, BlockPos anchor, ResourceKey<Level> targetDimension) {
-        boolean droppedOtherDimension = relative.footprints().stream()
+        return forDimension(shift(relative, anchor.getX(), anchor.getY(), anchor.getZ(), false), targetDimension);
+    }
+
+    /**
+     * Filters a workplace for {@code targetDimension} without shifting coordinates, dropping any footprints from other
+     * dimensions. If any footprint was dropped for a dimension mismatch, container links and item memory are also
+     * cleared and {@code initialized} is reset when no footprints remain, preventing cross-dimension weirdness.
+     */
+    public static Workplace forDimension(Workplace workplace, ResourceKey<Level> targetDimension) {
+        boolean droppedOtherDimension = workplace.footprints().stream()
                 .anyMatch(footprint -> !footprint.isInDimension(targetDimension));
-        List<WorkFootprint> matching = relative.footprints().stream()
+        List<WorkFootprint> matching = workplace.footprints().stream()
                 .filter(footprint -> footprint.isInDimension(targetDimension))
-                .map(footprint -> footprint.offset(anchor.getX(), anchor.getY(), anchor.getZ()).withDimension(targetDimension))
+                .map(footprint -> footprint.dimension().isEmpty() ? footprint.withDimension(targetDimension) : footprint)
                 .toList();
         if (droppedOtherDimension) {
-            boolean initialized = !matching.isEmpty() && relative.initialized();
-            return new Workplace(matching, List.of(), relative.options(), Map.of(), initialized);
+            boolean initialized = !matching.isEmpty() && workplace.initialized();
+            return new Workplace(matching, List.of(), workplace.options(), Map.of(), initialized);
         }
 
-        List<ContainerLink> links = relative.links().stream()
-                .map(link -> new ContainerLink(link.pos().offset(anchor.getX(), anchor.getY(), anchor.getZ()), link.side(), link.role()))
-                .toList();
-        return new Workplace(matching, links, relative.options(), relative.itemMemory(), relative.initialized());
+        return new Workplace(matching, workplace.links(), workplace.options(), workplace.itemMemory(), workplace.initialized());
     }
 
     private static Workplace shift(Workplace workplace, int dx, int dy, int dz, boolean clearMemory) {

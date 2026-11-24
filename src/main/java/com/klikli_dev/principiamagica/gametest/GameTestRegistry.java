@@ -108,6 +108,9 @@ public class GameTestRegistry {
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STYLUS_PICKUP_KEEPS_INVENTORY_ON_GOLEM_ITEM =
             TEST_FUNCTIONS.register("stylus_pickup_keeps_inventory_on_golem_item", () -> GolemRemovalGameTests::stylusPickupKeepsInventoryOnGolemItem);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> STYLUS_PICKUP_AND_PLACE_AT_NEW_LOCATION_KEEPS_WORKPLACE =
+            TEST_FUNCTIONS.register("stylus_pickup_and_place_at_new_location_keeps_workplace", () -> GolemRemovalGameTests::stylusPickupAndPlaceAtNewLocationKeepsWorkplace);
+
     // --- Golem stylus ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> CONTAINER_LINK_CYCLES =
@@ -700,6 +703,7 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, DEATH_WITHOUT_AXIOM_DROPS_NO_AXIOM, environment, structure, 40, 0);
         registerTest(event, DISCARDED_GOLEM_DROPS_NOTHING, environment, structure, 40, 0);
         registerTest(event, STYLUS_PICKUP_KEEPS_INVENTORY_ON_GOLEM_ITEM, environment, structure, 40, 0);
+        registerTest(event, STYLUS_PICKUP_AND_PLACE_AT_NEW_LOCATION_KEEPS_WORKPLACE, environment, structure, 40, 0);
     }
 
     private static void registerFarmingTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {

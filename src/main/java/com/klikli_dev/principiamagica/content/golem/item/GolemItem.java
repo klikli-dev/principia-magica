@@ -85,7 +85,9 @@ public class GolemItem extends Item implements GeoItem {
     }
 
     /**
-     * Places the golem at the clicked block. A golem picked up with a stylus keeps its workplace, re-anchored to the new position.
+     * Places the golem at the clicked block. A golem picked up with a stylus keeps its workplace at its original world
+     * positions when placed in the same dimension, while updating its anchor to the new position and clearing
+     * cross-dimension areas and links if placed in another dimension.
      */
     @Override
     public InteractionResult useOn(UseOnContext context) {
@@ -114,7 +116,7 @@ public class GolemItem extends Item implements GeoItem {
 
         Workplace stored = stack.get(DataComponentRegistry.GOLEM_WORKPLACE.get());
         if (stored != null) {
-            golem.updateWorkplace(current -> StylusActions.toAbsoluteForDimension(stored, pos, serverLevel.dimension()));
+            golem.updateWorkplace(current -> StylusActions.forDimension(stored, serverLevel.dimension()));
         }
 
         GolemStorage storage = stack.get(DataComponentRegistry.GOLEM_STORAGE.get());
