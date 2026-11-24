@@ -416,6 +416,12 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL =
             TEST_FUNCTIONS.register("lumberjack_stalled_sapling_stops_bonemeal", () -> LumberjackGameTests::stalledSaplingStopsTakingBonemeal);
 
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_CARVING_LEAF_DROPS_DO_NOT_STALL_FELLING =
+            TEST_FUNCTIONS.register("lumberjack_carving_leaf_drops_do_not_stall_felling", () -> LumberjackGameTests::carvingLeafDropsDoNotStallFelling);
+
+    public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LUMBERJACK_STRAY_ITEMS_DO_NOT_INTERRUPT_FELLING =
+            TEST_FUNCTIONS.register("lumberjack_stray_items_do_not_interrupt_felling", () -> LumberjackGameTests::strayItemsDoNotInterruptFelling);
+
     // --- Libation ---
 
     public static final DeferredHolder<Consumer<GameTestHelper>, Consumer<GameTestHelper>> LIBATION_SPOUT_OPENS_HOLE_IN_SLAB =
@@ -754,6 +760,8 @@ STACKED_FARM_VOLUME_COVERS_EVERY_LAYER =
         registerTest(event, LUMBERJACK_RESTOCKS_BONEMEAL_FROM_SUPPLY, environment, structure, 1600, 0);
         registerTest(event, LUMBERJACK_RESTOCKS_BONEMEAL_WITH_AXE, environment, structure, 1600, 0);
         registerTest(event, LUMBERJACK_STALLED_SAPLING_STOPS_BONEMEAL, environment, structure, 2000, 0);
+        registerTest(event, LUMBERJACK_CARVING_LEAF_DROPS_DO_NOT_STALL_FELLING, environment, structure, 800, 0);
+        registerTest(event, LUMBERJACK_STRAY_ITEMS_DO_NOT_INTERRUPT_FELLING, environment, structure, 800, 0);
     }
 
     private static void registerLibationTests(RegisterGameTestsEvent event, Holder<TestEnvironmentDefinition<?>> environment, Identifier structure) {
