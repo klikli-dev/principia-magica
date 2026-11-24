@@ -21,7 +21,18 @@
     "side_button_frame_overlap": 19
   },
   "node": {
-    "connection_renderer": "sprite",
+    "connection_renderer": "direct",
+    "direct_connections": {
+      "available_color": -16711936,
+      "brightness": 1.75,
+      "connected_color": -1073741825,
+      "discovered_color": -16776961,
+      "opacity": 1.0,
+      "oscillation": true,
+      "oscillation_amplitude": 5.0,
+      "oscillation_speed": 1.0,
+      "width": 2.25
+    },
     "entry_name_style": {
       "background": {
         "height": 26,

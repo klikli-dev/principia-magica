@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.datagen.book;
 
 import com.klikli_dev.modonomicon.api.datagen.SingleBookSubProvider;
 import com.klikli_dev.modonomicon.api.datagen.book.BookModel;
+import com.klikli_dev.modonomicon.client.gui.book.theme.NodeConnectionRendererType;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.WetClayCategoryProvider;
 import com.klikli_dev.principiamagica.registry.CreativeModeTabRegistry;
@@ -49,6 +50,8 @@ public class PrincipiaBookProvider extends SingleBookSubProvider {
                 // settings and only serves custom textures from the "clay" theme folder.
                 .withTheme(theme -> theme
                         .withId(this.modLoc(THEME_ID))
+                        // Node connections are drawn as dynamic lines instead of the routed, texture-based arrows.
+                        .withNode(node -> node.withConnectionRenderer(NodeConnectionRendererType.DIRECT))
                         // 16px item icons are drawn at 12px, leaving a 1px gap inside the 3px clay button border.
                         // The clay frame body sits a few px inside the frame box, so the side buttons
                         // extend 19 px under the frame. This draws the 44 px category button at its full
