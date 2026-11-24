@@ -62,8 +62,10 @@ public final class StylusActions {
 
     /**
      * Cycles the link at pos: none -> SUPPLY -> DEPOSIT -> BOTH -> removed.
+     *
+     * @param side the side a new link queries, ignored for existing links, so it may be null when cycling an existing one
      */
-    public static Workplace cycleLink(Workplace workplace, BlockPos pos, Direction side) {
+    public static Workplace cycleLink(Workplace workplace, BlockPos pos, @Nullable Direction side) {
         List<ContainerLink> links = new ArrayList<>(workplace.links());
         for (int i = 0; i < links.size(); i++) {
             ContainerLink link = links.get(i);
@@ -77,6 +79,10 @@ public final class StylusActions {
                 links.set(i, link.withRole(link.role().next()));
             }
             return workplace.withLinks(links).markInitialized();
+        }
+
+        if (side == null) {
+            throw new IllegalArgumentException("A new container link needs a side");
         }
 
         links.add(new ContainerLink(pos, side, ContainerRole.SUPPLY));

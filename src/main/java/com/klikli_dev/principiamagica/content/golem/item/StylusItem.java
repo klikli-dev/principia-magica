@@ -6,6 +6,7 @@ package com.klikli_dev.principiamagica.content.golem.item;
 
 import com.klikli_dev.principiamagica.content.KeyCombo;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Networking;
@@ -208,6 +209,32 @@ public class StylusItem extends Item {
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
         golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
         syncWorkplace(player, golem);
+    }
+
+    /**
+     * Cycles (plain) or removes (sneaking) the container link at pos, for a link the client targeted without a block hit. Validates the same
+     * things as the other stylus edits: the player owns the golem, holds its selection in range, the position is one of the golem's links,
+     * and the position is in reach of the player's eyes.
+     *
+     * @return whether the link was acted on
+     */
+    public static boolean targetLink(ServerPlayer player, GolemEntity golem, BlockPos pos, boolean remove) {
+        if (!player.getUUID().equals(golem.getOwnerUUID()) || !isWithinRange(player, golem) || !holdsSelection(player, golem)) {
+            return false;
+        }
+
+        if (!GlyphTargeting.isInReach(player.getEyePosition(), pos)) {
+            return false;
+        }
+
+        ServerLevel level = (ServerLevel) golem.level();
+        boolean linked = golem.getWorkplace(level).orElse(Workplace.EMPTY).links().stream().anyMatch(link -> link.pos().equals(pos));
+        if (!linked) {
+            return false;
+        }
+
+        StylusBlockInteraction.targetLink(level, player, golem, pos, remove);
+        return true;
     }
 
     public static boolean isWithinRange(ServerPlayer player, GolemEntity golem) {

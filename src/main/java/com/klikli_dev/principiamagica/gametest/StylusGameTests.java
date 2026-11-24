@@ -861,6 +861,42 @@ public class StylusGameTests {
     }
 
     /**
+     * A link on a position without a container can be cycled and removed when the client targets it in the air. Only linked positions
+     * are accepted, and only from a player who holds the selection, owns the golem, and is in range.
+     */
+    public static void targetedAirLinkCyclesAndRemoves(GameTestHelper helper) {
+        GolemEntity golem = helper.spawn(EntityTypeRegistry.GOLEM.get(), new BlockPos(2, 2, 2));
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        golem.setOwnerUUID(player.getUUID());
+        Vec3 near = Vec3.atCenterOf(helper.absolutePos(new BlockPos(2, 2, 2)));
+        player.setPos(near);
+
+        BlockPos air = helper.absolutePos(new BlockPos(3, 2, 3));
+        helper.setBlock(new BlockPos(3, 2, 3), Blocks.AIR);
+        golem.updateWorkplace(current -> Workplace.EMPTY.withLinks(List.of(new ContainerLink(air, Direction.UP, ContainerRole.SUPPLY))).markInitialized());
+
+        ItemStack stylus = new ItemStack(ItemRegistry.COPPER_STYLUS.get());
+        stylus.set(DataComponentRegistry.STYLUS_SELECTION.get(), golem.getUUID());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stylus);
+
+        helper.assertTrue(!StylusItem.targetLink(player, golem, helper.absolutePos(new BlockPos(9, 2, 9)), false),
+                "A position that is not a link should be refused");
+        helper.assertTrue(StylusItem.targetLink(player, golem, air, false), "A linked air position should be targetable");
+        List<ContainerLink> cycled = golem.getWorkplace(helper.getLevel()).orElseThrow().links();
+        helper.assertTrue(cycled.size() == 1 && cycled.get(0).role() == ContainerRole.DEPOSIT, "Targeting should cycle the link, got " + cycled);
+        helper.assertTrue(StylusItem.targetLink(player, golem, air, true), "A sneak-targeted air link should be removable");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().isEmpty(), "Removing should drop the link");
+
+        golem.updateWorkplace(current -> Workplace.EMPTY.withLinks(List.of(new ContainerLink(air, Direction.UP, ContainerRole.SUPPLY))).markInitialized());
+        player.setPos(near.add(100.0, 0.0, 0.0));
+        helper.assertTrue(!StylusItem.targetLink(player, golem, air, false), "A player out of stylus range should be refused");
+        helper.assertTrue(golem.getWorkplace(helper.getLevel()).orElseThrow().links().get(0).role() == ContainerRole.SUPPLY,
+                "A refused target should not change the link");
+
+        helper.succeed();
+    }
+
+    /**
      * A link queries a side, so it must be a side that exposes the item handler. The clicked face is kept when it exposes it, otherwise
      * the link falls back to a face that does. A block exposing no side cannot be linked at all.
      */

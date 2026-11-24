@@ -24,6 +24,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -65,6 +66,21 @@ final class StylusBlockInteraction {
         StylusItem.syncWorkplace(player, golem);
     }
 
+    /**
+     * Acts on a link the player targeted without a block hit, e.g. a container that is gone. Plain cycles the link, sneaking removes it,
+     * exactly like clicking the linked position. The caller has validated the golem, the stylus and the reach.
+     */
+    static void targetLink(ServerLevel level, ServerPlayer player, GolemEntity golem, BlockPos pos, boolean remove) {
+        Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
+        if (remove) {
+            removeLink(level, player, golem, workplace, pos);
+        } else {
+            cycleLink(level, player, golem, workplace, pos, null);
+        }
+
+        StylusItem.syncWorkplace(player, golem);
+    }
+
     private static void eraseFootprint(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos) {
         int below = golem.getJob().map(GolemJob::below).orElse(WorkFootprint.DEFAULT_BELOW);
         int above = golem.getJob().map(GolemJob::above).orElse(WorkFootprint.DEFAULT_ABOVE);
@@ -94,12 +110,12 @@ final class StylusBlockInteraction {
     /**
      * Setting a new link drops the links whose container is gone. Stale positions in unloaded chunks are kept, as they cannot be checked.
      */
-    private static void cycleLink(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos, Direction face) {
+    private static void cycleLink(ServerLevel level, ServerPlayer player, GolemEntity golem, Workplace workplace, BlockPos pos, @Nullable Direction face) {
         boolean isNewLink = workplace.links().stream().noneMatch(link -> link.pos().equals(pos));
         // A new link queries the clicked face if it exposes the item handler, otherwise another face that does.
-        // Existing links keep the side they were linked with.
-        Direction side = isNewLink ? ContainerAccess.usableSide(level, pos, face) : face;
-        if (side == null) {
+        // Existing links keep the side they were linked with, so they need no face.
+        Direction side = isNewLink ? ContainerAccess.usableSide(level, pos, face) : null;
+        if (isNewLink && side == null) {
             level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
             return;
