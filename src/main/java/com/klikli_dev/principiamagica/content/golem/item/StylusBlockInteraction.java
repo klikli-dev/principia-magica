@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.content.golem.item;
 
+import com.klikli_dev.principiamagica.content.Plurals;
 import com.klikli_dev.principiamagica.content.golem.ai.behaviour.ContainerAccess;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
@@ -142,7 +143,7 @@ final class StylusBlockInteraction {
             level.playSound(null, pos, linkSound(role.get()), SoundSource.BLOCKS, 1.0F, 1.0F);
             Component roleName = Component.translatable("golem_role.principiamagica." + role.get().getSerializedName());
             if (removed > 0) {
-                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set_pruned", roleName, removed));
+                player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set_pruned", roleName, Plurals.of(Plurals.UNAVAILABLE_LINKS, removed)));
             } else {
                 player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set", roleName));
             }

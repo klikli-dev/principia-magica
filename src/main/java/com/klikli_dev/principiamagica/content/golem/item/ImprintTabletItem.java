@@ -5,6 +5,7 @@
 package com.klikli_dev.principiamagica.content.golem.item;
 
 import com.klikli_dev.principiamagica.content.KeyCombo;
+import com.klikli_dev.principiamagica.content.Plurals;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
@@ -94,7 +95,7 @@ public class ImprintTabletItem extends Item {
             Workplace copied = StylusActions.toRelative(workplace, StylusItem.anchorOf(golem), level.dimension());
             stack.set(DataComponentRegistry.IMPRINT_CLIPBOARD.get(), copied);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.imprint_tablet.copied",
-                    copied.footprints().size(), copied.links().size()));
+                    Plurals.of(Plurals.FOOTPRINTS, copied.footprints().size()), Plurals.of(Plurals.CONTAINER_LINKS, copied.links().size())));
         } else {
             BlockPos anchor = StylusItem.anchorOf(golem);
             golem.updateWorkplace(current -> StylusActions.paste(current, clipboard, anchor, level.dimension()));
@@ -108,7 +109,7 @@ public class ImprintTabletItem extends Item {
         Workplace clipboard = stack.get(DataComponentRegistry.IMPRINT_CLIPBOARD.get());
         adder.accept(clipboard == null
                 ? Component.translatable("tooltip.principiamagica.imprint_tablet.clipboard_empty").withStyle(ChatFormatting.GRAY)
-                : Component.translatable("tooltip.principiamagica.imprint_tablet.clipboard", clipboard.footprints().size(), clipboard.links().size()).withStyle(ChatFormatting.GRAY));
+                : Component.translatable("tooltip.principiamagica.imprint_tablet.clipboard", Plurals.of(Plurals.FOOTPRINTS, clipboard.footprints().size()), Plurals.of(Plurals.CONTAINER_LINKS, clipboard.links().size())).withStyle(ChatFormatting.GRAY));
 
         adder.accept(Component.translatable("tooltip.principiamagica.imprint_tablet.hint_copy_paste", KeyCombo.RIGHT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
         adder.accept(Component.translatable("tooltip.principiamagica.imprint_tablet.hint_clear", KeyCombo.CROUCH_RIGHT_CLICK.component()).withStyle(ChatFormatting.DARK_GRAY));
