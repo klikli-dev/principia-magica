@@ -32,14 +32,25 @@ import java.util.List;
 public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, GolemRenderState> {
 
     static final String HAND_BONE = "RightHandItem";
-    static final String TORSO_BONE = "torso";
+    static final String CARRY_BONE = "arm_left";
     static final String BACK_BONE = "BackItem";
 
     /**
-     * Offset from the torso pivot (y = 6) to where the raised carrying arms meet (y ≈ 11, z ≈ -7.5..-8) after the
-     * third-person hand transform adds (0, -1, -4.5) px for blocks and (0, 0, -5) px for flat items.
+     * Base carry pose of {@code arm_left} in {@code golem.animation.json} ({@code [-70, 25, 0]} deg).
+     * GeckoLib negates X and Y when baking rotations ({@code Ry(-25) * Rx(+70)}), so undoing that base
+     * pose at the arm pivot applies {@code Rx(-70) * Ry(+25)} before translating to the center between
+     * the hands, leaving only the arm's animated sway.
      */
-    private static final float CARRY_OFFSET_Y = 6.0F / 16.0F;
+    private static final float CARRY_ARM_BASE_ROT_X = 70.0F;
+    private static final float CARRY_ARM_BASE_ROT_Y = 25.0F;
+
+    /**
+     * Offset from the {@code arm_left} pivot (baked {@code (-5, 14, 0)} px) to the carry anchor
+     * ({@code (0, 12, -3)} px in torso space), where the raised carrying arms meet ({@code y ≈ 11, z ≈ -7.5..-8})
+     * after the third-person hand transform adds {@code (0, -1, -4.5)} px for blocks and {@code (0, 0, -5)} px for flat items.
+     */
+    private static final float CARRY_OFFSET_X = 5.0F / 16.0F;
+    private static final float CARRY_OFFSET_Y = -2.0F / 16.0F;
     private static final float CARRY_OFFSET_Z = -3.0F / 16.0F;
 
     /**
@@ -51,9 +62,10 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
          */
         TOOL_IN_HAND(HAND_BONE, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
         /**
-         * A carried item, which is not a tool. Drawn in the middle of the hands, on the torso.
+         * A carried item, which is not a tool. Bound to the left arm so it sways with the carrying animation while
+         * staying centered between the hands and unaffected by right-arm work or stow animations.
          */
-        CARRIED(TORSO_BONE, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
+        CARRIED(CARRY_BONE, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND),
         /**
          * The tool on the back. Lies on the back bone.
          */
@@ -129,8 +141,10 @@ public class GolemItemLayer extends BlockAndItemGeoLayer<GolemEntity, Void, Gole
     @Override
     protected void submitItemStackRender(PoseStack poseStack, GeoBone bone, ItemStackRenderState stackState, ItemDisplayContext displayContext, GolemRenderState renderState, SubmitNodeCollector renderTasks, int packedLight) {
         poseStack.pushPose();
-        if (TORSO_BONE.equals(bone.name())) {
-            poseStack.translate(0.0F, CARRY_OFFSET_Y, CARRY_OFFSET_Z);
+        if (CARRY_BONE.equals(bone.name())) {
+            poseStack.mulPose(Axis.XN.rotationDegrees(CARRY_ARM_BASE_ROT_X));
+            poseStack.mulPose(Axis.YP.rotationDegrees(CARRY_ARM_BASE_ROT_Y));
+            poseStack.translate(CARRY_OFFSET_X, CARRY_OFFSET_Y, CARRY_OFFSET_Z);
         }
 
         if (BACK_BONE.equals(bone.name())) {
