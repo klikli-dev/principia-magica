@@ -1,0 +1,6 @@
+{
+  "gui_light": "front",
+  "textures": {
+    "particle": "principiamagica:item/clay_phial"
+  }
+}

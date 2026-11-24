@@ -88,6 +88,9 @@ public class ENUSProvider extends LanguageProvider {
         this.add("item.principiamagica.clay_phial", "Clay Phial");
         this.add("item.principiamagica.clay_phial.filled", "Clay Phial of %s");
         this.add("item.principiamagica.natron_sponge", "Natron Sponge");
+        this.add("item.principiamagica.clay_phial_open_icon", "Dummy item for rendering.");
+        this.add("item.principiamagica.clay_phial_closed_icon", "Dummy item for rendering.");
+        this.add("item.principiamagica.phial_label_icon", "Dummy item for rendering.");
 
         this.add("tooltip.principiamagica.clay_phial.hint_use", "%s container: draw or pour (up to 250 mB)");
         this.add("tooltip.principiamagica.clay_phial.hint_select", "%s: choose principle");
