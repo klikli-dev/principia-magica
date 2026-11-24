@@ -1,7 +1,9 @@
 {
   "anchor": "notebook",
   "condition": {
-    "type": "modonomicon:none"
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_axioms",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_axioms/stages/axiom_tablet"
   },
   "id": "recipe_felling",
   "page": {

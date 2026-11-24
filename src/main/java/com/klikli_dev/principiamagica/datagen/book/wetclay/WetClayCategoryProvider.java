@@ -45,6 +45,22 @@ public class WetClayCategoryProvider extends PrincipiaCategoryProvider {
         var kudurruEntry = this.add(new KudurruEntry(this).generate());
         this.layout().entry(kudurruEntry).at(4, 0);
         kudurruEntry.withParent(purposeEntry).hideWhileLocked(true);
+
+        var careOfGolemsEntry = this.add(new CareOfGolemsEntry(this).generate());
+        this.layout().entry(careOfGolemsEntry).at(3, 1);
+        careOfGolemsEntry.withParent(theBodyEntry).hideWhileLocked(true);
+
+        var imprintTabletEntry = this.add(new ImprintTabletEntry(this).generate());
+        this.layout().entry(imprintTabletEntry).at(1, 2);
+        imprintTabletEntry.withParent(axiomTabletEntry).hideWhileLocked(true);
+
+        var jobsHarvestEntry = this.add(new JobsHarvestEntry(this).generate());
+        this.layout().entry(jobsHarvestEntry).at(2, 2);
+        jobsHarvestEntry.withParent(axiomEntry).hideWhileLocked(true);
+
+        var jobsFellingEntry = this.add(new JobsFellingEntry(this).generate());
+        this.layout().entry(jobsFellingEntry).at(3, 2);
+        jobsFellingEntry.withParent(axiomEntry).hideWhileLocked(true);
     }
 
     @Override

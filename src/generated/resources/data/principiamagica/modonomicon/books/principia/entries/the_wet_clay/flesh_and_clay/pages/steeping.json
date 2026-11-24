@@ -1,7 +1,9 @@
 {
   "type": "modonomicon:text",
   "condition": {
-    "type": "modonomicon:none"
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_flesh_and_clay",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_flesh_and_clay/stages/quickened"
   },
   "id": "steeping",
   "show_title_separator": true,

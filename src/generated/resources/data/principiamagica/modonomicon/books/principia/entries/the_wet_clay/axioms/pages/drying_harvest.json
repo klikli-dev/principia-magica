@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_axioms",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_axioms/stages/axiom_tablet"
+  },
+  "id": "drying_harvest",
+  "recipe_id_1": "principiamagica:drying/axiom_of_harvest",
+  "sort_number": 4,
+  "title1": "book.principiamagica.principia.the_wet_clay.axioms.drying_harvest.title"
+}

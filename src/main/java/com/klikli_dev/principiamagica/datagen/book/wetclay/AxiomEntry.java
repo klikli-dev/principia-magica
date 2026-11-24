@@ -23,17 +23,26 @@ public class AxiomEntry extends PrincipiaEntryProvider {
 
     @Override
     protected void generatePages() {
+        this.scribePage("scribe",
+                "Enki kept the decrees in his house in Eridu: the decree of the plough, the decree of the axe, the decree of kingship, the decree of the destruction of cities. Each could be held in the hand. Each could be given away.");
+
         this.notebookPage("notebook",
-                "The scribe calls them *me*. I call them axioms: laws that need no proof, only obedience. Carve the purpose while the clay is wet, with something of that purpose pressed in: grain for the harvest, a sapling for the felling. Then dry it in the light. Wet clay can still be persuaded. Dried clay keeps its law.");
+                "The scribe calls them *me*. I call them axioms: laws that need no proof, only obedience. Carve the purpose while the clay is wet, with something of that purpose pressed in: grain for the harvest, a sapling for the felling. Then steep it in its matter and dry it in the light. Wet clay can still be persuaded. Dried clay keeps its law.");
+
+        this.stage("axiom_tablet", s -> s
+                .title("An axiom tablet")
+                .obtain(ItemRegistry.AXIOM_TABLET.get()));
 
         this.recipeTab("recipe_harvest", "Unfired Axiom of Harvest", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("axiom_of_harvest_unfired")));
         this.recipeTab("recipe_felling", "Unfired Axiom of Felling", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("axiom_of_felling_unfired")));
-        // TODO: book pages for the principle recipes (libation, steeping, drying) are to come. Firing was replaced by drying.
 
-        this.scribePage("scribe",
-                "Enki kept the decrees in his house in Eridu: the decree of the plough, the decree of the axe, the decree of kingship, the decree of the destruction of cities. Each could be held in the hand. Each could be given away.");
+        // The steeping and drying recipes of the axioms are also shown with their processes in the Khemeia category.
+        this.recipePage("steeping_harvest", "Steeping the Axiom of Harvest", PrincipiaMagica.loc("steeping/axiom_of_harvest_unfired"));
+        this.recipePage("steeping_felling", "Steeping the Axiom of Felling", PrincipiaMagica.loc("steeping/axiom_of_felling_unfired"));
+        this.recipePage("drying_harvest", "Drying the Axiom of Harvest", PrincipiaMagica.loc("drying/axiom_of_harvest"));
+        this.recipePage("drying_felling", "Drying the Axiom of Felling", PrincipiaMagica.loc("drying/axiom_of_felling"));
     }
 
     @Override

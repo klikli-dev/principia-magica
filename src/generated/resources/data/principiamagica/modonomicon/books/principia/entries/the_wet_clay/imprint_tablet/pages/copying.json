@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_imprint_tablet",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_imprint_tablet/stages/imprint_tablet"
+  },
+  "id": "copying",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.principiamagica.principia.the_wet_clay.imprint_tablet.copying.text",
+  "title": "book.principiamagica.principia.the_wet_clay.imprint_tablet.copying.title"
+}

@@ -1,7 +1,9 @@
 {
   "anchor": "notebook",
   "condition": {
-    "type": "modonomicon:none"
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_axiom_tablet",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_axiom_tablet/stages/quickened_clay"
   },
   "id": "recipe",
   "page": {

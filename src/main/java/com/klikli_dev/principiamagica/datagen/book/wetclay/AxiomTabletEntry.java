@@ -26,15 +26,15 @@ public class AxiomTabletEntry extends PrincipiaEntryProvider {
         this.notebookPage("notebook",
                 "A blank tablet, pressed from quickened clay and held together with a stylus. The scribe treats wet clay as something that *listens*.");
 
+        this.stage("quickened_clay", s -> s
+                .title("Quickened clay")
+                .obtain(ItemRegistry.QUICKENED_CLAY.get()));
+
         this.recipeTab("recipe", "Axiom Tablet", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("axiom_tablet")));
 
-        this.stage("wet_clay", s -> s
-                .title("Wet clay")
-                .craft(ItemRegistry.AXIOM_TABLET.get()));
-
         this.scribePage("scribe",
-                "Wet clay is open. It takes the word and the thumbprint and the fly that lands on it. Do not let it hear what you do not mean.");
+                "The tablet is pressed flat and left wet. Its law is not yet written, and the clay will keep whatever is carved into it.");
     }
 
     @Override

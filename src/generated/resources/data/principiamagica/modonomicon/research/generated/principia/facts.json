@@ -3,12 +3,6 @@
     "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/copper_stylus"
   },
   {
-    "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/quickened_clay"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/axiom_tablet"
-  },
-  {
     "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/principia"
   },
   {
@@ -28,6 +22,18 @@
   },
   {
     "id": "principiamagica:generated/principia/facts/item_acquired/tag_principiamagica/axioms"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_tablet"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/imprint_tablet"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_of_harvest"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_of_felling"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia"
@@ -84,10 +90,25 @@
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_axiom_tablet"
   },
   {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_axioms"
+  },
+  {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_body"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_care_of_golems"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_imprint_tablet"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_jobs_harvest"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_jobs_felling"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_khemeia_link"

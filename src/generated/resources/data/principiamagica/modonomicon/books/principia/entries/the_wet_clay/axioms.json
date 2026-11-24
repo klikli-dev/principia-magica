@@ -33,6 +33,9 @@
       "entry": "principiamagica:the_wet_clay/axiom_tablet"
     }
   ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_axioms"
+  },
   "sort_number": 3,
   "x": 2,
   "y": 1

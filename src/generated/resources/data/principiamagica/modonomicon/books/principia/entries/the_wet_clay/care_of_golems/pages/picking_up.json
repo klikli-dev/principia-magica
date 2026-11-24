@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_care_of_golems",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_care_of_golems/stages/clay_that_stands"
+  },
+  "id": "picking_up",
+  "show_title_separator": true,
+  "sort_number": 3,
+  "text": "book.principiamagica.principia.the_wet_clay.care_of_golems.picking_up.text",
+  "title": "book.principiamagica.principia.the_wet_clay.care_of_golems.picking_up.title"
+}

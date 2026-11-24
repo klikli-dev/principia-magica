@@ -8,22 +8,6 @@
     "trigger_type": "modonomicon:item_crafted"
   },
   {
-    "fact_id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/quickened_clay",
-    "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/quickened_clay_hook",
-    "trigger_target": {
-      "id": "principiamagica:quickened_clay"
-    },
-    "trigger_type": "modonomicon:item_crafted"
-  },
-  {
-    "fact_id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/axiom_tablet",
-    "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/axiom_tablet_hook",
-    "trigger_target": {
-      "id": "principiamagica:axiom_tablet"
-    },
-    "trigger_type": "modonomicon:item_crafted"
-  },
-  {
     "fact_id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/principia",
     "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/principia_hook",
     "trigger_target": {
@@ -76,6 +60,38 @@
     "id": "principiamagica:generated/principia/facts/item_acquired/tag_principiamagica/axioms_hook",
     "trigger_target": {
       "tag": "principiamagica:axioms"
+    },
+    "trigger_type": "modonomicon:item_acquired"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_tablet",
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_tablet_hook",
+    "trigger_target": {
+      "id": "principiamagica:axiom_tablet"
+    },
+    "trigger_type": "modonomicon:item_acquired"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/imprint_tablet",
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/imprint_tablet_hook",
+    "trigger_target": {
+      "id": "principiamagica:imprint_tablet"
+    },
+    "trigger_type": "modonomicon:item_acquired"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_of_harvest",
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_of_harvest_hook",
+    "trigger_target": {
+      "id": "principiamagica:axiom_of_harvest"
+    },
+    "trigger_type": "modonomicon:item_acquired"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_of_felling",
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_of_felling_hook",
+    "trigger_target": {
+      "id": "principiamagica:axiom_of_felling"
     },
     "trigger_type": "modonomicon:item_acquired"
   },
@@ -188,6 +204,12 @@
     "trigger_type": "modonomicon:entry_viewed_once"
   },
   {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_axioms",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_axioms_hook",
+    "trigger_target": "principiamagica:the_wet_clay/axioms",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
     "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_body",
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_body_hook",
     "trigger_target": "principiamagica:the_wet_clay/the_body",
@@ -197,6 +219,30 @@
     "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose",
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose_hook",
     "trigger_target": "principiamagica:the_wet_clay/purpose",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_care_of_golems",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_care_of_golems_hook",
+    "trigger_target": "principiamagica:the_wet_clay/care_of_golems",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_imprint_tablet",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_imprint_tablet_hook",
+    "trigger_target": "principiamagica:the_wet_clay/imprint_tablet",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_jobs_harvest",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_jobs_harvest_hook",
+    "trigger_target": "principiamagica:the_wet_clay/jobs_harvest",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_jobs_felling",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_jobs_felling_hook",
+    "trigger_target": "principiamagica:the_wet_clay/jobs_felling",
     "trigger_type": "modonomicon:entry_viewed_once"
   },
   {
