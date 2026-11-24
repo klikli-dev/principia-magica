@@ -339,8 +339,8 @@ public class LibationGameTests {
     }
 
     /**
-     * A hopper inserts a drying input into the empty input of the drying slab, and only extracts the dried output. Once the output
-     * holds the result, the input cannot be extracted and a second input is refused while the first one dries.
+     * A hopper inserts a drying input into the empty input of the drying slab, and only extracts the dried output. The input
+     * cannot be extracted from outside, and a second input of the same item stacks onto the input while the first one dries.
      */
     public static void dryingSlabHopperInsertsInputAndExtractsOutput(GameTestHelper helper) {
         int time = dryingTime(helper);
@@ -369,12 +369,13 @@ public class LibationGameTests {
         helper.assertTrue(extractedInput == 0, "The input should not be extractable from outside, extracted " + extractedInput);
         helper.assertTrue(be.getInput().is(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()), "The input should hold the inserted item, got " + be.getInput());
 
-        int secondInput;
+        int topUp;
         try (Transaction transaction = Transaction.open(null)) {
-            secondInput = handler.insert(ItemResource.of(steeped), 1, transaction);
+            topUp = handler.insert(ItemResource.of(steeped), 1, transaction);
             transaction.commit();
         }
-        helper.assertTrue(secondInput == 0, "The slab should refuse a second input while the input is not empty, accepted " + secondInput);
+        helper.assertTrue(topUp == 1 && be.getInput().getCount() == 2,
+                "The slab should stack the same input on the one that dries, accepted " + topUp + ", input is " + be.getInput());
 
         helper.runAfterDelay(time + 10, () -> {
             helper.assertTrue(be.getOutput().is(ItemRegistry.AXIOM_OF_HARVEST.get()), "The input should dry into the output, got " + be.getOutput());
@@ -386,6 +387,49 @@ public class LibationGameTests {
             helper.assertTrue(extractedOutput == 1, "A hopper should extract the finished axiom, extracted " + extractedOutput);
             helper.assertTrue(be.getOutput().isEmpty(), "The output should be empty after the extraction, got " + be.getOutput());
             helper.succeed();
+        });
+    }
+
+    /**
+     * Topping up a drying input with the same item, by a player and by a hopper, keeps the progress of the item that dries:
+     * the first item still finishes at the drying time, and the stacked items wait behind it.
+     */
+    public static void dryingSlabTopUpKeepsProgress(GameTestHelper helper) {
+        int time = dryingTime(helper);
+        BlockPos slab = new BlockPos(3, 2, 3);
+        helper.setBlock(slab, BlockRegistry.DRYING_SLAB.get().defaultBlockState());
+        helper.setBlock(slab.above(), Blocks.GLOWSTONE);
+        DryingSlabBlockEntity be = (DryingSlabBlockEntity) helper.getLevel().getBlockEntity(helper.absolutePos(slab));
+        Player player = helper.makeMockServerPlayerInLevel();
+        ItemResource steeped = ItemResource.of(new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()));
+        ResourceHandler<ItemResource> handler = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(slab), Direction.UP);
+        helper.assertTrue(handler != null, "The drying slab should expose an item capability");
+        holdAndUse(player, new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get()), be);
+
+        helper.runAfterDelay(time / 2, () -> {
+            float before = be.getProgress();
+            helper.assertTrue(before > 0, "The first item should be drying, progress is " + before);
+
+            holdAndUse(player, new ItemStack(ItemRegistry.AXIOM_OF_HARVEST_UNFIRED_STEEPED.get(), 2), be);
+            helper.assertTrue(be.getInput().getCount() == 3, "A player should top up the input, input is " + be.getInput());
+            helper.assertTrue(be.getProgress() >= before, "Topping up should not reset the progress, was " + before + " is " + be.getProgress());
+
+            int hopperTopUp;
+            try (Transaction transaction = Transaction.open(null)) {
+                hopperTopUp = handler.insert(steeped, 1, transaction);
+                transaction.commit();
+            }
+            helper.assertTrue(hopperTopUp == 1 && be.getInput().getCount() == 4,
+                    "A hopper should top up the input, accepted " + hopperTopUp + ", input is " + be.getInput());
+            helper.assertTrue(be.getProgress() >= before, "A hopper top-up should not reset the progress, is " + be.getProgress());
+
+            helper.runAfterDelay(time / 2 + 10, () -> {
+                // The first item finishes at the drying time as if nothing was stacked, the others wait behind it.
+                helper.assertTrue(be.getOutput().is(ItemRegistry.AXIOM_OF_HARVEST.get()) && be.getOutput().getCount() == 1,
+                        "The first item should dry at its own time, output is " + be.getOutput());
+                helper.assertTrue(be.getInput().getCount() == 3, "Three items should wait in the input, input is " + be.getInput());
+                helper.succeed();
+            });
         });
     }
 

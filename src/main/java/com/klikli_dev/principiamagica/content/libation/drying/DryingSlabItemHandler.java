@@ -10,8 +10,9 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /**
- * The view of the drying slab that pipes and hoppers see. Drying inputs can only be inserted into the input slot while it is
- * empty, and only the finished items in the output slot can be extracted. The input is never extracted from the outside.
+ * The view of the drying slab that pipes, hoppers and players insert through. Drying inputs go into the input slot, into an
+ * empty slot or on top of the same item up to the stack size. Only the finished items in the output slot can be extracted.
+ * The input is never extracted from the outside.
  */
 public class DryingSlabItemHandler extends DelegatingResourceHandler<ItemResource> {
 
@@ -23,14 +24,12 @@ public class DryingSlabItemHandler extends DelegatingResourceHandler<ItemResourc
     }
 
     /**
-     * Accepts drying inputs into the empty input slot. The delegate rejects everything that is not a drying input.
+     * Accepts drying inputs into the input slot. The delegate rejects everything that is not a drying input, and only stacks
+     * the same item, up to the stack size. Stacking does not restart the drying, see DryingSlabBlockEntity.
      */
     @Override
     public int insert(int index, ItemResource resource, int amount, TransactionContext transaction) {
-        if (index != INPUT || !this.getResource(INPUT).isEmpty()) {
-            return 0;
-        }
-        return super.insert(index, resource, amount, transaction);
+        return index == INPUT ? super.insert(index, resource, amount, transaction) : 0;
     }
 
     @Override

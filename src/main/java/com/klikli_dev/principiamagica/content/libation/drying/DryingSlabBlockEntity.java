@@ -99,6 +99,14 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
         return this.drying.display(gameTime, partialTick);
     }
 
+    /**
+     * @return the progress of the first input item in ticks at full light. It belongs to the item being dried, so topping up the
+     * input with the same item does not change it.
+     */
+    public float getProgress() {
+        return this.drying.progress();
+    }
+
     public static void tick(Level level, BlockPos pos, BlockState state, DryingSlabBlockEntity blockEntity) {
         if (level.isClientSide()) {
             return;
