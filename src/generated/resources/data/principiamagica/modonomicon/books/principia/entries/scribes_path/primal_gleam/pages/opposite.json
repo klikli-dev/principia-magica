@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_gleam",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_gleam/stages/primal"
+  },
+  "id": "opposite",
+  "show_title_separator": true,
+  "sort_number": 3,
+  "text": "book.principiamagica.principia.scribes_path.primal_gleam.opposite.text",
+  "title": "book.principiamagica.principia.scribes_path.primal_gleam.opposite.title"
+}

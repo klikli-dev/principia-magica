@@ -1,0 +1,21 @@
+{
+  "anchor": "notebook",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_spout_and_tap",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_spout_and_tap/stages/spout"
+  },
+  "id": "tap_recipe",
+  "page": {
+    "type": "modonomicon:crafting_recipe",
+    "condition": {
+      "type": "modonomicon:none"
+    },
+    "id": "tap_recipe",
+    "recipe_id_1": "principiamagica:vessel_tap"
+  },
+  "sort_number": 1,
+  "title": {
+    "translate": "book.principiamagica.principia.scribes_path.spout_and_tap.tab.tap_recipe.title"
+  }
+}

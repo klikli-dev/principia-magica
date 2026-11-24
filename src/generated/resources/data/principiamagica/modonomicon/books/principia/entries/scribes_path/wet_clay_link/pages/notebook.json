@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_wet_clay_link",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_wet_clay_link/stages/quickened_clay"
+  },
+  "id": "notebook",
+  "show_title_separator": true,
+  "sort_number": 0,
+  "text": "book.principiamagica.principia.scribes_path.wet_clay_link.notebook.text",
+  "title": "book.principiamagica.principia.scribes_path.wet_clay_link.notebook.title"
+}

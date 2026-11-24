@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_spout_and_tap",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_spout_and_tap/stages/spout"
+  },
+  "id": "tap",
+  "show_title_separator": true,
+  "sort_number": 3,
+  "text": "book.principiamagica.principia.scribes_path.spout_and_tap.tap.text",
+  "title": "book.principiamagica.principia.scribes_path.spout_and_tap.tap.title"
+}

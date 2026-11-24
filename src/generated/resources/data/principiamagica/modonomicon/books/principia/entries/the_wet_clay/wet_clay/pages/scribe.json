@@ -1,13 +1,11 @@
 {
   "type": "modonomicon:text",
   "condition": {
-    "type": "modonomicon:research_stage_completed",
-    "node_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_wet_clay",
-    "stage_id": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_wet_clay/stages/wet_clay"
+    "type": "modonomicon:none"
   },
   "id": "scribe",
   "show_title_separator": true,
-  "sort_number": 1,
+  "sort_number": 0,
   "text": "book.principiamagica.principia.the_wet_clay.wet_clay.scribe.text",
   "title": "book.principiamagica.principia.the_wet_clay.wet_clay.scribe.title"
 }

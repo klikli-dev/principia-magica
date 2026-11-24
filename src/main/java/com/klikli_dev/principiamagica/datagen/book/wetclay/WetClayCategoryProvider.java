@@ -4,13 +4,12 @@
 
 package com.klikli_dev.principiamagica.datagen.book.wetclay;
 
-import com.klikli_dev.modonomicon.api.datagen.CategoryProvider;
 import com.klikli_dev.modonomicon.api.datagen.ModonomiconProviderBase;
-import com.klikli_dev.modonomicon.api.datagen.book.BookCategoryModel;
 import com.klikli_dev.modonomicon.api.datagen.book.BookIconModel;
+import com.klikli_dev.principiamagica.datagen.book.PrincipiaCategoryProvider;
 import net.minecraft.world.item.Items;
 
-public class WetClayCategoryProvider extends CategoryProvider {
+public class WetClayCategoryProvider extends PrincipiaCategoryProvider {
 
     public static final String CATEGORY_ID = "the_wet_clay";
 
@@ -19,44 +18,32 @@ public class WetClayCategoryProvider extends CategoryProvider {
     }
 
     @Override
-    protected BookCategoryModel additionalSetup(BookCategoryModel category) {
-        // The node screen background is not part of the book theme, so it is set here.
-        return super.additionalSetup(category)
-                .withBackground(this.modLoc("textures/gui/sprites/modonomicon/themes/clay/background.png"))
-                .withBackgroundSize(140, 140);
-    }
-
-    @Override
     protected void generateEntries() {
-        var principiaEntry = this.add(new PrincipiaEntry(this).generate());
-        this.layout().entry(principiaEntry).at(0, 0);
-
-        var stylusEntry = this.add(new StylusEntry(this).generate());
-        this.layout().entry(stylusEntry).at(1, 0);
-        stylusEntry.withParent(principiaEntry).hideWhileLocked(true);
-
-        var axiomTabletEntry = this.add(new AxiomTabletEntry(this).generate());
-        this.layout().entry(axiomTabletEntry).at(2, 0);
-        axiomTabletEntry.withParent(principiaEntry).hideWhileLocked(true);
-
-        var axiomEntry = this.add(new AxiomEntry(this).generate());
-        this.layout().entry(axiomEntry).at(3, 0);
-        axiomEntry.withParent(axiomTabletEntry).hideWhileLocked(true);
+        var rootEntry = this.add(new WetClayRootEntry(this).generate());
+        this.layout().entry(rootEntry).at(0, 0);
 
         var fleshAndClayEntry = this.add(new FleshAndClayEntry(this).generate());
-        this.layout().entry(fleshAndClayEntry).at(2, 1);
-        fleshAndClayEntry.withParent(stylusEntry).hideWhileLocked(true);
+        this.layout().entry(fleshAndClayEntry).at(1, 0);
+        fleshAndClayEntry.withParent(rootEntry).hideWhileLocked(true);
+
+        var axiomTabletEntry = this.add(new AxiomTabletEntry(this).generate());
+        this.layout().entry(axiomTabletEntry).at(1, 1);
+        axiomTabletEntry.withParent(rootEntry).hideWhileLocked(true);
+
+        var axiomEntry = this.add(new AxiomEntry(this).generate());
+        this.layout().entry(axiomEntry).at(2, 1);
+        axiomEntry.withParent(axiomTabletEntry).hideWhileLocked(true);
 
         var theBodyEntry = this.add(new TheBodyEntry(this).generate());
-        this.layout().entry(theBodyEntry).at(3, 1);
+        this.layout().entry(theBodyEntry).at(2, 0);
         theBodyEntry.withParent(fleshAndClayEntry).hideWhileLocked(true);
 
         var purposeEntry = this.add(new PurposeEntry(this).generate());
-        this.layout().entry(purposeEntry).at(4, 1);
+        this.layout().entry(purposeEntry).at(3, 0);
         purposeEntry.withParent(theBodyEntry).hideWhileLocked(true);
 
         var kudurruEntry = this.add(new KudurruEntry(this).generate());
-        this.layout().entry(kudurruEntry).at(4, 2);
+        this.layout().entry(kudurruEntry).at(4, 0);
         kudurruEntry.withParent(purposeEntry).hideWhileLocked(true);
     }
 

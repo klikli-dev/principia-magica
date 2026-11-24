@@ -1,0 +1,38 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:scribes_path",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_khemeia_link",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.scribes_path.khemeia_link.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.scribes_path.khemeia_link.description",
+  "icon": {
+    "id": "principiamagica:steeping_jar"
+  },
+  "id": "principiamagica:scribes_path/khemeia_link",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.scribes_path.khemeia_link.name",
+  "parents": [
+    {
+      "entry": "principiamagica:scribes_path/principia"
+    }
+  ],
+  "sort_number": 14,
+  "x": 6,
+  "y": 1
+}

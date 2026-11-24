@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough/stages/trough"
+  },
+  "id": "scribe",
+  "show_title_separator": true,
+  "sort_number": 1,
+  "text": "book.principiamagica.principia.scribes_path.catch_trough.scribe.text",
+  "title": "book.principiamagica.principia.scribes_path.catch_trough.scribe.title"
+}

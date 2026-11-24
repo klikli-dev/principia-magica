@@ -30,10 +30,10 @@
   "name": "book.principiamagica.principia.the_wet_clay.axioms.name",
   "parents": [
     {
-      "entry": "principiamagica:the_wet_clay/wet_clay"
+      "entry": "principiamagica:the_wet_clay/axiom_tablet"
     }
   ],
   "sort_number": 3,
-  "x": 3,
-  "y": 0
+  "x": 2,
+  "y": 1
 }

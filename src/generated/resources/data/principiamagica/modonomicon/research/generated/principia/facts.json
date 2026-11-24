@@ -3,19 +3,70 @@
     "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/copper_stylus"
   },
   {
-    "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/axiom_tablet"
-  },
-  {
     "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/quickened_clay"
   },
   {
+    "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/axiom_tablet"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/principia"
+  },
+  {
     "id": "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/libation_slab"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/libation_spout"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/catch_trough"
   },
   {
     "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay"
   },
   {
     "id": "principiamagica:generated/principia/facts/item_acquired/tag_principiamagica/axioms"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_the_stylus"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_something_remains"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_libation_slab"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_spout_and_tap"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_catch_trough"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_silt"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_gleam"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_sap"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_ash"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_clay_phials"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_natron_sponge"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_wet_clay_link"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_jar"
@@ -27,22 +78,19 @@
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_lustral_waters"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_principia"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_stylus"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_wet_clay"
-  },
-  {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_flesh_and_clay"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_axiom_tablet"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_body"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_khemeia_link"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_khemeia_intro"
@@ -61,5 +109,8 @@
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_drying_slab"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_wet_clay"
   }
 ]

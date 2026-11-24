@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:scribes_path",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_natron_sponge",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.scribes_path.natron_sponge.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.scribes_path.natron_sponge.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:natron_sponge"
+  },
+  "id": "principiamagica:scribes_path/natron_sponge",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.scribes_path.natron_sponge.name",
+  "parents": [
+    {
+      "entry": "principiamagica:scribes_path/catch_trough"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/scribes_path_natron_sponge"
+  },
+  "sort_number": 13,
+  "x": 5,
+  "y": 1
+}

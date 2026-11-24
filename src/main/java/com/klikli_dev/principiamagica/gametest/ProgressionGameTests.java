@@ -12,11 +12,12 @@ import com.klikli_dev.principiamagica.content.golem.item.GolemItem;
 import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
 import com.klikli_dev.principiamagica.datagen.advancement.PrincipiaMagicaAdvancementSubProvider;
+import com.klikli_dev.principiamagica.datagen.book.scribespath.PrincipiaEntry;
+import com.klikli_dev.principiamagica.datagen.book.scribespath.ScribesPathCategoryProvider;
+import com.klikli_dev.principiamagica.datagen.book.scribespath.StylusEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.AxiomEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.FleshAndClayEntry;
-import com.klikli_dev.principiamagica.datagen.book.wetclay.PrincipiaEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.KudurruEntry;
-import com.klikli_dev.principiamagica.datagen.book.wetclay.StylusEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.PurposeEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.TheBodyEntry;
 import com.klikli_dev.principiamagica.datagen.book.wetclay.WetClayCategoryProvider;
@@ -52,10 +53,10 @@ public class ProgressionGameTests {
     public static void principiaBookAndFirstEntryLoad(GameTestHelper helper) {
         var book = BookDataManager.get().getBook(PrincipiaItem.PRINCIPIA);
         helper.assertTrue(book != null, "Modonomicon book principia is missing");
-        var category = book.getCategory(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID));
-        helper.assertTrue(category != null, "Category the_wet_clay is missing");
-        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + PrincipiaEntry.ENTRY_ID)) != null,
-                "Entry principia is missing from category the_wet_clay");
+        var category = book.getCategory(PrincipiaMagica.loc(ScribesPathCategoryProvider.CATEGORY_ID));
+        helper.assertTrue(category != null, "Category scribes_path is missing");
+        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(ScribesPathCategoryProvider.CATEGORY_ID + "/" + PrincipiaEntry.ENTRY_ID)) != null,
+                "Entry principia is missing from category scribes_path");
         helper.succeed();
     }
 
@@ -78,10 +79,10 @@ public class ProgressionGameTests {
     public static void stylusEntryLoads(GameTestHelper helper) {
         var book = BookDataManager.get().getBook(PrincipiaItem.PRINCIPIA);
         helper.assertTrue(book != null, "Modonomicon book principia is missing");
-        var category = book.getCategory(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID));
-        helper.assertTrue(category != null, "Category the_wet_clay is missing");
-        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(WetClayCategoryProvider.CATEGORY_ID + "/" + StylusEntry.ENTRY_ID)) != null,
-                "Entry the_stylus is missing from category the_wet_clay");
+        var category = book.getCategory(PrincipiaMagica.loc(ScribesPathCategoryProvider.CATEGORY_ID));
+        helper.assertTrue(category != null, "Category scribes_path is missing");
+        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(ScribesPathCategoryProvider.CATEGORY_ID + "/" + StylusEntry.ENTRY_ID)) != null,
+                "Entry the_stylus is missing from category scribes_path");
         helper.succeed();
     }
 

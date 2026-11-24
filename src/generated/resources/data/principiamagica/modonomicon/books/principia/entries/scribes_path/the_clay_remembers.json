@@ -1,0 +1,39 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:scribes_path",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_the_clay_remembers",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.scribes_path.the_clay_remembers.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.scribes_path.the_clay_remembers.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "minecraft:clay_ball"
+  },
+  "id": "principiamagica:scribes_path/the_clay_remembers",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.scribes_path.the_clay_remembers.name",
+  "parents": [
+    {
+      "entry": "principiamagica:scribes_path/the_stylus"
+    }
+  ],
+  "sort_number": 2,
+  "x": 2,
+  "y": 0
+}

@@ -1,0 +1,21 @@
+{
+  "anchor": "notebook",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_spout_and_tap",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_spout_and_tap/stages/spout"
+  },
+  "id": "spout_recipe",
+  "page": {
+    "type": "modonomicon:crafting_recipe",
+    "condition": {
+      "type": "modonomicon:none"
+    },
+    "id": "spout_recipe",
+    "recipe_id_1": "principiamagica:libation_spout"
+  },
+  "sort_number": 0,
+  "title": {
+    "translate": "book.principiamagica.principia.scribes_path.spout_and_tap.tab.spout_recipe.title"
+  }
+}

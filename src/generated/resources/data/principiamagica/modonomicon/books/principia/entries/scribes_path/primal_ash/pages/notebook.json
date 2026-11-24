@@ -1,0 +1,11 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:none"
+  },
+  "id": "notebook",
+  "show_title_separator": true,
+  "sort_number": 1,
+  "text": "book.principiamagica.principia.scribes_path.primal_ash.notebook.text",
+  "title": "book.principiamagica.principia.scribes_path.primal_ash.notebook.title"
+}

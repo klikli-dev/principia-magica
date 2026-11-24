@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_libation_slab",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_libation_slab/stages/slab"
+  },
+  "id": "scribe",
+  "show_title_separator": true,
+  "sort_number": 1,
+  "text": "book.principiamagica.principia.scribes_path.libation_slab.scribe.text",
+  "title": "book.principiamagica.principia.scribes_path.libation_slab.scribe.title"
+}

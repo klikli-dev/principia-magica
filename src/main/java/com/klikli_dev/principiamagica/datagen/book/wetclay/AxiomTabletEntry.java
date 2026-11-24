@@ -15,7 +15,7 @@ import com.klikli_dev.principiamagica.registry.ItemRegistry;
 
 public class AxiomTabletEntry extends PrincipiaEntryProvider {
 
-    public static final String ENTRY_ID = "wet_clay";
+    public static final String ENTRY_ID = "axiom_tablet";
 
     public AxiomTabletEntry(CategoryProvider parent) {
         super(parent);
@@ -39,7 +39,7 @@ public class AxiomTabletEntry extends PrincipiaEntryProvider {
 
     @Override
     protected String entryName() {
-        return "Wet Clay";
+        return "Axiom Tablet";
     }
 
     @Override

@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:scribes_path",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_the_stylus",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.scribes_path.the_stylus.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.scribes_path.the_stylus.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:copper_stylus"
+  },
+  "id": "principiamagica:scribes_path/the_stylus",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.scribes_path.the_stylus.name",
+  "parents": [
+    {
+      "entry": "principiamagica:scribes_path/principia"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/scribes_path_the_stylus"
+  },
+  "sort_number": 1,
+  "x": 1,
+  "y": 0
+}

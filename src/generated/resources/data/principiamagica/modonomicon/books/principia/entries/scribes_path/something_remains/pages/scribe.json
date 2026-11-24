@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_something_remains",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_something_remains/stages/rotten_flesh"
+  },
+  "id": "scribe",
+  "show_title_separator": true,
+  "sort_number": 0,
+  "text": "book.principiamagica.principia.scribes_path.something_remains.scribe.text",
+  "title": "book.principiamagica.principia.scribes_path.something_remains.scribe.title"
+}

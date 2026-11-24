@@ -30,13 +30,13 @@
   "name": "book.principiamagica.principia.the_wet_clay.flesh_and_clay.name",
   "parents": [
     {
-      "entry": "principiamagica:the_wet_clay/the_stylus"
+      "entry": "principiamagica:the_wet_clay/wet_clay"
     }
   ],
   "research": {
     "node": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_flesh_and_clay"
   },
-  "sort_number": 4,
-  "x": 2,
-  "y": 1
+  "sort_number": 1,
+  "x": 1,
+  "y": 0
 }

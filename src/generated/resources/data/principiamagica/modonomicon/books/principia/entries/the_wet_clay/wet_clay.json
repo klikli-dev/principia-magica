@@ -2,41 +2,23 @@
   "type": "modonomicon:content",
   "background": {
     "height": 26,
-    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/star_gold",
     "width": 26
   },
   "category": "principiamagica:the_wet_clay",
   "condition": {
-    "type": "modonomicon:research_node_unlocked",
-    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/the_wet_clay_wet_clay",
-    "tooltip": {
-      "translate": "tooltip.modonomicon.condition.entry_unlocked",
-      "with": [
-        {
-          "translate": "book.principiamagica.principia.the_wet_clay.wet_clay.name"
-        }
-      ]
-    }
+    "type": "modonomicon:none"
   },
   "description": "book.principiamagica.principia.the_wet_clay.wet_clay.description",
-  "hide_while_locked": true,
   "icon": {
-    "id": "principiamagica:axiom_tablet"
+    "id": "minecraft:clay_ball"
   },
   "id": "principiamagica:the_wet_clay/wet_clay",
   "marker_condition": {
     "type": "modonomicon:none"
   },
   "name": "book.principiamagica.principia.the_wet_clay.wet_clay.name",
-  "parents": [
-    {
-      "entry": "principiamagica:the_wet_clay/principia"
-    }
-  ],
-  "research": {
-    "node": "principiamagica:generated/principia/nodes/entry_research/the_wet_clay_wet_clay"
-  },
-  "sort_number": 2,
-  "x": 2,
+  "sort_number": 0,
+  "x": 0,
   "y": 0
 }

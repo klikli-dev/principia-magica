@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_the_stylus",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_the_stylus/stages/wedge"
+  },
+  "id": "scribe",
+  "show_title_separator": true,
+  "sort_number": 1,
+  "text": "book.principiamagica.principia.scribes_path.the_stylus.scribe.text",
+  "title": "book.principiamagica.principia.scribes_path.the_stylus.scribe.title"
+}

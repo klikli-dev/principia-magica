@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:scribes_path",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_primal_ash",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.scribes_path.primal_ash.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.scribes_path.primal_ash.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "minecraft:coal"
+  },
+  "id": "principiamagica:scribes_path/primal_ash",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.scribes_path.primal_ash.name",
+  "parents": [
+    {
+      "entry": "principiamagica:scribes_path/libation_slab"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_ash"
+  },
+  "sort_number": 10,
+  "x": 4,
+  "y": 2
+}
