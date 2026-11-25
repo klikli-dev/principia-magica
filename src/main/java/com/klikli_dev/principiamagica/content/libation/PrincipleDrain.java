@@ -6,7 +6,9 @@ package com.klikli_dev.principiamagica.content.libation;
 
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
 import com.klikli_dev.principiamagica.registry.FluidRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
@@ -33,6 +35,7 @@ public final class PrincipleDrain {
      * True from the portion that starts the drain until the drain stops, so the stop is synced once.
      */
     private boolean draining;
+    private boolean playDripSound;
     private int color = PrincipleContents.DEFAULT_COLOR;
 
     /**
@@ -94,6 +97,10 @@ public final class PrincipleDrain {
             this.sync.requestSync();
         }
         level.blockEvent(spout, level.getBlockState(spout).getBlock(), LibationFlow.EVENT_DRIP, moved);
+        this.playDripSound = !this.playDripSound;
+        if (this.playDripSound) {
+            level.playSound(null, spout.below(), SoundRegistry.SPOUT_DRIP.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        }
     }
 
     /**
@@ -101,6 +108,7 @@ public final class PrincipleDrain {
      */
     private void stop() {
         this.cooldown = 0;
+        this.playDripSound = false;
         if (this.draining) {
             this.draining = false;
             this.sync.syncNow();

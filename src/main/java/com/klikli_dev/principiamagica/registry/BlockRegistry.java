@@ -52,7 +52,7 @@ public class BlockRegistry {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.TERRACOTTA_ORANGE)
                     .strength(HARDNESS, 4.2F)
-                    .sound(SoundType.STONE)
+                    .sound(SoundType.DECORATED_POT)
                     .noOcclusion());
 
     public static final DeferredBlock<WabetBasinBlock> WABET_BASIN = BLOCKS.registerBlock("wabet_basin", WabetBasinBlock::new,
@@ -66,7 +66,7 @@ public class BlockRegistry {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.TERRACOTTA_RED)
                     .strength(HARDNESS, 6.0F)
-                    .sound(SoundType.STONE)
+                    .sound(SoundType.DECORATED_POT)
                     .noOcclusion());
 
     public static final DeferredBlock<DryingSlabBlock> DRYING_SLAB = BLOCKS.registerBlock("drying_slab", DryingSlabBlock::new,

@@ -17,10 +17,12 @@ import com.klikli_dev.principiamagica.content.libation.trough.CatchTroughBlockEn
 import com.klikli_dev.principiamagica.content.libation.vessel.CuringVesselBlockEntity;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContainer;
 import com.klikli_dev.principiamagica.content.principle.PrincipleContents;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
@@ -38,6 +40,7 @@ import org.jspecify.annotations.Nullable;
 public final class LibationEffects implements LibationClientEffects.Handler {
 
     private static final float FIZZ_CHANCE = 0.5F;
+    private static final float DISSOLVING_SOUND_CHANCE = 0.08F;
     private static final float FIZZ_SIZE = 0.05F;
     private static final int FIZZ_AGE = 14;
     private static final float STEAM_CHANCE = 0.06F;
@@ -53,8 +56,14 @@ public final class LibationEffects implements LibationClientEffects.Handler {
         }
 
         RandomSource random = level.getRandom();
-        if (slab.isDissolving() && random.nextFloat() < FIZZ_CHANCE) {
-            spawnFizz(clientLevel, pos, slab.getDissolveColor());
+        if (slab.isDissolving()) {
+            if (random.nextFloat() < FIZZ_CHANCE) {
+                spawnFizz(clientLevel, pos, slab.getDissolveColor());
+            }
+            if (random.nextFloat() < DISSOLVING_SOUND_CHANCE) {
+                clientLevel.playLocalSound(pos.getX() + 0.5, pos.getY() + 0.75, pos.getZ() + 0.5,
+                        SoundRegistry.LIBATION_SLAB_DISSOLVING.get(), SoundSource.BLOCKS, 1.0F, 1.0F, false);
+            }
         }
     }
 
