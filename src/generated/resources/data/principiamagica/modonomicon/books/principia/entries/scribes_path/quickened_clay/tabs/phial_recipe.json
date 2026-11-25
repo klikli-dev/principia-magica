@@ -1,0 +1,21 @@
+{
+  "anchor": "notebook",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_quickened_clay",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_quickened_clay/stages/quickened"
+  },
+  "id": "phial_recipe",
+  "page": {
+    "type": "modonomicon:crafting_recipe",
+    "condition": {
+      "type": "modonomicon:none"
+    },
+    "id": "phial_recipe",
+    "recipe_id_1": "principiamagica:unfired_clay_phial"
+  },
+  "sort_number": 1,
+  "title": {
+    "translate": "book.principiamagica.principia.scribes_path.quickened_clay.tab.phial_recipe.title"
+  }
+}

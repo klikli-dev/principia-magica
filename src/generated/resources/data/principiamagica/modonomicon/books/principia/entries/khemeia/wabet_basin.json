@@ -30,7 +30,7 @@
   "name": "book.principiamagica.principia.khemeia.wabet_basin.name",
   "parents": [
     {
-      "entry": "principiamagica:khemeia/quickened_clay"
+      "entry": "principiamagica:khemeia/steeping"
     }
   ],
   "research": {

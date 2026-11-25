@@ -8,26 +8,26 @@
   "category": "principiamagica:khemeia",
   "condition": {
     "type": "modonomicon:research_node_unlocked",
-    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_quickened_clay",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_steeping",
     "tooltip": {
       "translate": "tooltip.modonomicon.condition.entry_unlocked",
       "with": [
         {
-          "translate": "book.principiamagica.principia.khemeia.quickened_clay.name"
+          "translate": "book.principiamagica.principia.khemeia.steeping.name"
         }
       ]
     }
   },
-  "description": "book.principiamagica.principia.khemeia.quickened_clay.description",
+  "description": "book.principiamagica.principia.khemeia.steeping.description",
   "hide_while_locked": true,
   "icon": {
-    "id": "principiamagica:quickened_clay"
+    "id": "principiamagica:catch_trough"
   },
-  "id": "principiamagica:khemeia/quickened_clay",
+  "id": "principiamagica:khemeia/steeping",
   "marker_condition": {
     "type": "modonomicon:none"
   },
-  "name": "book.principiamagica.principia.khemeia.quickened_clay.name",
+  "name": "book.principiamagica.principia.khemeia.steeping.name",
   "parents": [
     {
       "entry": "principiamagica:khemeia/dark_compounds"

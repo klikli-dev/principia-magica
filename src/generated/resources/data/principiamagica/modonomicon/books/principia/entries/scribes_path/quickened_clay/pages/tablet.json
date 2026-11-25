@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_quickened_clay",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_quickened_clay/stages/quickened"
+  },
+  "id": "tablet",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.principiamagica.principia.scribes_path.quickened_clay.tablet.text",
+  "title": "book.principiamagica.principia.scribes_path.quickened_clay.tablet.title"
+}

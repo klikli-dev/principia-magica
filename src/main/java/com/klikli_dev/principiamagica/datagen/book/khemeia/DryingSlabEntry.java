@@ -11,6 +11,8 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.BookCraftingRecipePageMo
 import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.datagen.book.PrincipiaEntryProvider;
+import com.klikli_dev.principiamagica.datagen.book.golemancy.AxiomEntry;
+import com.klikli_dev.principiamagica.datagen.book.golemancy.GolemancyCategoryProvider;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 
 public class DryingSlabEntry extends PrincipiaEntryProvider {
@@ -39,8 +41,8 @@ public class DryingSlabEntry extends PrincipiaEntryProvider {
                 An empty hand takes the output first. Taking the input back out restarts its drying.
                 """);
 
-        this.recipePage("harvest", "Drying the Axiom of Harvest", PrincipiaMagica.loc("drying/axiom_of_harvest"));
-        this.recipePage("felling", "Drying the Axiom of Felling", PrincipiaMagica.loc("drying/axiom_of_felling"));
+        this.infoPage("axioms", "Drying Axioms", "The steeped axioms are dried here, and their recipes are shown with the rest of the axiom pipeline. See "
+                + this.entryLink("Processing Axioms", GolemancyCategoryProvider.CATEGORY_ID, AxiomEntry.ENTRY_ID) + ".");
     }
 
     @Override

@@ -198,6 +198,50 @@
     ]
   },
   {
+    "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_quickened_clay",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_quickened_clay"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "principiamagica:quickened_clay"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.scribes_path.quickened_clay.stage.quickened.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_quickened_clay/stages/quickened",
+        "required_facts": [
+          "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_golemancy_link",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_golemancy_link"
+    ],
+    "stages": [
+      {
+        "display": {
+          "icon": {
+            "id": "principiamagica:quickened_clay"
+          },
+          "title": {
+            "translate": "book.principiamagica.principia.scribes_path.golemancy_link.stage.quickened_clay.title"
+          }
+        },
+        "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_golemancy_link/stages/quickened_clay",
+        "required_facts": [
+          "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay"
+        ]
+      }
+    ]
+  },
+  {
     "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_silt",
     "required_facts": [
       "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_silt"
@@ -281,72 +325,6 @@
         "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_ash/stages/primal",
         "required_facts": [
           "principiamagica:generated/principia/facts/item_acquired/principiamagica/libation_slab"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_clay_phials",
-    "required_facts": [
-      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_clay_phials"
-    ],
-    "stages": [
-      {
-        "display": {
-          "icon": {
-            "id": "principiamagica:quickened_clay"
-          },
-          "title": {
-            "translate": "book.principiamagica.principia.scribes_path.clay_phials.stage.quickened_clay.title"
-          }
-        },
-        "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_clay_phials/stages/quickened_clay",
-        "required_facts": [
-          "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_natron_sponge",
-    "required_facts": [
-      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_natron_sponge"
-    ],
-    "stages": [
-      {
-        "display": {
-          "icon": {
-            "id": "principiamagica:quickened_clay"
-          },
-          "title": {
-            "translate": "book.principiamagica.principia.scribes_path.natron_sponge.stage.quickened_clay.title"
-          }
-        },
-        "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_natron_sponge/stages/quickened_clay",
-        "required_facts": [
-          "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay"
-        ]
-      }
-    ]
-  },
-  {
-    "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_golemancy_link",
-    "required_facts": [
-      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_golemancy_link"
-    ],
-    "stages": [
-      {
-        "display": {
-          "icon": {
-            "id": "principiamagica:quickened_clay"
-          },
-          "title": {
-            "translate": "book.principiamagica.principia.scribes_path.golemancy_link.stage.quickened_clay.title"
-          }
-        },
-        "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_golemancy_link/stages/quickened_clay",
-        "required_facts": [
-          "principiamagica:generated/principia/facts/item_acquired/principiamagica/quickened_clay"
         ]
       }
     ]
@@ -601,6 +579,39 @@
     ]
   },
   {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_quickened_clay",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough/stages/trough"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_khemeia_link",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough/stages/trough"
+      }
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_golemancy_link",
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_khemeia_link"
+    ]
+  },
+  {
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_opposites",
+    "required_stages": [
+      {
+        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_libation_slab",
+        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_libation_slab/stages/slab"
+      }
+    ]
+  },
+  {
     "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_primal_silt",
     "required_stages": [
       {
@@ -637,48 +648,6 @@
     ]
   },
   {
-    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_opposites",
-    "required_stages": [
-      {
-        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_libation_slab",
-        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_libation_slab/stages/slab"
-      }
-    ]
-  },
-  {
-    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_clay_phials",
-    "required_stages": [
-      {
-        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough",
-        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough/stages/trough"
-      }
-    ]
-  },
-  {
-    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_natron_sponge",
-    "required_stages": [
-      {
-        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough",
-        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_catch_trough/stages/trough"
-      }
-    ]
-  },
-  {
-    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_khemeia_link",
-    "required_stages": [
-      {
-        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia",
-        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia/stages/book"
-      }
-    ]
-  },
-  {
-    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_golemancy_link",
-    "required_facts": [
-      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_khemeia_link"
-    ]
-  },
-  {
     "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_steeping_jar",
     "required_facts": [
       "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_khemeia_intro"
@@ -694,7 +663,7 @@
     ]
   },
   {
-    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_quickened_clay",
+    "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_steeping",
     "required_facts": [
       "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_dark_compounds"
     ]
@@ -702,7 +671,7 @@
   {
     "id": "principiamagica:generated/principia/nodes/entry_viewed_once/khemeia_wabet_basin",
     "required_facts": [
-      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_quickened_clay"
+      "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping"
     ]
   },
   {

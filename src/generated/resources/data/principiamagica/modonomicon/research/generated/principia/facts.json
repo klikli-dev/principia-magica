@@ -51,6 +51,12 @@
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_catch_trough"
   },
   {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_quickened_clay"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_golemancy_link"
+  },
+  {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_silt"
   },
   {
@@ -61,15 +67,6 @@
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_ash"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_clay_phials"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_natron_sponge"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_golemancy_link"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_jar"
@@ -108,7 +105,7 @@
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_dark_compounds"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_quickened_clay"
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_light_compounds"

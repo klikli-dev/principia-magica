@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:smelting_recipe",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_quickened_clay",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_quickened_clay/stages/quickened"
+  },
+  "id": "firing",
+  "recipe_id_1": "principiamagica:smelting/clay_phial",
+  "sort_number": 4,
+  "title1": "book.principiamagica.principia.scribes_path.quickened_clay.firing.title"
+}

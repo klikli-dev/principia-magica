@@ -19,6 +19,7 @@
     }
   },
   "description": "book.principiamagica.principia.scribes_path.khemeia_link.description",
+  "hide_while_locked": true,
   "icon": {
     "id": "principiamagica:steeping_jar"
   },
@@ -29,10 +30,10 @@
   "name": "book.principiamagica.principia.scribes_path.khemeia_link.name",
   "parents": [
     {
-      "entry": "principiamagica:scribes_path/principia"
+      "entry": "principiamagica:scribes_path/catch_trough"
     }
   ],
-  "sort_number": 14,
-  "x": 6,
-  "y": 1
+  "sort_number": 8,
+  "x": 8,
+  "y": 2
 }

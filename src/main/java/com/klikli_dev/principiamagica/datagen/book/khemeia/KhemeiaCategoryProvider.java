@@ -35,13 +35,13 @@ public class KhemeiaCategoryProvider extends PrincipiaCategoryProvider {
         this.layout().entry(darkCompoundsEntry).at(4, 0);
         darkCompoundsEntry.withParent(steepingJarEntry).hideWhileLocked(true);
 
-        var quickenedClayEntry = this.add(new QuickenedClayEntry(this).generate());
-        this.layout().entry(quickenedClayEntry).at(6, 0);
-        quickenedClayEntry.withParent(darkCompoundsEntry).hideWhileLocked(true);
+        var steepingEntry = this.add(new SteepingEntry(this).generate());
+        this.layout().entry(steepingEntry).at(6, 0);
+        steepingEntry.withParent(darkCompoundsEntry).hideWhileLocked(true);
 
         var wabetBasinEntry = this.add(new WabetBasinEntry(this).generate());
         this.layout().entry(wabetBasinEntry).at(6, 2);
-        wabetBasinEntry.withParent(quickenedClayEntry).hideWhileLocked(true);
+        wabetBasinEntry.withParent(steepingEntry).hideWhileLocked(true);
 
         var lightCompoundsEntry = this.add(new LightCompoundsEntry(this).generate());
         this.layout().entry(lightCompoundsEntry).at(8, 2);
@@ -55,6 +55,7 @@ public class KhemeiaCategoryProvider extends PrincipiaCategoryProvider {
         this.layout().entry(lustralWatersEntry).at(10, 4);
         lustralWatersEntry.withParent(dryingSlabEntry).hideWhileLocked(true);
     }
+
     @Override
     protected String categoryName() {
         return "Khemeia";

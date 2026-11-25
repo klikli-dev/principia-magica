@@ -124,6 +124,18 @@
     "trigger_type": "modonomicon:entry_viewed_once"
   },
   {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_quickened_clay",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_quickened_clay_hook",
+    "trigger_target": "principiamagica:scribes_path/quickened_clay",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_golemancy_link",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_golemancy_link_hook",
+    "trigger_target": "principiamagica:scribes_path/golemancy_link",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
     "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_silt",
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_silt_hook",
     "trigger_target": "principiamagica:scribes_path/primal_silt",
@@ -145,24 +157,6 @@
     "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_ash",
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_primal_ash_hook",
     "trigger_target": "principiamagica:scribes_path/primal_ash",
-    "trigger_type": "modonomicon:entry_viewed_once"
-  },
-  {
-    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_clay_phials",
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_clay_phials_hook",
-    "trigger_target": "principiamagica:scribes_path/clay_phials",
-    "trigger_type": "modonomicon:entry_viewed_once"
-  },
-  {
-    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_natron_sponge",
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_natron_sponge_hook",
-    "trigger_target": "principiamagica:scribes_path/natron_sponge",
-    "trigger_type": "modonomicon:entry_viewed_once"
-  },
-  {
-    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_golemancy_link",
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_golemancy_link_hook",
-    "trigger_target": "principiamagica:scribes_path/golemancy_link",
     "trigger_type": "modonomicon:entry_viewed_once"
   },
   {
@@ -238,9 +232,9 @@
     "trigger_type": "modonomicon:entry_viewed_once"
   },
   {
-    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_quickened_clay",
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_quickened_clay_hook",
-    "trigger_target": "principiamagica:khemeia/quickened_clay",
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_hook",
+    "trigger_target": "principiamagica:khemeia/steeping",
     "trigger_type": "modonomicon:entry_viewed_once"
   },
   {

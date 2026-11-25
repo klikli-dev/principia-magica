@@ -12,8 +12,7 @@ import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.datagen.book.PrincipiaEntryProvider;
 import com.klikli_dev.principiamagica.datagen.book.khemeia.KhemeiaCategoryProvider;
-import com.klikli_dev.principiamagica.datagen.book.golemancy.AxiomEntry;
-import com.klikli_dev.principiamagica.datagen.book.golemancy.GolemancyCategoryProvider;
+import com.klikli_dev.principiamagica.datagen.book.khemeia.SteepingEntry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 
 public class CatchTroughEntry extends PrincipiaEntryProvider {
@@ -39,14 +38,10 @@ public class CatchTroughEntry extends PrincipiaEntryProvider {
         this.recipeTab("recipe", "Catch Trough", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("catch_trough")));
 
-        this.infoPage("holding", "Holding and Steeping",
-                "The trough holds one item and up to 500 mB of Principles. It takes only items that a steeping recipe uses, and an empty hand takes the item back out.\n"
-                        + "\\\n\\\n"
-                        + "While the item and the Principles match a steeping recipe, the trough works on it for 100 ticks. Then the item is replaced and exactly the recipe's Principles are used up. "
-                        + "A clay ball with unguent becomes quickened clay, see "
-                        + this.entryLink("Quickened Clay", KhemeiaCategoryProvider.CATEGORY_ID, "quickened_clay")
-                        + ". Axioms are steeped in loam or shard, see "
-                        + this.entryLink("Processing Axioms", GolemancyCategoryProvider.CATEGORY_ID, AxiomEntry.ENTRY_ID) + ".");
+        this.infoPage("holding", "Holding",
+                "The trough holds one item and up to 500 mB of Principles. It takes only items that a steeping recipe uses, and an empty hand takes the item back out. "
+                        + "Breaking it keeps its Principles on the dropped block. How the trough steeps is described in "
+                        + this.entryLink("Steeping", KhemeiaCategoryProvider.CATEGORY_ID, SteepingEntry.ENTRY_ID) + ".");
     }
 
     @Override

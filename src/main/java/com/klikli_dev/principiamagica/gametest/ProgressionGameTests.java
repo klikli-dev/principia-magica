@@ -13,6 +13,7 @@ import com.klikli_dev.principiamagica.content.golem.spec.GolemSpec;
 import com.klikli_dev.principiamagica.content.item.book.PrincipiaItem;
 import com.klikli_dev.principiamagica.datagen.advancement.PrincipiaMagicaAdvancementSubProvider;
 import com.klikli_dev.principiamagica.datagen.book.scribespath.PrincipiaEntry;
+import com.klikli_dev.principiamagica.datagen.book.scribespath.QuickenedClayEntry;
 import com.klikli_dev.principiamagica.datagen.book.scribespath.ScribesPathCategoryProvider;
 import com.klikli_dev.principiamagica.datagen.book.scribespath.StylusEntry;
 import com.klikli_dev.principiamagica.datagen.book.golemancy.AxiomEntry;
@@ -113,6 +114,12 @@ public class ProgressionGameTests {
 
         helper.assertTrue(server.getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, PrincipiaMagica.loc("steeping/quickened_clay"))).isPresent(),
                 "Recipe steeping/quickened_clay is missing");
+        var book = BookDataManager.get().getBook(PrincipiaItem.PRINCIPIA);
+        helper.assertTrue(book != null, "Modonomicon book principia is missing");
+        var category = book.getCategory(PrincipiaMagica.loc(ScribesPathCategoryProvider.CATEGORY_ID));
+        helper.assertTrue(category != null, "Category scribes_path is missing");
+        helper.assertTrue(category.getEntry(PrincipiaMagica.loc(ScribesPathCategoryProvider.CATEGORY_ID + "/" + QuickenedClayEntry.ENTRY_ID)) != null,
+                "Entry quickened_clay is missing from category scribes_path");
         helper.succeed();
     }
 
