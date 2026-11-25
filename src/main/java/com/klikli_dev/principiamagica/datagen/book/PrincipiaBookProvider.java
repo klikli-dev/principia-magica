@@ -55,7 +55,13 @@ public class PrincipiaBookProvider extends SingleBookSubProvider {
                 .withTheme(theme -> theme
                         .withId(this.modLoc(THEME_ID))
                         // Node connections are drawn as dynamic lines instead of the routed, texture-based arrows.
-                        .withNode(node -> node.withConnectionRenderer(NodeConnectionRendererType.DIRECT))
+                        // Lines are 4x the default width (2.25), with a smaller and slower wiggle (default 5.0 amplitude, 1.0 speed).
+                        .withNode(node -> node
+                                .withConnectionRenderer(NodeConnectionRendererType.DIRECT)
+                                .withDirectConnections(connections -> connections
+                                        .withWidth(9.0F)
+                                        .withOscillationAmplitude(2.0F)
+                                        .withOscillationSpeed(0.4F)))
                         // 16px item icons are drawn at 12px, leaving a 1px gap inside the 3px clay button border.
                         // The clay frame body sits a few px inside the frame box, so the side buttons
                         // extend 19 px under the frame. This draws the 44 px category button at its full

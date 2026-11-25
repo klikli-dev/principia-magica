@@ -29,9 +29,9 @@
       "discovered_color": -16776961,
       "opacity": 1.0,
       "oscillation": true,
-      "oscillation_amplitude": 5.0,
-      "oscillation_speed": 1.0,
-      "width": 2.25
+      "oscillation_amplitude": 2.0,
+      "oscillation_speed": 0.4,
+      "width": 9.0
     },
     "entry_name_style": {
       "background": {
