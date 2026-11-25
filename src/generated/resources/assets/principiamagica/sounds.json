@@ -164,6 +164,65 @@
     ],
     "subtitle": "subtitles.principiamagica.golem.place"
   },
+  "golem.step": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.step",
+        "volume": 0.25
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.step"
+  },
+  "golem.tool_stow": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "item.bundle.insert",
+        "volume": 0.35
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.tool_stow"
+  },
+  "golem.tool_unstow": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "item.bundle.remove_one",
+        "volume": 0.35
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.tool_unstow"
+  },
+  "imprint_tablet.clear": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.calcite.break",
+        "pitch": 1.1,
+        "volume": 0.7
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.imprint_tablet.clear"
+  },
+  "imprint_tablet.copy": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.calcite.place"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.imprint_tablet.copy"
+  },
+  "imprint_tablet.paste": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "item.brush.brushing.sand"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.imprint_tablet.paste"
+  },
   "libation.principle_select": {
     "sounds": [
       {
@@ -198,6 +257,17 @@
       }
     ],
     "subtitle": "subtitles.principiamagica.libation_slab.dissolve"
+  },
+  "libation_slab.dissolving": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.bubble_column.bubble_pop",
+        "pitch": 1.4,
+        "volume": 0.15
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.libation_slab.dissolving"
   },
   "libation_slab.place_item": {
     "sounds": [
@@ -337,6 +407,16 @@
       }
     ],
     "subtitle": "subtitles.principiamagica.phial.fill"
+  },
+  "spout.drip": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.pointed_dripstone.drip_water_into_cauldron",
+        "volume": 0.2
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.spout.drip"
   },
   "steeping_jar.lid_close": {
     "sounds": [
