@@ -1,0 +1,12 @@
+{
+  "type": "principiamagica:libation_recipe",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_ash",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_ash/stages/primal"
+  },
+  "id": "washing_1",
+  "recipe_id_1": "principiamagica:libation/flint",
+  "recipe_id_2": "principiamagica:libation/bone",
+  "sort_number": 4
+}

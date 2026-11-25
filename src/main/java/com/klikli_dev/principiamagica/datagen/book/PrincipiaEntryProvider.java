@@ -11,9 +11,11 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.BookPageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookRecipePageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
 import com.klikli_dev.principiamagica.compat.modonomicon.page.BookCuringRecipePageModel;
+import com.klikli_dev.principiamagica.compat.modonomicon.page.BookLibationRecipePageModel;
 import com.klikli_dev.principiamagica.compat.modonomicon.page.BookDryingRecipePageModel;
 import com.klikli_dev.principiamagica.compat.modonomicon.page.BookSteepingRecipePageModel;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Base for entries of the Principia book. Every entry consists of a notebook passage (the player's own observations)
@@ -61,6 +63,21 @@ public abstract class PrincipiaEntryProvider extends EntryProvider {
     }
 
     /**
+     * Adds a page that shows one or two libation recipes, without a title. Use it for short sets of recipes where the
+     * recipe itself says what it is, e.g. the washing sources of a primal. The page has no text, so the recipes keep their room.
+     */
+    protected void recipesPage(String pageId, Identifier recipeId1, @Nullable Identifier recipeId2) {
+        this.page(pageId, () -> {
+            var page = principleRecipePage(recipeId1);
+            page.withRecipeId1(recipeId1);
+            if (recipeId2 != null) {
+                page.withRecipeId2(recipeId2);
+            }
+            return page;
+        });
+    }
+
+    /**
      * @return the page model for the recipe, chosen by the recipe folder, e.g. {@code curing/light/loam}.
      */
     private static BookRecipePageModel<?> principleRecipePage(Identifier recipeId) {
@@ -68,6 +85,7 @@ public abstract class PrincipiaEntryProvider extends EntryProvider {
             case "curing" -> BookCuringRecipePageModel.create();
             case "steeping" -> BookSteepingRecipePageModel.create();
             case "drying" -> BookDryingRecipePageModel.create();
+            case "libation" -> BookLibationRecipePageModel.create();
             default -> throw new IllegalArgumentException("No principle recipe page for " + recipeId);
         };
     }

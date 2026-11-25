@@ -1,0 +1,11 @@
+{
+  "type": "principiamagica:libation_recipe",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_ash",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_ash/stages/primal"
+  },
+  "id": "washing_2",
+  "recipe_id_1": "principiamagica:libation/rotten_flesh",
+  "sort_number": 5
+}

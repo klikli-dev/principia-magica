@@ -1,0 +1,12 @@
+{
+  "type": "principiamagica:libation_recipe",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_silt",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_primal_silt/stages/primal"
+  },
+  "id": "washing_1",
+  "recipe_id_1": "principiamagica:libation/sand",
+  "recipe_id_2": "principiamagica:libation/cobblestone",
+  "sort_number": 4
+}
