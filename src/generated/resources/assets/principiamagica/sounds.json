@@ -1,4 +1,14 @@
 {
+  "catch_trough.place_item": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.insert",
+        "volume": 0.6
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.catch_trough.place_item"
+  },
   "catch_trough.steep": {
     "sounds": [
       {
@@ -17,6 +27,16 @@
       }
     ],
     "subtitle": "subtitles.principiamagica.catch_trough.steep"
+  },
+  "catch_trough.take_item": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "entity.item.pickup",
+        "volume": 0.5
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.catch_trough.take_item"
   },
   "drying_slab.dried": {
     "sounds": [
@@ -37,6 +57,122 @@
       }
     ],
     "subtitle": "subtitles.principiamagica.drying_slab.dried"
+  },
+  "drying_slab.place_item": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.insert",
+        "volume": 0.6
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.drying_slab.place_item"
+  },
+  "drying_slab.take_item": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "entity.item.pickup",
+        "volume": 0.5
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.drying_slab.take_item"
+  },
+  "golem.axiom_insert": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.insert"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.axiom_insert"
+  },
+  "golem.axiom_remove": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.insert",
+        "pitch": 0.75
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.axiom_remove"
+  },
+  "golem.death": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.shatter"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.death"
+  },
+  "golem.equip_tool": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "item.armor.equip_generic"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.equip_tool"
+  },
+  "golem.heal": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.insert",
+        "pitch": 1.2
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.heal"
+  },
+  "golem.hurt": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.hit"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.hurt"
+  },
+  "golem.pick_up": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.place",
+        "pitch": 1.25,
+        "volume": 0.8
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.pick_up"
+  },
+  "golem.pickup_item": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "entity.item.pickup",
+        "volume": 0.3
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.pickup_item"
+  },
+  "golem.place": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.place"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.place"
+  },
+  "libation.principle_select": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "ui.stonecutter.select_recipe",
+        "pitch": 1.2,
+        "volume": 0.35
+      }
+    ]
   },
   "libation_slab.dissolve": {
     "sounds": [
@@ -106,6 +242,34 @@
     ],
     "subtitle": "subtitles.principiamagica.libation_slab.pour"
   },
+  "libation_slab.take_item": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "entity.item.pickup",
+        "volume": 0.5
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.libation_slab.take_item"
+  },
+  "libation_spout.close": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.stone_button.click_off"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.libation_spout.close"
+  },
+  "libation_spout.open": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.stone_button.click_on"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.libation_spout.open"
+  },
   "natron_sponge.blot": {
     "sounds": [
       {
@@ -173,6 +337,132 @@
       }
     ],
     "subtitle": "subtitles.principiamagica.phial.fill"
+  },
+  "steeping_jar.lid_close": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.hit",
+        "pitch": 0.85,
+        "volume": 0.5
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.steeping_jar.lid_close"
+  },
+  "steeping_jar.lid_open": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.decorated_pot.hit",
+        "pitch": 1.15,
+        "volume": 0.5
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.steeping_jar.lid_open"
+  },
+  "stylus.adjust_height": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.stone_button.click_on",
+        "volume": 0.5
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.adjust_height"
+  },
+  "stylus.carve": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "item.brush.brushing.gravel"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.carve"
+  },
+  "stylus.deselect": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.copper_bulb.turn_off"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.deselect"
+  },
+  "stylus.erase": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.calcite.break",
+        "pitch": 0.8
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.erase"
+  },
+  "stylus.fail": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.note_block.bass",
+        "pitch": 0.5
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.fail"
+  },
+  "stylus.link_both": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.note_block.chime"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.link_both"
+  },
+  "stylus.link_deposit": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.barrel.close"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.link_deposit"
+  },
+  "stylus.link_supply": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.barrel.open"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.link_supply"
+  },
+  "stylus.pick_up_corner": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "item.brush.brushing.gravel",
+        "pitch": 1.2
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.pick_up_corner"
+  },
+  "stylus.select": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.copper_bulb.turn_on"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.select"
+  },
+  "stylus.unlink": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.note_block.bass",
+        "pitch": 0.6
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.stylus.unlink"
   },
   "vessel.cure": {
     "sounds": [
