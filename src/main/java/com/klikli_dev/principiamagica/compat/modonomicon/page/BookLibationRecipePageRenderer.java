@@ -32,7 +32,9 @@ public class BookLibationRecipePageRenderer extends PrincipiaRecipePageRenderer<
 
     @Override
     protected int getRecipeWidth(LibationRecipe recipe) {
-        return rowWidth(2);
+        // The principles run in columns of SLOT_PITCH after the output start, so a row of two reaches a second column.
+        int columns = Math.max(1, Math.min(OUTPUTS_PER_ROW, recipe.principles().stacks().size()));
+        return outputX(2) + (columns - 1) * SLOT_PITCH + SLOT_SIZE;
     }
 
     @Override
