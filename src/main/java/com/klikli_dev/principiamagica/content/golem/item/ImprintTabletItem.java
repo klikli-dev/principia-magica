@@ -9,11 +9,13 @@ import com.klikli_dev.principiamagica.content.Plurals;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -80,6 +82,7 @@ public class ImprintTabletItem extends Item {
 
     private static void clear(ItemStack stack, ServerPlayer player) {
         if (stack.remove(DataComponentRegistry.IMPRINT_CLIPBOARD.get()) != null) {
+            player.level().playSound(null, player.blockPosition(), SoundRegistry.IMPRINT_TABLET_CLEAR.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.imprint_tablet.cleared"));
         }
     }
@@ -94,11 +97,13 @@ public class ImprintTabletItem extends Item {
             Workplace workplace = golem.getWorkplace(level).orElse(Workplace.EMPTY);
             Workplace copied = StylusActions.toRelative(workplace, StylusItem.anchorOf(golem), level.dimension());
             stack.set(DataComponentRegistry.IMPRINT_CLIPBOARD.get(), copied);
+            level.playSound(null, golem.blockPosition(), SoundRegistry.IMPRINT_TABLET_COPY.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.imprint_tablet.copied",
                     Plurals.of(Plurals.FOOTPRINTS, copied.footprints().size()), Plurals.of(Plurals.CONTAINER_LINKS, copied.links().size())));
         } else {
             BlockPos anchor = StylusItem.anchorOf(golem);
             golem.updateWorkplace(current -> StylusActions.paste(current, clipboard, anchor, level.dimension()));
+            level.playSound(null, golem.blockPosition(), SoundRegistry.IMPRINT_TABLET_PASTE.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.imprint_tablet.pasted"));
             StylusItem.syncWorkplace(player, golem);
         }

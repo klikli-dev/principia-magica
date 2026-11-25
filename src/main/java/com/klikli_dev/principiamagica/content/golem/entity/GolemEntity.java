@@ -62,6 +62,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -182,9 +183,11 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         if (onBack && this.toolWasInHand && !inHand) {
             this.toolSwitchTicks = TOOL_SWITCH_TICKS;
             this.triggerAnim(GolemAnimations.WORK_CONTROLLER, GolemAnimations.STOW);
+            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.GOLEM_TOOL_STOW.get(), SoundSource.NEUTRAL, 1.0F, 1.0F, false);
         } else if (inHand && this.toolWasOnBack && !onBack) {
             this.toolSwitchTicks = TOOL_SWITCH_TICKS;
             this.triggerAnim(GolemAnimations.WORK_CONTROLLER, GolemAnimations.UNSTOW);
+            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), SoundRegistry.GOLEM_TOOL_UNSTOW.get(), SoundSource.NEUTRAL, 1.0F, 1.0F, false);
         } else if (this.toolSwitchTicks == 0) {
             this.toolDrawnOnBack = onBack;
         }
@@ -560,6 +563,11 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         return SoundRegistry.GOLEM_HURT.get();
+    }
+
+    @Override
+    protected void playStepSound(BlockPos pos, BlockState state) {
+        this.playSound(SoundRegistry.GOLEM_STEP.get(), 1.0F, 1.0F);
     }
 
     /**
