@@ -1,5 +1,5 @@
 {
-  "type": "modonomicon:viewer_recipe",
+  "type": "principiamagica:steeping_recipe",
   "condition": {
     "type": "modonomicon:none"
   },

@@ -8,8 +8,11 @@ import com.klikli_dev.modonomicon.api.datagen.CategoryProvider;
 import com.klikli_dev.modonomicon.api.datagen.EntryProvider;
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryTabModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookPageModel;
+import com.klikli_dev.modonomicon.api.datagen.book.page.BookRecipePageModel;
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
-import com.klikli_dev.modonomicon.api.datagen.book.page.BookViewerRecipePageModel;
+import com.klikli_dev.principiamagica.compat.modonomicon.page.BookCuringRecipePageModel;
+import com.klikli_dev.principiamagica.compat.modonomicon.page.BookDryingRecipePageModel;
+import com.klikli_dev.principiamagica.compat.modonomicon.page.BookSteepingRecipePageModel;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -47,14 +50,26 @@ public abstract class PrincipiaEntryProvider extends EntryProvider {
     }
 
     /**
-     * Adds a page that shows a single recipe with the given title. The recipe is drawn by the recipe viewer,
-     * so it also works for the principle recipes (curing, steeping, drying), which have no vanilla page type.
+     * Adds a page that shows a single principle recipe (curing, steeping or drying) with the given title.
+     * The page is drawn by the book itself, so it does not need a recipe viewer.
      */
     protected void recipePage(String pageId, String title, Identifier recipeId) {
-        this.page(pageId, () -> BookViewerRecipePageModel.create()
+        this.page(pageId, () -> principleRecipePage(recipeId)
                 .withTitle1(this.context().pageTitle())
                 .withRecipeId1(recipeId));
         this.pageTitle(title);
+    }
+
+    /**
+     * @return the page model for the recipe, chosen by the recipe folder, e.g. {@code curing/light/loam}.
+     */
+    private static BookRecipePageModel<?> principleRecipePage(Identifier recipeId) {
+        return switch (recipeId.getPath().split("/")[0]) {
+            case "curing" -> BookCuringRecipePageModel.create();
+            case "steeping" -> BookSteepingRecipePageModel.create();
+            case "drying" -> BookDryingRecipePageModel.create();
+            default -> throw new IllegalArgumentException("No principle recipe page for " + recipeId);
+        };
     }
 
     private void textPage(String pageId, String title, String text) {
