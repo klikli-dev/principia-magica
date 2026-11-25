@@ -15,6 +15,7 @@ import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -22,7 +23,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -92,9 +92,10 @@ final class StylusBlockInteraction {
         Optional<Workplace> updated = StylusActions.removeFootprintAt(workplace, level.dimension(), pos, below, above);
         if (updated.isPresent()) {
             StylusItem.applyWorkplaceEdit(player, golem, updated.get());
-            level.playSound(null, pos, SoundEvents.CALCITE_BREAK, SoundSource.BLOCKS, 1.0F, 0.8F);
+            level.playSound(null, pos, SoundRegistry.STYLUS_ERASE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_erased"));
         } else {
+            level.playSound(null, pos, SoundRegistry.STYLUS_FAIL.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
         }
     }
@@ -105,9 +106,10 @@ final class StylusBlockInteraction {
             golem.updateWorkplace(current -> updated.get());
             golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value());
             golem.getBrain().eraseMemory(MemoryModuleTypeRegistry.UNREACHABLE_TARGETS.value());
-            level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
+            level.playSound(null, pos, SoundRegistry.STYLUS_UNLINK.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_removed"));
         } else {
+            level.playSound(null, pos, SoundRegistry.STYLUS_FAIL.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
         }
     }
@@ -121,7 +123,7 @@ final class StylusBlockInteraction {
         // Existing links keep the side they were linked with, so they need no face.
         Direction side = isNewLink ? ContainerAccess.usableSide(level, pos, face) : null;
         if (isNewLink && side == null) {
-            level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
+            level.playSound(null, pos, SoundRegistry.STYLUS_FAIL.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.nothing_to_remove"));
             return;
         }
@@ -148,7 +150,7 @@ final class StylusBlockInteraction {
                 player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_set", roleName));
             }
         } else {
-            level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.6F);
+            level.playSound(null, pos, SoundRegistry.STYLUS_UNLINK.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.link_removed"));
         }
     }
@@ -168,7 +170,7 @@ final class StylusBlockInteraction {
         Optional<PendingGlyph> pending = Optional.ofNullable(stack.get(DataComponentRegistry.STYLUS_PENDING_GLYPH.get()))
                 .filter(glyph -> glyph.pos().dimension().equals(level.dimension()));
         if (pending.isEmpty()) {
-            level.playSound(null, pos, SoundEvents.BRUSH_GRAVEL, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.playSound(null, pos, SoundRegistry.STYLUS_CARVE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             stack.set(DataComponentRegistry.STYLUS_PENDING_GLYPH.get(), PendingGlyph.of(GlobalPos.of(level.dimension(), pos), face));
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_set"));
             return;
@@ -180,14 +182,14 @@ final class StylusBlockInteraction {
             boolean wasMove = pending.get().original().isPresent();
             stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
             StylusItem.applyWorkplaceEdit(player, golem, result.workplace());
-            level.playSound(null, pos, SoundEvents.BRUSH_GRAVEL, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.playSound(null, pos, SoundRegistry.STYLUS_CARVE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable(wasMove
                     ? "message.principiamagica.stylus.corner_moved"
                     : "message.principiamagica.stylus.footprint_carved"));
             return;
         }
 
-        level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.5F);
+        level.playSound(null, pos, SoundRegistry.STYLUS_FAIL.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         switch (result.failure()) {
             case CORNER_OCCUPIED -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_occupied"));
             case OUT_OF_BOUNDS -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.out_of_bounds"));
@@ -206,9 +208,9 @@ final class StylusBlockInteraction {
 
     private static SoundEvent linkSound(ContainerRole role) {
         return switch (role) {
-            case SUPPLY -> SoundEvents.BARREL_OPEN;
-            case DEPOSIT -> SoundEvents.BARREL_CLOSE;
-            case BOTH -> SoundEvents.NOTE_BLOCK_CHIME.value();
+            case SUPPLY -> SoundRegistry.STYLUS_LINK_SUPPLY.get();
+            case DEPOSIT -> SoundRegistry.STYLUS_LINK_DEPOSIT.get();
+            case BOTH -> SoundRegistry.STYLUS_LINK_BOTH.get();
         };
     }
 }

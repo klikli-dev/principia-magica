@@ -14,6 +14,7 @@ import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Message;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -22,7 +23,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +77,7 @@ public record MessagePickUpCorner(int entityId, int footprintIndex, int cornerIn
         StylusActions.pickUpCorner(workplace, level.dimension(), this.footprintIndex, this.cornerIndex).ifPresent(picked -> {
             stack.set(DataComponentRegistry.STYLUS_PENDING_GLYPH.get(), picked.pending());
             StylusItem.applyWorkplaceEdit(player, golem, picked.workplace());
-            level.playSound(null, footprint.cornerBlock(this.cornerIndex), SoundEvents.BRUSH_GRAVEL, SoundSource.BLOCKS, 1.0F, 1.2F);
+            level.playSound(null, footprint.cornerBlock(this.cornerIndex), SoundRegistry.STYLUS_PICK_UP_CORNER.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_picked_up"));
         });
     }

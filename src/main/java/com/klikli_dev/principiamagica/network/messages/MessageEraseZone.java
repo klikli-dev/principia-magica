@@ -12,6 +12,7 @@ import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Message;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -21,7 +22,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,7 +61,7 @@ public record MessageEraseZone(int entityId, int index) implements Message {
         StylusActions.removeFootprint(workplace, this.index).ifPresent(updated -> {
             StylusItem.applyWorkplaceEdit(player, golem, updated);
             BlockPos center = BlockPos.containing(footprint.zone(0, 0).aabb().getCenter());
-            level.playSound(null, center, SoundEvents.CALCITE_BREAK, SoundSource.BLOCKS, 1.0F, 0.8F);
+            level.playSound(null, center, SoundRegistry.STYLUS_ERASE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_erased"));
         });
     }

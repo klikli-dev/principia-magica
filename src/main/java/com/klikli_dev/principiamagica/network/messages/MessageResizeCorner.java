@@ -12,6 +12,7 @@ import com.klikli_dev.principiamagica.content.golem.workplace.GlyphTargeting;
 import com.klikli_dev.principiamagica.content.golem.workplace.WorkFootprint;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.network.Message;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -20,7 +21,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,13 +63,15 @@ public record MessageResizeCorner(int entityId, int footprintIndex, int cornerIn
         StylusActions.EditResult result = StylusActions.resizeCornerY(workplace, this.footprintIndex, this.cornerIndex, this.delta);
         if (result.isSuccess()) {
             StylusItem.applyWorkplaceEdit(player, golem, result.workplace());
+            level.playSound(null, footprint.cornerBlock(this.cornerIndex), SoundRegistry.STYLUS_ADJUST_HEIGHT.get(),
+                    SoundSource.BLOCKS, 1.0F, this.delta > 0 ? 1.2F : 0.9F);
             player.sendOverlayMessage(Component.translatable(
                     "message.principiamagica.stylus.corner_lifted",
                     String.format("%+d", this.delta)));
             return;
         }
 
-        level.playSound(null, footprint.cornerBlock(this.cornerIndex), SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, 0.5F);
+        level.playSound(null, footprint.cornerBlock(this.cornerIndex), SoundRegistry.STYLUS_FAIL.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         switch (result.failure()) {
             case TOO_LARGE -> player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.footprint_too_large",
                     WorkFootprint.MAX_SIZE, WorkFootprint.MAX_SIZE));

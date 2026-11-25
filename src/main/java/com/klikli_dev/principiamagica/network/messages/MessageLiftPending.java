@@ -9,6 +9,7 @@ import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
 import com.klikli_dev.principiamagica.content.golem.workplace.PendingGlyph;
 import com.klikli_dev.principiamagica.network.Message;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -16,6 +17,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,6 +46,13 @@ public record MessageLiftPending(int delta) implements Message {
 
             PendingGlyph lifted = pending.withGhostLift(this.delta);
             stack.set(DataComponentRegistry.STYLUS_PENDING_GLYPH.get(), lifted);
+            if (lifted.ghostLift() != pending.ghostLift()) {
+                player.level().playSound(null, player.blockPosition(), SoundRegistry.STYLUS_ADJUST_HEIGHT.get(),
+                        SoundSource.PLAYERS, 1.0F, this.delta > 0 ? 1.2F : 0.9F);
+            } else {
+                player.level().playSound(null, player.blockPosition(), SoundRegistry.STYLUS_FAIL.get(),
+                        SoundSource.PLAYERS, 1.0F, 1.0F);
+            }
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_lifted",
                     String.format("%+d", lifted.ghostLift())));
         });

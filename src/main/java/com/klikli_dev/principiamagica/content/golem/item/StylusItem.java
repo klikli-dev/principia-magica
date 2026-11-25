@@ -13,6 +13,7 @@ import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSyncGolemWorkplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,6 +21,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.TriState;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -91,6 +93,7 @@ public class StylusItem extends Item {
 
         ItemStack stack = context.getItemInHand();
         if (stack.get(DataComponentRegistry.STYLUS_SELECTION.get()) == null) {
+            serverLevel.playSound(null, context.getClickedPos(), SoundRegistry.STYLUS_FAIL.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.no_golem_selected"));
             return InteractionResult.FAIL;
         }
@@ -102,12 +105,14 @@ public class StylusItem extends Item {
                 stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
                 stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
             }
+            serverLevel.playSound(null, context.getClickedPos(), SoundRegistry.STYLUS_FAIL.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.golem_not_found"));
             return InteractionResult.FAIL;
         }
 
         GolemEntity golem = selected.get();
         if (!player.getUUID().equals(golem.getOwnerUUID())) {
+            serverLevel.playSound(null, context.getClickedPos(), SoundRegistry.STYLUS_FAIL.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.not_owner"));
             return InteractionResult.FAIL;
         }
@@ -128,20 +133,29 @@ public class StylusItem extends Item {
         }
 
         switch (cancelPending(stack, serverPlayer)) {
-            case CORNER_CANCELLED -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_cancelled"));
-            case MOVE_CANCELLED -> serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_cancelled"));
+            case CORNER_CANCELLED -> {
+                level.playSound(null, player.blockPosition(), SoundRegistry.STYLUS_DESELECT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
+                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_cancelled"));
+            }
+            case MOVE_CANCELLED -> {
+                level.playSound(null, player.blockPosition(), SoundRegistry.STYLUS_DESELECT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
+                serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_cancelled"));
+            }
             case MOVE_KEPT -> {
                 if (player.isShiftKeyDown()) {
                     // Escape hatch for a move whose golem can never be reached again: the moved work area is lost
                     stack.remove(DataComponentRegistry.STYLUS_PENDING_GLYPH.get());
                     stack.remove(DataComponentRegistry.STYLUS_SELECTION.get());
+                    level.playSound(null, player.blockPosition(), SoundRegistry.STYLUS_DESELECT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
                     serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_discarded"));
                 } else {
+                    level.playSound(null, player.blockPosition(), SoundRegistry.STYLUS_FAIL.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
                     serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.corner_move_golem_not_found"));
                 }
             }
             case NONE -> {
                 if (player.isShiftKeyDown() && stack.remove(DataComponentRegistry.STYLUS_SELECTION.get()) != null) {
+                    level.playSound(null, player.blockPosition(), SoundRegistry.STYLUS_DESELECT.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
                     serverPlayer.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.cleared"));
                 }
             }
@@ -301,6 +315,7 @@ public class StylusItem extends Item {
         ItemStack stack = golem.toItemStack();
         stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), StylusActions.stampDimension(workplace, level.dimension()));
 
+        level.playSound(null, golem.blockPosition(), SoundRegistry.GOLEM_PICK_UP.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
         golem.discard();
         player.getInventory().placeItemBackInInventory(stack);
         player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.picked_up"));
