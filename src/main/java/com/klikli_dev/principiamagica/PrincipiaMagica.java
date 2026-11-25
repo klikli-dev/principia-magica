@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica;
 
+import com.klikli_dev.principiamagica.compat.modonomicon.PrincipiaModonomiconPageTypes;
 import com.klikli_dev.principiamagica.datagen.PrincipiaMagicaDataGenerators;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.StylusItem;
@@ -56,6 +57,7 @@ public class PrincipiaMagica {
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
 
         ResearchTriggerTypeRegistry.bootstrap();
+        PrincipiaModonomiconPageTypes.bootstrap();
 
         BlockRegistry.BLOCKS.register(modEventBus);
         FluidRegistry.FLUID_TYPES.register(modEventBus);
