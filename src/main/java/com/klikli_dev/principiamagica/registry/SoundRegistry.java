@@ -15,10 +15,12 @@ public class SoundRegistry {
 
     public static final DeferredHolder<SoundEvent, SoundEvent> LIBATION_SLAB_POUR = register("libation_slab.pour");
     public static final DeferredHolder<SoundEvent, SoundEvent> LIBATION_SLAB_DISSOLVE = register("libation_slab.dissolve");
+    public static final DeferredHolder<SoundEvent, SoundEvent> LIBATION_SLAB_DISSOLVING = register("libation_slab.dissolving");
     public static final DeferredHolder<SoundEvent, SoundEvent> LIBATION_SLAB_PLACE_ITEM = register("libation_slab.place_item");
     public static final DeferredHolder<SoundEvent, SoundEvent> LIBATION_SLAB_TAKE_ITEM = register("libation_slab.take_item");
     public static final DeferredHolder<SoundEvent, SoundEvent> LIBATION_SPOUT_OPEN = register("libation_spout.open");
     public static final DeferredHolder<SoundEvent, SoundEvent> LIBATION_SPOUT_CLOSE = register("libation_spout.close");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SPOUT_DRIP = register("spout.drip");
     public static final DeferredHolder<SoundEvent, SoundEvent> CATCH_TROUGH_STEEP = register("catch_trough.steep");
     public static final DeferredHolder<SoundEvent, SoundEvent> CATCH_TROUGH_PLACE_ITEM = register("catch_trough.place_item");
     public static final DeferredHolder<SoundEvent, SoundEvent> CATCH_TROUGH_TAKE_ITEM = register("catch_trough.take_item");
@@ -44,6 +46,13 @@ public class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_AXIOM_REMOVE = register("golem.axiom_remove");
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_EQUIP_TOOL = register("golem.equip_tool");
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_PICKUP_ITEM = register("golem.pickup_item");
+    public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_STEP = register("golem.step");
+    public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_TOOL_STOW = register("golem.tool_stow");
+    public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_TOOL_UNSTOW = register("golem.tool_unstow");
+
+    public static final DeferredHolder<SoundEvent, SoundEvent> IMPRINT_TABLET_COPY = register("imprint_tablet.copy");
+    public static final DeferredHolder<SoundEvent, SoundEvent> IMPRINT_TABLET_PASTE = register("imprint_tablet.paste");
+    public static final DeferredHolder<SoundEvent, SoundEvent> IMPRINT_TABLET_CLEAR = register("imprint_tablet.clear");
 
     public static final DeferredHolder<SoundEvent, SoundEvent> STYLUS_SELECT = register("stylus.select");
     public static final DeferredHolder<SoundEvent, SoundEvent> STYLUS_DESELECT = register("stylus.deselect");

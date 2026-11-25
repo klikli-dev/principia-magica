@@ -76,6 +76,14 @@ public class ENUSProvider extends LanguageProvider {
         this.add("subtitles.principiamagica.stylus.link_both", "Container linked");
         this.add("subtitles.principiamagica.stylus.unlink", "Container unlinked");
         this.add("subtitles.principiamagica.stylus.fail", "Stylus fails");
+        this.add("subtitles.principiamagica.libation_slab.dissolving", "Item dissolving");
+        this.add("subtitles.principiamagica.spout.drip", "Principles drip");
+        this.add("subtitles.principiamagica.golem.step", "Golem steps");
+        this.add("subtitles.principiamagica.golem.tool_stow", "Golem stows tool");
+        this.add("subtitles.principiamagica.golem.tool_unstow", "Golem draws tool");
+        this.add("subtitles.principiamagica.imprint_tablet.copy", "Workplace copied");
+        this.add("subtitles.principiamagica.imprint_tablet.paste", "Workplace imprinted");
+        this.add("subtitles.principiamagica.imprint_tablet.clear", "Imprint cleared");
 
         this.add("message.principiamagica.libation_slab.not_washable", "Nothing can be washed from this");
         this.add("message.principiamagica.libation_slab.full", "The slab is full");

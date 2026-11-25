@@ -226,6 +226,39 @@ public class PrincipiaMagicaSoundDefinitionsProvider extends SoundDefinitionsPro
         add(SoundRegistry.STYLUS_FAIL, definition()
                 .subtitle("subtitles.principiamagica.stylus.fail")
                 .with(event(SoundEvents.NOTE_BLOCK_BASS.value()).pitch(0.5F)));
+
+        // Additional Libation, Golem, and Imprint Tablet sounds
+        add(SoundRegistry.LIBATION_SLAB_DISSOLVING, definition()
+                .subtitle("subtitles.principiamagica.libation_slab.dissolving")
+                .with(event(SoundEvents.BUBBLE_COLUMN_BUBBLE_POP).volume(0.15F).pitch(1.4F)));
+
+        add(SoundRegistry.SPOUT_DRIP, definition()
+                .subtitle("subtitles.principiamagica.spout.drip")
+                .with(event(SoundEvents.POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON).volume(0.2F)));
+
+        add(SoundRegistry.GOLEM_STEP, definition()
+                .subtitle("subtitles.principiamagica.golem.step")
+                .with(event(SoundEvents.DECORATED_POT_STEP).volume(0.25F)));
+
+        add(SoundRegistry.GOLEM_TOOL_STOW, definition()
+                .subtitle("subtitles.principiamagica.golem.tool_stow")
+                .with(event(SoundEvents.BUNDLE_INSERT).volume(0.35F)));
+
+        add(SoundRegistry.GOLEM_TOOL_UNSTOW, definition()
+                .subtitle("subtitles.principiamagica.golem.tool_unstow")
+                .with(event(SoundEvents.BUNDLE_REMOVE_ONE).volume(0.35F)));
+
+        add(SoundRegistry.IMPRINT_TABLET_COPY, definition()
+                .subtitle("subtitles.principiamagica.imprint_tablet.copy")
+                .with(event(SoundEvents.CALCITE_PLACE)));
+
+        add(SoundRegistry.IMPRINT_TABLET_PASTE, definition()
+                .subtitle("subtitles.principiamagica.imprint_tablet.paste")
+                .with(event(SoundEvents.BRUSH_SAND)));
+
+        add(SoundRegistry.IMPRINT_TABLET_CLEAR, definition()
+                .subtitle("subtitles.principiamagica.imprint_tablet.clear")
+                .with(event(SoundEvents.CALCITE_BREAK).volume(0.7F).pitch(1.1F)));
     }
 
     private static SoundDefinition.Sound event(SoundEvent sound) {
