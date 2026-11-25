@@ -7,6 +7,10 @@ package com.klikli_dev.principiamagica.datagen.sound;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.data.PackOutput;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.neoforged.neoforge.common.data.SoundDefinition;
+import net.neoforged.neoforge.common.data.SoundDefinition.SoundType;
 import net.neoforged.neoforge.common.data.SoundDefinitionsProvider;
 
 /**
@@ -100,5 +104,131 @@ public class PrincipiaMagicaSoundDefinitionsProvider extends SoundDefinitionsPro
                         sound("minecraft:block/sponge/absorb2").volume(0.7F).pitch(1.2F),
                         sound("minecraft:block/sponge/absorb3").volume(0.7F).pitch(1.0F),
                         sound("minecraft:random/fizz").volume(0.15F).pitch(1.4F)));
+
+        // Libation & Khemeia
+        add(SoundRegistry.LIBATION_SLAB_TAKE_ITEM, definition()
+                .subtitle("subtitles.principiamagica.libation_slab.take_item")
+                .with(event(SoundEvents.ITEM_PICKUP).volume(0.5F)));
+
+        add(SoundRegistry.LIBATION_SPOUT_OPEN, definition()
+                .subtitle("subtitles.principiamagica.libation_spout.open")
+                .with(event(SoundEvents.STONE_BUTTON_CLICK_ON)));
+
+        add(SoundRegistry.LIBATION_SPOUT_CLOSE, definition()
+                .subtitle("subtitles.principiamagica.libation_spout.close")
+                .with(event(SoundEvents.STONE_BUTTON_CLICK_OFF)));
+
+        add(SoundRegistry.CATCH_TROUGH_PLACE_ITEM, definition()
+                .subtitle("subtitles.principiamagica.catch_trough.place_item")
+                .with(event(SoundEvents.DECORATED_POT_INSERT).volume(0.6F)));
+
+        add(SoundRegistry.CATCH_TROUGH_TAKE_ITEM, definition()
+                .subtitle("subtitles.principiamagica.catch_trough.take_item")
+                .with(event(SoundEvents.ITEM_PICKUP).volume(0.5F)));
+
+        add(SoundRegistry.DRYING_SLAB_PLACE_ITEM, definition()
+                .subtitle("subtitles.principiamagica.drying_slab.place_item")
+                .with(event(SoundEvents.DECORATED_POT_INSERT).volume(0.6F)));
+
+        add(SoundRegistry.DRYING_SLAB_TAKE_ITEM, definition()
+                .subtitle("subtitles.principiamagica.drying_slab.take_item")
+                .with(event(SoundEvents.ITEM_PICKUP).volume(0.5F)));
+
+        add(SoundRegistry.STEEPING_JAR_LID_CLOSE, definition()
+                .subtitle("subtitles.principiamagica.steeping_jar.lid_close")
+                .with(event(SoundEvents.DECORATED_POT_HIT).volume(0.5F).pitch(0.85F)));
+
+        add(SoundRegistry.STEEPING_JAR_LID_OPEN, definition()
+                .subtitle("subtitles.principiamagica.steeping_jar.lid_open")
+                .with(event(SoundEvents.DECORATED_POT_HIT).volume(0.5F).pitch(1.15F)));
+
+        add(SoundRegistry.PRINCIPLE_SELECT, definition()
+                .with(event(SoundEvents.UI_STONECUTTER_SELECT_RECIPE).volume(0.35F).pitch(1.2F)));
+
+        // Golem
+        add(SoundRegistry.GOLEM_PLACE, definition()
+                .subtitle("subtitles.principiamagica.golem.place")
+                .with(event(SoundEvents.DECORATED_POT_PLACE)));
+
+        add(SoundRegistry.GOLEM_PICK_UP, definition()
+                .subtitle("subtitles.principiamagica.golem.pick_up")
+                .with(event(SoundEvents.DECORATED_POT_PLACE).volume(0.8F).pitch(1.25F)));
+
+        add(SoundRegistry.GOLEM_HURT, definition()
+                .subtitle("subtitles.principiamagica.golem.hurt")
+                .with(event(SoundEvents.DECORATED_POT_HIT)));
+
+        add(SoundRegistry.GOLEM_DEATH, definition()
+                .subtitle("subtitles.principiamagica.golem.death")
+                .with(event(SoundEvents.DECORATED_POT_SHATTER)));
+
+        add(SoundRegistry.GOLEM_HEAL, definition()
+                .subtitle("subtitles.principiamagica.golem.heal")
+                .with(event(SoundEvents.DECORATED_POT_INSERT).pitch(1.2F)));
+
+        add(SoundRegistry.GOLEM_AXIOM_INSERT, definition()
+                .subtitle("subtitles.principiamagica.golem.axiom_insert")
+                .with(event(SoundEvents.DECORATED_POT_INSERT)));
+
+        add(SoundRegistry.GOLEM_AXIOM_REMOVE, definition()
+                .subtitle("subtitles.principiamagica.golem.axiom_remove")
+                .with(event(SoundEvents.DECORATED_POT_INSERT).pitch(0.75F)));
+
+        add(SoundRegistry.GOLEM_EQUIP_TOOL, definition()
+                .subtitle("subtitles.principiamagica.golem.equip_tool")
+                .with(event(SoundEvents.ARMOR_EQUIP_GENERIC.value())));
+
+        add(SoundRegistry.GOLEM_PICKUP_ITEM, definition()
+                .subtitle("subtitles.principiamagica.golem.pickup_item")
+                .with(event(SoundEvents.ITEM_PICKUP).volume(0.3F)));
+
+        // Copper Stylus
+        add(SoundRegistry.STYLUS_SELECT, definition()
+                .subtitle("subtitles.principiamagica.stylus.select")
+                .with(event(SoundEvents.COPPER_BULB_TURN_ON)));
+
+        add(SoundRegistry.STYLUS_DESELECT, definition()
+                .subtitle("subtitles.principiamagica.stylus.deselect")
+                .with(event(SoundEvents.COPPER_BULB_TURN_OFF)));
+
+        add(SoundRegistry.STYLUS_CARVE, definition()
+                .subtitle("subtitles.principiamagica.stylus.carve")
+                .with(event(SoundEvents.BRUSH_GRAVEL)));
+
+        add(SoundRegistry.STYLUS_PICK_UP_CORNER, definition()
+                .subtitle("subtitles.principiamagica.stylus.pick_up_corner")
+                .with(event(SoundEvents.BRUSH_GRAVEL).pitch(1.2F)));
+
+        add(SoundRegistry.STYLUS_ADJUST_HEIGHT, definition()
+                .subtitle("subtitles.principiamagica.stylus.adjust_height")
+                .with(event(SoundEvents.STONE_BUTTON_CLICK_ON).volume(0.5F)));
+
+        add(SoundRegistry.STYLUS_ERASE, definition()
+                .subtitle("subtitles.principiamagica.stylus.erase")
+                .with(event(SoundEvents.CALCITE_BREAK).pitch(0.8F)));
+
+        add(SoundRegistry.STYLUS_LINK_SUPPLY, definition()
+                .subtitle("subtitles.principiamagica.stylus.link_supply")
+                .with(event(SoundEvents.BARREL_OPEN)));
+
+        add(SoundRegistry.STYLUS_LINK_DEPOSIT, definition()
+                .subtitle("subtitles.principiamagica.stylus.link_deposit")
+                .with(event(SoundEvents.BARREL_CLOSE)));
+
+        add(SoundRegistry.STYLUS_LINK_BOTH, definition()
+                .subtitle("subtitles.principiamagica.stylus.link_both")
+                .with(event(SoundEvents.NOTE_BLOCK_CHIME.value())));
+
+        add(SoundRegistry.STYLUS_UNLINK, definition()
+                .subtitle("subtitles.principiamagica.stylus.unlink")
+                .with(event(SoundEvents.NOTE_BLOCK_BASS.value()).pitch(0.6F)));
+
+        add(SoundRegistry.STYLUS_FAIL, definition()
+                .subtitle("subtitles.principiamagica.stylus.fail")
+                .with(event(SoundEvents.NOTE_BLOCK_BASS.value()).pitch(0.5F)));
+    }
+
+    private static SoundDefinition.Sound event(SoundEvent sound) {
+        return sound(sound.location(), SoundType.EVENT);
     }
 }
