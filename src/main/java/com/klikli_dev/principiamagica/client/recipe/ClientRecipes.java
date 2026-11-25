@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica.client.recipe;
 
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeInput;
@@ -11,6 +12,8 @@ import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
+
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -22,6 +25,14 @@ public class ClientRecipes {
 
     public static <I extends RecipeInput, T extends Recipe<I>> Collection<RecipeHolder<T>> byType(RecipeType<T> type) {
         return recipes.byType(type);
+    }
+
+    /**
+     * @return the synced recipe with the given id, or null if there is none.
+     */
+    @Nullable
+    public static RecipeHolder<?> byKey(ResourceKey<Recipe<?>> key) {
+        return recipes.byKey(key);
     }
 
     public static void onRecipesReceived(RecipesReceivedEvent event) {

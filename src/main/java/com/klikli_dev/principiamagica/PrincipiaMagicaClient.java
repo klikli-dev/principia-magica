@@ -4,6 +4,7 @@
 
 package com.klikli_dev.principiamagica;
 
+import com.klikli_dev.principiamagica.compat.modonomicon.PrincipiaModonomiconPageRenderers;
 import com.klikli_dev.principiamagica.content.golem.client.ClientGolemWorkplaceCache;
 import com.klikli_dev.principiamagica.content.golem.client.ImprintTabletHud;
 import com.klikli_dev.principiamagica.content.golem.client.GolemRenderer;
@@ -58,6 +59,7 @@ public class PrincipiaMagicaClient {
     public PrincipiaMagicaClient(IEventBus modEventBus, ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         GuiStyles.register();
+        modEventBus.addListener(PrincipiaModonomiconPageRenderers::onClientSetup);
 
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterEntityRenderers);
         modEventBus.addListener(PrincipiaMagicaClient::onRegisterMenuScreens);
