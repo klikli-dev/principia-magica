@@ -27,6 +27,7 @@ import com.klikli_dev.principiamagica.registry.EntityDataSerializerRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.GolemMaterialRegistry;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.GlobalPos;
@@ -40,7 +41,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -556,6 +557,11 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         return stack;
     }
 
+    @Override
+    protected SoundEvent getHurtSound(DamageSource source) {
+        return SoundRegistry.GOLEM_HURT.get();
+    }
+
     /**
      * On death the golem drops everything it carries: its inventory, its equipment and its axiom item. The vanilla loot
      * table is replaced, so nothing else is dropped. Discarding the golem (e.g. stylus pickup) does not get here.
@@ -568,7 +574,7 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         Vec3 center = this.position().add(0.0, this.getBbHeight() / 2.0, 0.0);
         level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.CLAY.defaultBlockState()),
                 center.x, center.y, center.z, 40, this.getBbWidth() / 2.0, this.getBbHeight() / 2.0, this.getBbWidth() / 2.0, 0.0);
-        level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.DECORATED_POT_SHATTER, SoundSource.NEUTRAL, 1.0F, 1.0F);
+        level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundRegistry.GOLEM_DEATH.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
 
         Component golemName = GolemItem.createStack(this.getSpec()).getHoverName();
         this.getOwner(level).ifPresent(owner -> owner.sendSystemMessage(Component.translatable("message.principiamagica.golem.destroyed",
@@ -649,6 +655,7 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
         if (!axiom.isEmpty()) {
             player.getInventory().placeItemBackInInventory(axiom);
         }
+        this.level().playSound(null, this.blockPosition(), SoundRegistry.GOLEM_AXIOM_REMOVE.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
         player.sendOverlayMessage(Component.translatable("message.principiamagica.golem.job_removed"));
     }
 
@@ -678,6 +685,8 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
                 ItemStack displaced = this.equipTool(tool);
                 if (displaced == tool) {
                     player.sendOverlayMessage(Component.translatable("message.principiamagica.golem.slots_full"));
+                } else {
+                    this.level().playSound(null, this.blockPosition(), SoundRegistry.GOLEM_EQUIP_TOOL.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
                 }
 
                 if (!displaced.isEmpty()) {

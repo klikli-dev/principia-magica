@@ -11,8 +11,10 @@ import com.klikli_dev.principiamagica.content.golem.job.CommonJobOptions;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -82,13 +84,21 @@ public class PickUpStrayItems extends MoveToAndInteract {
 
     @Override
     protected void interact(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        boolean pickedUp = false;
         for (ItemEntity item : level.getEntitiesOfClass(ItemEntity.class, pickupArea(pos), entity -> canPickUp(golem, entity.getItem()))) {
+            int before = item.getItem().getCount();
             ItemStack remaining = golem.insertCarried(item.getItem());
+            if (remaining.getCount() < before) {
+                pickedUp = true;
+            }
             if (remaining.isEmpty()) {
                 item.discard();
             } else {
                 item.setItem(remaining);
             }
+        }
+        if (pickedUp) {
+            level.playSound(null, golem.blockPosition(), SoundRegistry.GOLEM_PICKUP_ITEM.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
         }
     }
 

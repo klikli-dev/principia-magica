@@ -15,11 +15,13 @@ import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -42,6 +44,7 @@ public class RestockItems extends MoveToAndInteract {
     private static final int COOLDOWN_TICKS = 100;
 
     private final GolemJob job;
+    private @Nullable Container openContainer;
 
     public RestockItems(GolemJob job) {
         super(Map.of(MemoryModuleTypeRegistry.RESTOCK_COOLDOWN.value(), MemoryStatus.VALUE_ABSENT), 0.6F);
@@ -97,6 +100,24 @@ public class RestockItems extends MoveToAndInteract {
     @Override
     protected boolean reserveTarget() {
         return false;
+    }
+
+    @Override
+    protected void startInteraction(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        this.openContainer = ContainerAccess.containerAt(level, pos);
+        if (this.openContainer != null) {
+            golem.setOpenedContainerPos(pos);
+            this.openContainer.startOpen(golem);
+        }
+    }
+
+    @Override
+    protected void stopInteraction(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        if (this.openContainer != null) {
+            this.openContainer.stopOpen(golem);
+            this.openContainer = null;
+        }
+        golem.setOpenedContainerPos(null);
     }
 
     @Override

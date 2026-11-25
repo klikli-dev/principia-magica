@@ -8,6 +8,7 @@ import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
 import com.klikli_dev.principiamagica.registry.PrincipiaMagicaRegistries;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,7 +17,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
@@ -114,7 +114,7 @@ public class AxiomItem extends Item {
         }
 
         level.sendParticles(ParticleTypes.ENCHANT, golem.getX(), golem.getY(0.5), golem.getZ(), 30, 0.4, 0.5, 0.4, 0.2);
-        level.playSound(null, golem.blockPosition(), SoundEvents.DECORATED_POT_INSERT, SoundSource.NEUTRAL, 1.0F, 1.0F);
+        level.playSound(null, golem.blockPosition(), SoundRegistry.GOLEM_AXIOM_INSERT.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
         player.swing(hand);
 
         return InteractionResult.SUCCESS;

@@ -5,9 +5,9 @@
 package com.klikli_dev.principiamagica.content.golem.item;
 
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -47,7 +47,7 @@ public class QuickenedClayItem extends Item {
         }
 
         level.sendParticles(ParticleTypes.HAPPY_VILLAGER, golem.getX(), golem.getY(0.5), golem.getZ(), 8, 0.3, 0.4, 0.3, 0.0);
-        level.playSound(null, golem.blockPosition(), SoundEvents.DECORATED_POT_INSERT, SoundSource.NEUTRAL, 1.0F, 1.2F);
+        level.playSound(null, golem.blockPosition(), SoundRegistry.GOLEM_HEAL.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
         player.swing(hand);
 
         return InteractionResult.SUCCESS;

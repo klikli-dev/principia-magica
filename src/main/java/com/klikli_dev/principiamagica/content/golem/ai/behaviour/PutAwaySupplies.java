@@ -18,12 +18,14 @@ import com.klikli_dev.principiamagica.registry.MemoryModuleTypeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -46,6 +48,8 @@ public class PutAwaySupplies extends MoveToAndInteract {
     /** Pick-up of items is blocked for this long after a last-resort drop, so the golem does not pick its own drop straight up again. */
     private static final int PICKUP_BLOCK_TICKS = 1200;
     private static final int COOLDOWN_TICKS = 100;
+
+    private @Nullable Container openContainer;
 
     public PutAwaySupplies() {
         super(Map.of(MemoryModuleTypeRegistry.DEPOSIT_COOLDOWN.value(), MemoryStatus.VALUE_ABSENT), 0.6F);
@@ -177,5 +181,23 @@ public class PutAwaySupplies extends MoveToAndInteract {
     @Override
     protected boolean reserveTarget() {
         return false;
+    }
+
+    @Override
+    protected void startInteraction(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        this.openContainer = ContainerAccess.containerAt(level, pos);
+        if (this.openContainer != null) {
+            golem.setOpenedContainerPos(pos);
+            this.openContainer.startOpen(golem);
+        }
+    }
+
+    @Override
+    protected void stopInteraction(ServerLevel level, GolemEntity golem, BlockPos pos) {
+        if (this.openContainer != null) {
+            this.openContainer.stopOpen(golem);
+            this.openContainer = null;
+        }
+        golem.setOpenedContainerPos(null);
     }
 }

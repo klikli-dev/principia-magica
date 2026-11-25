@@ -7,8 +7,10 @@ package com.klikli_dev.principiamagica.content.golem.menu;
 import com.klikli_dev.principiamagica.content.golem.entity.GolemEntity;
 import com.klikli_dev.principiamagica.content.golem.item.AxiomItem;
 import com.klikli_dev.principiamagica.content.golem.job.GolemJob;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -83,11 +85,17 @@ final class AxiomContainer implements Container {
 
         this.invalidate();
         if (stack.isEmpty()) {
-            this.golem.takeJob();
+            ItemStack taken = this.golem.takeJob();
+            if (!taken.isEmpty()) {
+                this.golem.level().playSound(null, this.golem.blockPosition(), SoundRegistry.GOLEM_AXIOM_REMOVE.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
+            }
             return;
         }
 
-        AxiomItem.jobOf(stack).ifPresent(job -> this.golem.installJob(job, this.player instanceof ServerPlayer serverPlayer ? serverPlayer : null));
+        AxiomItem.jobOf(stack).ifPresent(job -> {
+            this.golem.installJob(job, this.player instanceof ServerPlayer serverPlayer ? serverPlayer : null);
+            this.golem.level().playSound(null, this.golem.blockPosition(), SoundRegistry.GOLEM_AXIOM_INSERT.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
+        });
     }
 
     @Override
@@ -109,7 +117,11 @@ final class AxiomContainer implements Container {
         }
 
         this.invalidate();
-        return this.golem.takeJob();
+        ItemStack taken = this.golem.takeJob();
+        if (!taken.isEmpty()) {
+            this.golem.level().playSound(null, this.golem.blockPosition(), SoundRegistry.GOLEM_AXIOM_REMOVE.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
+        }
+        return taken;
     }
 
     private void invalidate() {

@@ -22,12 +22,14 @@ import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
@@ -132,6 +134,7 @@ public class GolemItem extends Item implements GeoItem {
         }
 
         serverLevel.addFreshEntity(golem);
+        serverLevel.playSound(null, pos, SoundRegistry.GOLEM_PLACE.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
         if (player instanceof ServerPlayer serverPlayer) {
             GolemProgression.onGolemPlaced(serverPlayer);
         }
