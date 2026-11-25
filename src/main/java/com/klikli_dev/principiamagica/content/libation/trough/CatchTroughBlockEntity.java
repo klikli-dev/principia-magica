@@ -152,7 +152,11 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
             moved = ResourceHandlerUtil.move(handHandler, this.items, resource -> true, 1, transaction);
             transaction.commit();
         }
-        return moved > 0 ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        if (moved > 0) {
+            this.level.playSound(null, this.worldPosition, SoundRegistry.CATCH_TROUGH_PLACE_ITEM.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
     }
 
     /**
@@ -175,6 +179,7 @@ public class CatchTroughBlockEntity extends LibationBlockEntity implements Princ
             PlayerInventoryWrapper.of(player).placeItemBackInInventory(taken.resource(), taken.amount(), transaction);
             transaction.commit();
         }
+        this.level.playSound(null, this.worldPosition, SoundRegistry.CATCH_TROUGH_TAKE_ITEM.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         return InteractionResult.SUCCESS;
     }
 

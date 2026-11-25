@@ -244,6 +244,9 @@ public class CuringVesselBlockEntity extends LibationBlockEntity implements Prin
         BlockState state = this.getBlockState();
         if (state.hasProperty(this.vessel.lid()) && state.getValue(this.vessel.lid()) != this.curing) {
             this.level.setBlock(this.worldPosition, state.setValue(this.vessel.lid(), this.curing), Block.UPDATE_ALL);
+            this.level.playSound(null, this.worldPosition,
+                    this.curing ? SoundRegistry.STEEPING_JAR_LID_CLOSE.get() : SoundRegistry.STEEPING_JAR_LID_OPEN.get(),
+                    SoundSource.BLOCKS, 1.0F, 1.0F);
         }
     }
 

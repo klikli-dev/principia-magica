@@ -11,8 +11,10 @@ import com.klikli_dev.principiamagica.content.principle.PrincipleStack;
 import com.klikli_dev.principiamagica.network.Networking;
 import com.klikli_dev.principiamagica.network.messages.MessageSelectPrinciple;
 import com.klikli_dev.principiamagica.registry.FluidRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.player.Player;
@@ -155,6 +157,7 @@ public final class LibationInput {
         int step = event.getScrollDeltaY() > 0 ? -1 : 1;
         int nextIndex = Math.floorMod(currentIndex + step, stacks.size());
         select(pos, stacks.get(nextIndex).principle());
+        minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundRegistry.PRINCIPLE_SELECT.get(), 1.0F, 1.0F));
     }
 
     private static List<PrincipleStack> snapshotPrinciples(ResourceHandler<FluidResource> handler) {

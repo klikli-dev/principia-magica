@@ -132,7 +132,11 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
             moved = ResourceHandlerUtil.move(handHandler, this.itemCapability, resource -> true, held.getCount(), transaction);
             transaction.commit();
         }
-        return moved > 0 ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        if (moved > 0) {
+            this.level.playSound(null, this.worldPosition, SoundRegistry.DRYING_SLAB_PLACE_ITEM.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
     }
 
     /**
@@ -151,11 +155,15 @@ public class DryingSlabBlockEntity extends LibationBlockEntity {
         if (this.items.getResource(slot).isEmpty()) {
             return InteractionResult.PASS;
         }
+        int extracted;
         try (Transaction transaction = Transaction.open(null)) {
             ItemResource resource = this.items.getResource(slot);
-            int extracted = this.items.extract(slot, resource, this.items.getAmountAsInt(slot), transaction);
+            extracted = this.items.extract(slot, resource, this.items.getAmountAsInt(slot), transaction);
             PlayerInventoryWrapper.of(player).placeItemBackInInventory(resource, extracted, transaction);
             transaction.commit();
+        }
+        if (extracted > 0) {
+            this.level.playSound(null, this.worldPosition, SoundRegistry.DRYING_SLAB_TAKE_ITEM.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         }
         return InteractionResult.SUCCESS;
     }

@@ -6,9 +6,9 @@ package com.klikli_dev.principiamagica.content.libation.spout;
 
 import com.klikli_dev.principiamagica.content.libation.slab.LibationSlabBlockEntity;
 import com.klikli_dev.principiamagica.registry.BlockEntityTypeRegistry;
+import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -58,6 +58,6 @@ public class LibationSpoutBlock extends SpoutBlock {
 
     @Override
     protected void playToggleSound(Level level, BlockPos pos, boolean open) {
-        level.playSound(null, pos, open ? SoundEvents.STONE_BUTTON_CLICK_ON : SoundEvents.STONE_BUTTON_CLICK_OFF, SoundSource.BLOCKS, 0.3F, 1.0F);
+        level.playSound(null, pos, open ? SoundRegistry.LIBATION_SPOUT_OPEN.get() : SoundRegistry.LIBATION_SPOUT_CLOSE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 }

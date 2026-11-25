@@ -251,6 +251,7 @@ public class LibationSlabBlockEntity extends LibationBlockEntity {
             PlayerInventoryWrapper.of(player).placeItemBackInInventory(taken.resource(), taken.amount(), transaction);
             transaction.commit();
         }
+        this.level.playSound(null, this.worldPosition, SoundRegistry.LIBATION_SLAB_TAKE_ITEM.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
         return InteractionResult.SUCCESS;
     }
 
