@@ -83,9 +83,9 @@ public class ScribesPathCategoryProvider extends PrincipiaCategoryProvider {
         this.layout().entry(khemeiaLinkEntry).at(6, 1);
         khemeiaLinkEntry.withParent(principiaEntry);
 
-        var wetClayLinkEntry = this.add(new WetClayLinkEntry(this).generate());
-        this.layout().entry(wetClayLinkEntry).at(7, 1);
-        wetClayLinkEntry.withParent(khemeiaLinkEntry).hideWhileLocked(true);
+        var golemancyLinkEntry = this.add(new GolemancyLinkEntry(this).generate());
+        this.layout().entry(golemancyLinkEntry).at(7, 1);
+        golemancyLinkEntry.withParent(khemeiaLinkEntry).hideWhileLocked(true);
     }
 
     @Override

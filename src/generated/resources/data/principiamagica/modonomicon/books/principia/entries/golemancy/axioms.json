@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:golemancy",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/golemancy_axioms",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.golemancy.axioms.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.golemancy.axioms.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:axiom_of_harvest"
+  },
+  "id": "principiamagica:golemancy/axioms",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.golemancy.axioms.name",
+  "parents": [
+    {
+      "entry": "principiamagica:golemancy/golemancy_intro"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/golemancy_axioms"
+  },
+  "sort_number": 5,
+  "x": 0,
+  "y": 2
+}

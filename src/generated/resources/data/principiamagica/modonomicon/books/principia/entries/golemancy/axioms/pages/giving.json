@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/golemancy_axioms",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/golemancy_axioms/stages/axiom_tablet"
+  },
+  "id": "giving",
+  "show_title_separator": true,
+  "sort_number": 6,
+  "text": "book.principiamagica.principia.golemancy.axioms.giving.text",
+  "title": "book.principiamagica.principia.golemancy.axioms.giving.title"
+}

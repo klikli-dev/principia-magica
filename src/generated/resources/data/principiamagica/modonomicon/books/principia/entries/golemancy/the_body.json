@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:golemancy",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/golemancy_the_body",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.golemancy.the_body.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.golemancy.the_body.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:golem"
+  },
+  "id": "principiamagica:golemancy/the_body",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.golemancy.the_body.name",
+  "parents": [
+    {
+      "entry": "principiamagica:golemancy/golemancy_intro"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/golemancy_the_body"
+  },
+  "sort_number": 1,
+  "x": 2,
+  "y": 0
+}

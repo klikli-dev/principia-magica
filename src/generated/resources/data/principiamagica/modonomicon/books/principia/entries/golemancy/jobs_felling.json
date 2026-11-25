@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:golemancy",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/golemancy_jobs_felling",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.golemancy.jobs_felling.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.golemancy.jobs_felling.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:axiom_of_felling"
+  },
+  "id": "principiamagica:golemancy/jobs_felling",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.golemancy.jobs_felling.name",
+  "parents": [
+    {
+      "entry": "principiamagica:golemancy/axioms"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/golemancy_jobs_felling"
+  },
+  "sort_number": 7,
+  "x": 2,
+  "y": 4
+}

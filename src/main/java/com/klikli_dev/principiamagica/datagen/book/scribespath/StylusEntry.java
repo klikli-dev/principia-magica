@@ -12,8 +12,8 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.BookTextPageModel;
 import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.datagen.book.PrincipiaEntryProvider;
-import com.klikli_dev.principiamagica.datagen.book.wetclay.KudurruEntry;
-import com.klikli_dev.principiamagica.datagen.book.wetclay.WetClayCategoryProvider;
+import com.klikli_dev.principiamagica.datagen.book.golemancy.KudurruEntry;
+import com.klikli_dev.principiamagica.datagen.book.golemancy.GolemancyCategoryProvider;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 
 public class StylusEntry extends PrincipiaEntryProvider {
@@ -46,7 +46,7 @@ public class StylusEntry extends PrincipiaEntryProvider {
         this.pageText("As a crafting tool, the stylus is never consumed: it returns to your grid after every recipe that uses it.\n"
                 + "\\\n\\\n"
                 + "As a configuration tool, it selects a golem, carves, lifts and moves its work boundaries, and links its containers. See "
-                + this.entryLink("Kudurru", WetClayCategoryProvider.CATEGORY_ID, KudurruEntry.ENTRY_ID) + ".");
+                + this.entryLink("Kudurru", GolemancyCategoryProvider.CATEGORY_ID, KudurruEntry.ENTRY_ID) + ".");
     }
 
     @Override

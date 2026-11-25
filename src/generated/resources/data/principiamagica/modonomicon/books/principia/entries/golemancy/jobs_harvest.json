@@ -1,0 +1,42 @@
+{
+  "type": "modonomicon:content",
+  "background": {
+    "height": 26,
+    "sprite": "modonomicon:modonomicon/themes/default/node/entry_backgrounds/square_gold",
+    "width": 26
+  },
+  "category": "principiamagica:golemancy",
+  "condition": {
+    "type": "modonomicon:research_node_unlocked",
+    "node_id": "principiamagica:generated/principia/nodes/entry_viewed_once/golemancy_jobs_harvest",
+    "tooltip": {
+      "translate": "tooltip.modonomicon.condition.entry_unlocked",
+      "with": [
+        {
+          "translate": "book.principiamagica.principia.golemancy.jobs_harvest.name"
+        }
+      ]
+    }
+  },
+  "description": "book.principiamagica.principia.golemancy.jobs_harvest.description",
+  "hide_while_locked": true,
+  "icon": {
+    "id": "principiamagica:axiom_of_harvest"
+  },
+  "id": "principiamagica:golemancy/jobs_harvest",
+  "marker_condition": {
+    "type": "modonomicon:none"
+  },
+  "name": "book.principiamagica.principia.golemancy.jobs_harvest.name",
+  "parents": [
+    {
+      "entry": "principiamagica:golemancy/axioms"
+    }
+  ],
+  "research": {
+    "node": "principiamagica:generated/principia/nodes/entry_research/golemancy_jobs_harvest"
+  },
+  "sort_number": 6,
+  "x": 0,
+  "y": 4
+}

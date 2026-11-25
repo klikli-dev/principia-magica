@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/golemancy_the_body",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/golemancy_the_body/stages/clay_that_stands"
+  },
+  "id": "placing",
+  "show_title_separator": true,
+  "sort_number": 2,
+  "text": "book.principiamagica.principia.golemancy.the_body.placing.text",
+  "title": "book.principiamagica.principia.golemancy.the_body.placing.title"
+}

@@ -1,0 +1,12 @@
+{
+  "type": "modonomicon:viewer_recipe",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/golemancy_axioms",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/golemancy_axioms/stages/axiom_tablet"
+  },
+  "id": "drying_felling",
+  "recipe_id_1": "principiamagica:drying/axiom_of_felling",
+  "sort_number": 5,
+  "title1": "book.principiamagica.principia.golemancy.axioms.drying_felling.title"
+}

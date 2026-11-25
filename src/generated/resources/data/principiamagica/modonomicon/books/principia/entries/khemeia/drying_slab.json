@@ -30,10 +30,10 @@
   "name": "book.principiamagica.principia.khemeia.drying_slab.name",
   "parents": [
     {
-      "entry": "principiamagica:khemeia/steeping_axioms"
+      "entry": "principiamagica:khemeia/light_compounds"
     }
   ],
-  "sort_number": 7,
-  "x": 6,
-  "y": 1
+  "sort_number": 6,
+  "x": 10,
+  "y": 2
 }

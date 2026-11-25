@@ -10,7 +10,7 @@ import com.klikli_dev.modonomicon.client.gui.book.theme.NodeConnectionRendererTy
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.datagen.book.khemeia.KhemeiaCategoryProvider;
 import com.klikli_dev.principiamagica.datagen.book.scribespath.ScribesPathCategoryProvider;
-import com.klikli_dev.principiamagica.datagen.book.wetclay.WetClayCategoryProvider;
+import com.klikli_dev.principiamagica.datagen.book.golemancy.GolemancyCategoryProvider;
 import com.klikli_dev.principiamagica.registry.CreativeModeTabRegistry;
 
 public class PrincipiaBookProvider extends SingleBookSubProvider {
@@ -30,7 +30,7 @@ public class PrincipiaBookProvider extends SingleBookSubProvider {
     protected void generateCategories() {
         this.add(new ScribesPathCategoryProvider(this).generate());
         this.add(new KhemeiaCategoryProvider(this).generate());
-        this.add(new WetClayCategoryProvider(this).generate());
+        this.add(new GolemancyCategoryProvider(this).generate());
     }
 
     @Override

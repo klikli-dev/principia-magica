@@ -12,7 +12,8 @@ import com.klikli_dev.modonomicon.client.gui.book.theme.GuiSprite;
 import com.klikli_dev.principiamagica.PrincipiaMagica;
 import com.klikli_dev.principiamagica.datagen.book.PrincipiaEntryProvider;
 import com.klikli_dev.principiamagica.datagen.book.khemeia.KhemeiaCategoryProvider;
-import com.klikli_dev.principiamagica.datagen.book.khemeia.SteepingAxiomsEntry;
+import com.klikli_dev.principiamagica.datagen.book.golemancy.AxiomEntry;
+import com.klikli_dev.principiamagica.datagen.book.golemancy.GolemancyCategoryProvider;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
 
 public class CatchTroughEntry extends PrincipiaEntryProvider {
@@ -45,7 +46,7 @@ public class CatchTroughEntry extends PrincipiaEntryProvider {
                         + "A clay ball with unguent becomes quickened clay, see "
                         + this.entryLink("Quickened Clay", KhemeiaCategoryProvider.CATEGORY_ID, "quickened_clay")
                         + ". Axioms are steeped in loam or shard, see "
-                        + this.entryLink("Steeping Axioms", KhemeiaCategoryProvider.CATEGORY_ID, SteepingAxiomsEntry.ENTRY_ID) + ".");
+                        + this.entryLink("Processing Axioms", GolemancyCategoryProvider.CATEGORY_ID, AxiomEntry.ENTRY_ID) + ".");
     }
 
     @Override

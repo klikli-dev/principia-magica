@@ -23,42 +23,38 @@ public class KhemeiaCategoryProvider extends PrincipiaCategoryProvider {
 
     @Override
     protected void generateEntries() {
+        // Entries sit on even grid coordinates, so every entry has at least one empty field between it and its neighbours.
         var introEntry = this.add(new KhemeiaIntroEntry(this).generate());
         this.layout().entry(introEntry).at(0, 0);
 
         var steepingJarEntry = this.add(new SteepingJarEntry(this).generate());
-        this.layout().entry(steepingJarEntry).at(1, 0);
+        this.layout().entry(steepingJarEntry).at(2, 0);
         steepingJarEntry.withParent(introEntry).hideWhileLocked(true);
 
         var darkCompoundsEntry = this.add(new DarkCompoundsEntry(this).generate());
-        this.layout().entry(darkCompoundsEntry).at(2, 0);
+        this.layout().entry(darkCompoundsEntry).at(4, 0);
         darkCompoundsEntry.withParent(steepingJarEntry).hideWhileLocked(true);
 
         var quickenedClayEntry = this.add(new QuickenedClayEntry(this).generate());
-        this.layout().entry(quickenedClayEntry).at(3, 0);
+        this.layout().entry(quickenedClayEntry).at(6, 0);
         quickenedClayEntry.withParent(darkCompoundsEntry).hideWhileLocked(true);
 
         var wabetBasinEntry = this.add(new WabetBasinEntry(this).generate());
-        this.layout().entry(wabetBasinEntry).at(3, 1);
+        this.layout().entry(wabetBasinEntry).at(6, 2);
         wabetBasinEntry.withParent(quickenedClayEntry).hideWhileLocked(true);
 
         var lightCompoundsEntry = this.add(new LightCompoundsEntry(this).generate());
-        this.layout().entry(lightCompoundsEntry).at(4, 1);
+        this.layout().entry(lightCompoundsEntry).at(8, 2);
         lightCompoundsEntry.withParent(wabetBasinEntry).hideWhileLocked(true);
 
-        var steepingAxiomsEntry = this.add(new SteepingAxiomsEntry(this).generate());
-        this.layout().entry(steepingAxiomsEntry).at(5, 1);
-        steepingAxiomsEntry.withParent(lightCompoundsEntry).hideWhileLocked(true);
-
         var dryingSlabEntry = this.add(new DryingSlabEntry(this).generate());
-        this.layout().entry(dryingSlabEntry).at(6, 1);
-        dryingSlabEntry.withParent(steepingAxiomsEntry).hideWhileLocked(true);
+        this.layout().entry(dryingSlabEntry).at(10, 2);
+        dryingSlabEntry.withParent(lightCompoundsEntry).hideWhileLocked(true);
 
         var lustralWatersEntry = this.add(new LustralWatersEntry(this).generate());
-        this.layout().entry(lustralWatersEntry).at(7, 1);
+        this.layout().entry(lustralWatersEntry).at(10, 4);
         lustralWatersEntry.withParent(dryingSlabEntry).hideWhileLocked(true);
     }
-
     @Override
     protected String categoryName() {
         return "Khemeia";

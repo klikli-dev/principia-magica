@@ -1,0 +1,13 @@
+{
+  "type": "modonomicon:text",
+  "condition": {
+    "type": "modonomicon:research_stage_completed",
+    "node_id": "principiamagica:generated/principia/nodes/entry_research/golemancy_purpose",
+    "stage_id": "principiamagica:generated/principia/nodes/entry_research/golemancy_purpose/stages/purpose"
+  },
+  "id": "work_area",
+  "show_title_separator": true,
+  "sort_number": 6,
+  "text": "book.principiamagica.principia.golemancy.purpose.work_area.text",
+  "title": "book.principiamagica.principia.golemancy.purpose.work_area.title"
+}

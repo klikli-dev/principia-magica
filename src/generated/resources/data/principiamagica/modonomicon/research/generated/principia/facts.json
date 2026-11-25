@@ -27,9 +27,6 @@
     "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_tablet"
   },
   {
-    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/imprint_tablet"
-  },
-  {
     "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_of_harvest"
   },
   {
@@ -72,7 +69,7 @@
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_natron_sponge"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_wet_clay_link"
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_golemancy_link"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_jar"
@@ -84,31 +81,22 @@
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_lustral_waters"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_flesh_and_clay"
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_the_body"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_axiom_tablet"
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_purpose"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_axioms"
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_care_of_golems"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_the_body"
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_axioms"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_purpose"
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_jobs_harvest"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_care_of_golems"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_imprint_tablet"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_jobs_harvest"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_jobs_felling"
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_jobs_felling"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_khemeia_link"
@@ -126,12 +114,9 @@
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_light_compounds"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_steeping_axioms"
-  },
-  {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/khemeia_drying_slab"
   },
   {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/the_wet_clay_wet_clay"
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_golemancy_intro"
   }
 ]
