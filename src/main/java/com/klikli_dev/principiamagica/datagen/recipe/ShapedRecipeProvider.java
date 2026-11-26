@@ -76,7 +76,7 @@ public class ShapedRecipeProvider implements DataProvider {
         this.woodGolemRecipe(consumer);
 
         this.shaped(consumer, ItemRegistry.COPPER_STYLUS.get(),
-                List.of("  C", " S ", "S  "),
+                List.of("  S", " S ", "C  "),
                 Map.of('C', Items.COPPER_INGOT, 'S', Items.STICK));
 
         this.shaped(consumer, ItemRegistry.LIBATION_SLAB.get(),
