@@ -28,6 +28,11 @@ public class GolemMaterialRegistry {
                     GolemMaterial.modifier(Attributes.MOVEMENT_SPEED, 0.2, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
                     GolemMaterial.modifier(AttributeRegistry.GOLEM_WORK_SPEED, 0.25, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
             ),
-            WOOD_REGEN_INTERVAL));
+            WOOD_REGEN_INTERVAL,
+            new GolemMaterial.Sounds(
+                    SoundRegistry.GOLEM_WOOD_PLACE,
+                    SoundRegistry.GOLEM_WOOD_PICK_UP,
+                    SoundRegistry.GOLEM_WOOD_STEP
+            )));
 
 }

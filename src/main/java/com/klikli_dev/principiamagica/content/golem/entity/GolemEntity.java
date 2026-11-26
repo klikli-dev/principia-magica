@@ -567,7 +567,7 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
 
     @Override
     protected void playStepSound(BlockPos pos, BlockState state) {
-        this.playSound(SoundRegistry.GOLEM_STEP.get(), 1.0F, 1.0F);
+        this.playSound(this.getSpec().material().value().sounds().step().value(), 1.0F, 1.0F);
     }
 
     /**

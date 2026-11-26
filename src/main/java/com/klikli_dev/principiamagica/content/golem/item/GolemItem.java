@@ -22,7 +22,6 @@ import com.klikli_dev.principiamagica.content.golem.workplace.Workplace;
 import com.klikli_dev.principiamagica.registry.DataComponentRegistry;
 import com.klikli_dev.principiamagica.registry.EntityTypeRegistry;
 import com.klikli_dev.principiamagica.registry.ItemRegistry;
-import com.klikli_dev.principiamagica.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -134,7 +133,7 @@ public class GolemItem extends Item implements GeoItem {
         }
 
         serverLevel.addFreshEntity(golem);
-        serverLevel.playSound(null, pos, SoundRegistry.GOLEM_PLACE.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
+        serverLevel.playSound(null, pos, spec.material().value().sounds().place().value(), SoundSource.NEUTRAL, 1.0F, 1.0F);
         if (player instanceof ServerPlayer serverPlayer) {
             GolemProgression.onGolemPlaced(serverPlayer);
         }

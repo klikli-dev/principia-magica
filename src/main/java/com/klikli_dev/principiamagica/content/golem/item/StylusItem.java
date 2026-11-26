@@ -315,7 +315,7 @@ public class StylusItem extends Item {
         ItemStack stack = golem.toItemStack();
         stack.set(DataComponentRegistry.GOLEM_WORKPLACE.get(), StylusActions.stampDimension(workplace, level.dimension()));
 
-        level.playSound(null, golem.blockPosition(), SoundRegistry.GOLEM_PICK_UP.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
+        level.playSound(null, golem.blockPosition(), golem.getSpec().material().value().sounds().pickUp().value(), SoundSource.NEUTRAL, 1.0F, 1.0F);
         golem.discard();
         player.getInventory().placeItemBackInInventory(stack);
         player.sendOverlayMessage(Component.translatable("message.principiamagica.stylus.picked_up"));

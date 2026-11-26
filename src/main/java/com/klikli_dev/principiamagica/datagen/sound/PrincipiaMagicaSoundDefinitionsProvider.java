@@ -259,6 +259,18 @@ public class PrincipiaMagicaSoundDefinitionsProvider extends SoundDefinitionsPro
         add(SoundRegistry.IMPRINT_TABLET_CLEAR, definition()
                 .subtitle("subtitles.principiamagica.imprint_tablet.clear")
                 .with(event(SoundEvents.CALCITE_BREAK).volume(0.7F).pitch(1.1F)));
+
+        add(SoundRegistry.GOLEM_WOOD_PLACE, definition()
+                .subtitle("subtitles.principiamagica.golem.wood.place")
+                .with(event(SoundEvents.WOOD_PLACE)));
+
+        add(SoundRegistry.GOLEM_WOOD_PICK_UP, definition()
+                .subtitle("subtitles.principiamagica.golem.wood.pick_up")
+                .with(event(SoundEvents.WOOD_PLACE).volume(0.8F).pitch(1.25F)));
+
+        add(SoundRegistry.GOLEM_WOOD_STEP, definition()
+                .subtitle("subtitles.principiamagica.golem.wood.step")
+                .with(event(SoundEvents.WOOD_STEP).volume(0.25F)));
     }
 
     private static SoundDefinition.Sound event(SoundEvent sound) {
