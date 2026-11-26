@@ -32,9 +32,7 @@ public class PrincipiaEntry extends PrincipiaEntryProvider {
         this.recipeTab("recipe", "Principia", BookCraftingRecipePageModel.create()
                 .withRecipeId1(PrincipiaMagica.loc("principia")));
 
-        this.stage("book", s -> s
-                .title("The Principia")
-                .obtain(ItemRegistry.PRINCIPIA.get()));
+
     }
 
     @Override

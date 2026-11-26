@@ -3,9 +3,6 @@
     "id": "principiamagica:generated/principia/facts/item_crafted/principiamagica/copper_stylus"
   },
   {
-    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/principia"
-  },
-  {
     "id": "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh"
   },
   {
@@ -31,9 +28,6 @@
   },
   {
     "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_of_felling"
-  },
-  {
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_the_stylus"
@@ -94,6 +88,9 @@
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_jobs_felling"
+  },
+  {
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia"
   },
   {
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_khemeia_link"

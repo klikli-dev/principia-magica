@@ -6,12 +6,6 @@
     ]
   },
   {
-    "id": "principiamagica:generated/principia/nodes/item_acquired/principiamagica/principia",
-    "required_facts": [
-      "principiamagica:generated/principia/facts/item_acquired/principiamagica/principia"
-    ]
-  },
-  {
     "id": "principiamagica:generated/principia/nodes/item_acquired/minecraft/rotten_flesh",
     "required_facts": [
       "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh"
@@ -63,28 +57,6 @@
     "id": "principiamagica:generated/principia/nodes/item_acquired/principiamagica/axiom_of_felling",
     "required_facts": [
       "principiamagica:generated/principia/facts/item_acquired/principiamagica/axiom_of_felling"
-    ]
-  },
-  {
-    "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia",
-    "required_facts": [
-      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia"
-    ],
-    "stages": [
-      {
-        "display": {
-          "icon": {
-            "id": "principiamagica:principia"
-          },
-          "title": {
-            "translate": "book.principiamagica.principia.scribes_path.principia.stage.book.title"
-          }
-        },
-        "id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia/stages/book",
-        "required_facts": [
-          "principiamagica:generated/principia/facts/item_acquired/principiamagica/principia"
-        ]
-      }
     ]
   },
   {
@@ -526,11 +498,8 @@
   },
   {
     "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_the_stylus",
-    "required_stages": [
-      {
-        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia",
-        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia/stages/book"
-      }
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia"
     ]
   },
   {
@@ -544,20 +513,14 @@
   },
   {
     "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_something_remains",
-    "required_stages": [
-      {
-        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia",
-        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia/stages/book"
-      }
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia"
     ]
   },
   {
     "id": "principiamagica:generated/principia/nodes/entry_viewed_once/scribes_path_libation_slab",
-    "required_stages": [
-      {
-        "node_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia",
-        "stage_id": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia/stages/book"
-      }
+    "required_facts": [
+      "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia"
     ]
   },
   {

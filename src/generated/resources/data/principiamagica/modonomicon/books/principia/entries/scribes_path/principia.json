@@ -18,9 +18,6 @@
     "type": "modonomicon:none"
   },
   "name": "book.principiamagica.principia.scribes_path.principia.name",
-  "research": {
-    "node": "principiamagica:generated/principia/nodes/entry_research/scribes_path_principia"
-  },
   "sort_number": 0,
   "x": 0,
   "y": 0

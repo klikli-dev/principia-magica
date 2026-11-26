@@ -8,14 +8,6 @@
     "trigger_type": "modonomicon:item_crafted"
   },
   {
-    "fact_id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/principia",
-    "id": "principiamagica:generated/principia/facts/item_acquired/principiamagica/principia_hook",
-    "trigger_target": {
-      "id": "principiamagica:principia"
-    },
-    "trigger_type": "modonomicon:item_acquired"
-  },
-  {
     "fact_id": "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh",
     "id": "principiamagica:generated/principia/facts/item_acquired/minecraft/rotten_flesh_hook",
     "trigger_target": {
@@ -86,12 +78,6 @@
       "id": "principiamagica:axiom_of_felling"
     },
     "trigger_type": "modonomicon:item_acquired"
-  },
-  {
-    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia",
-    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia_hook",
-    "trigger_target": "principiamagica:scribes_path/principia",
-    "trigger_type": "modonomicon:entry_viewed_once"
   },
   {
     "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_the_stylus",
@@ -211,6 +197,12 @@
     "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_jobs_felling",
     "id": "principiamagica:generated/principia/facts/entry_viewed_once/golemancy_jobs_felling_hook",
     "trigger_target": "principiamagica:golemancy/jobs_felling",
+    "trigger_type": "modonomicon:entry_viewed_once"
+  },
+  {
+    "fact_id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia",
+    "id": "principiamagica:generated/principia/facts/entry_viewed_once/scribes_path_principia_hook",
+    "trigger_target": "principiamagica:scribes_path/principia",
     "trigger_type": "modonomicon:entry_viewed_once"
   },
   {
