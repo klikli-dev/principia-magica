@@ -164,16 +164,6 @@
     ],
     "subtitle": "subtitles.principiamagica.golem.place"
   },
-  "golem.step": {
-    "sounds": [
-      {
-        "type": "event",
-        "name": "block.decorated_pot.step",
-        "volume": 0.25
-      }
-    ],
-    "subtitle": "subtitles.principiamagica.golem.step"
-  },
   "golem.tool_stow": {
     "sounds": [
       {
@@ -213,16 +203,6 @@
       }
     ],
     "subtitle": "subtitles.principiamagica.golem.wood.place"
-  },
-  "golem.wood.step": {
-    "sounds": [
-      {
-        "type": "event",
-        "name": "block.wood.step",
-        "volume": 0.25
-      }
-    ],
-    "subtitle": "subtitles.principiamagica.golem.wood.step"
   },
   "imprint_tablet.clear": {
     "sounds": [
