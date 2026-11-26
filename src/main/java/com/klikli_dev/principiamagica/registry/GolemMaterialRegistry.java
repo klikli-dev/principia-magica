@@ -31,8 +31,7 @@ public class GolemMaterialRegistry {
             WOOD_REGEN_INTERVAL,
             new GolemMaterial.Sounds(
                     SoundRegistry.GOLEM_WOOD_PLACE,
-                    SoundRegistry.GOLEM_WOOD_PICK_UP,
-                    SoundRegistry.GOLEM_WOOD_STEP
+                    SoundRegistry.GOLEM_WOOD_PICK_UP
             )));
 
 }

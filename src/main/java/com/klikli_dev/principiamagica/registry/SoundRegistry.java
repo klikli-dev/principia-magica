@@ -46,12 +46,10 @@ public class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_AXIOM_REMOVE = register("golem.axiom_remove");
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_EQUIP_TOOL = register("golem.equip_tool");
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_PICKUP_ITEM = register("golem.pickup_item");
-    public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_STEP = register("golem.step");
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_TOOL_STOW = register("golem.tool_stow");
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_TOOL_UNSTOW = register("golem.tool_unstow");
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_WOOD_PLACE = register("golem.wood.place");
     public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_WOOD_PICK_UP = register("golem.wood.pick_up");
-    public static final DeferredHolder<SoundEvent, SoundEvent> GOLEM_WOOD_STEP = register("golem.wood.step");
 
     public static final DeferredHolder<SoundEvent, SoundEvent> IMPRINT_TABLET_COPY = register("imprint_tablet.copy");
     public static final DeferredHolder<SoundEvent, SoundEvent> IMPRINT_TABLET_PASTE = register("imprint_tablet.paste");

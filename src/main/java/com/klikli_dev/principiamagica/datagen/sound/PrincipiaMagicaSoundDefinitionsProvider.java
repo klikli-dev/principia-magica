@@ -236,10 +236,6 @@ public class PrincipiaMagicaSoundDefinitionsProvider extends SoundDefinitionsPro
                 .subtitle("subtitles.principiamagica.spout.drip")
                 .with(event(SoundEvents.POINTED_DRIPSTONE_DRIP_WATER_INTO_CAULDRON).volume(0.2F)));
 
-        add(SoundRegistry.GOLEM_STEP, definition()
-                .subtitle("subtitles.principiamagica.golem.step")
-                .with(event(SoundEvents.DECORATED_POT_STEP).volume(0.25F)));
-
         add(SoundRegistry.GOLEM_TOOL_STOW, definition()
                 .subtitle("subtitles.principiamagica.golem.tool_stow")
                 .with(event(SoundEvents.BUNDLE_INSERT).volume(0.35F)));
@@ -267,10 +263,6 @@ public class PrincipiaMagicaSoundDefinitionsProvider extends SoundDefinitionsPro
         add(SoundRegistry.GOLEM_WOOD_PICK_UP, definition()
                 .subtitle("subtitles.principiamagica.golem.wood.pick_up")
                 .with(event(SoundEvents.WOOD_PLACE).volume(0.8F).pitch(1.25F)));
-
-        add(SoundRegistry.GOLEM_WOOD_STEP, definition()
-                .subtitle("subtitles.principiamagica.golem.wood.step")
-                .with(event(SoundEvents.WOOD_STEP).volume(0.25F)));
     }
 
     private static SoundDefinition.Sound event(SoundEvent sound) {

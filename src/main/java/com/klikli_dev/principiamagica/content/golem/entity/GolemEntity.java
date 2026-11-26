@@ -62,7 +62,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
@@ -566,8 +565,8 @@ public class GolemEntity extends AbstractGolem implements GeoEntity, ContainerUs
     }
 
     @Override
-    protected void playStepSound(BlockPos pos, BlockState state) {
-        this.playSound(this.getSpec().material().value().sounds().step().value(), 1.0F, 1.0F);
+    protected MovementEmission getMovementEmission() {
+        return MovementEmission.EVENTS;
     }
 
     /**

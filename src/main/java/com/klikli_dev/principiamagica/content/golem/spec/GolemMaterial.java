@@ -25,11 +25,10 @@ import java.util.function.BiConsumer;
  */
 public record GolemMaterial(Identifier texture, List<ModifierEntry> modifiers, int regenInterval, Sounds sounds) {
 
-    public record Sounds(Holder<SoundEvent> place, Holder<SoundEvent> pickUp, Holder<SoundEvent> step) {
+    public record Sounds(Holder<SoundEvent> place, Holder<SoundEvent> pickUp) {
         public static final Sounds DEFAULT = new Sounds(
                 SoundRegistry.GOLEM_PLACE,
-                SoundRegistry.GOLEM_PICK_UP,
-                SoundRegistry.GOLEM_STEP
+                SoundRegistry.GOLEM_PICK_UP
         );
     }
 
