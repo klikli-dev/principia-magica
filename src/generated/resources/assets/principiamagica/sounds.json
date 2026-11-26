@@ -194,6 +194,36 @@
     ],
     "subtitle": "subtitles.principiamagica.golem.tool_unstow"
   },
+  "golem.wood.pick_up": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.wood.place",
+        "pitch": 1.25,
+        "volume": 0.8
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.wood.pick_up"
+  },
+  "golem.wood.place": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.wood.place"
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.wood.place"
+  },
+  "golem.wood.step": {
+    "sounds": [
+      {
+        "type": "event",
+        "name": "block.wood.step",
+        "volume": 0.25
+      }
+    ],
+    "subtitle": "subtitles.principiamagica.golem.wood.step"
+  },
   "imprint_tablet.clear": {
     "sounds": [
       {
